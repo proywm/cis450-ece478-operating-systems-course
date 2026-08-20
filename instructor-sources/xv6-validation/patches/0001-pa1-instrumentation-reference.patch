@@ -1,0 +1,76 @@
+diff --git a/Makefile b/Makefile
+index 09d790c..f4ef157 100644
+--- a/Makefile
++++ b/Makefile
+@@ -166,6 +166,7 @@ mkfs: mkfs.c fs.h
+ .PRECIOUS: %.o
+ 
+ UPROGS=\
++	_spin\
+ 	_cat\
+ 	_echo\
+ 	_forktest\
+diff --git a/proc.c b/proc.c
+index 806b1b1..29d5809 100644
+--- a/proc.c
++++ b/proc.c
+@@ -88,6 +88,8 @@ allocproc(void)
+ found:
+   p->state = EMBRYO;
+   p->pid = nextpid++;
++  p->queuetype = 0;
++  p->quantumsize = 4;
+ 
+   release(&ptable.lock);
+ 
+@@ -343,6 +345,10 @@ scheduler(void)
+       switchuvm(p);
+       p->state = RUNNING;
+ 
++      if(strncmp(p->name, "spin", sizeof(p->name)) == 0)
++        cprintf("Process %s is of Process ID %d, Queue Type %d, and Quantum Size %d\n",
++                p->name, p->pid, p->queuetype, p->quantumsize);
++
+       swtch(&(c->scheduler), p->context);
+       switchkvm();
+ 
+diff --git a/proc.h b/proc.h
+index 1647114..4bc0a06 100644
+--- a/proc.h
++++ b/proc.h
+@@ -46,6 +46,8 @@ struct proc {
+   struct context *context;     // swtch() here to run process
+   void *chan;                  // If non-zero, sleeping on chan
+   int killed;                  // If non-zero, have been killed
++  int queuetype;               // Scheduler queue type (PA1/P2 scaffold)
++  int quantumsize;             // Remaining timer ticks in the queue
+   struct file *ofile[NOFILE];  // Open files
+   struct inode *cwd;           // Current directory
+   char name[16];               // Process name (debugging)
+diff --git a/spin.c b/spin.c
+new file mode 100644
+index 0000000..ff082d9
+--- /dev/null
++++ b/spin.c
+@@ -0,0 +1,20 @@
++#include "types.h"
++#include "user.h"
++
++int
++main(int argc, char *argv[])
++{
++  int i;
++  volatile int x = 0;
++
++  if(argc != 2){
++    printf(2, "usage: spin positive-iterations\n");
++    exit();
++  }
++
++  for(i = 1; i < atoi(argv[1]); i++)
++    x++;
++
++  printf(1, "pid(%d): x = %d\n", getpid(), x);
++  exit();
++}
+

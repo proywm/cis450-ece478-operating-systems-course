@@ -15,6 +15,10 @@ and not a copy of the CIS 310 content.
   carried forward, or intentionally left to Canvas
 - [`docs/STUDENT_AUDIT.md`](docs/STUDENT_AUDIT.md) — student-facing usability,
   accessibility, and academic-integrity audit
+- [`docs/CIS310_FEATURE_PARITY_AUDIT.md`](docs/CIS310_FEATURE_PARITY_AUDIT.md)
+  — equivalent learning surfaces and intentional OS-specific differences
+- [`docs/REFERENCE_EXECUTION_AUDIT.md`](docs/REFERENCE_EXECUTION_AUDIT.md) —
+  completed internal reference execution, including actual xv6/QEMU results
 
 ## Verified Fall 2026 facts
 
@@ -33,8 +37,28 @@ The link is configurable after the instructor verifies the direct course URL.
 The extension now includes 104 source-grounded questions, five-question
 practice with spaced review and analytics, thirteen executable guided lab
 starters, a self-paced walkthrough, coursework evidence planning, guarded local
-help, and reviewed-before-save Canvas calendar import. All learning indicators
-are private self-evaluation and remain separate from Canvas grades.
+help, and reviewed-before-save Canvas calendar import. A generated portable
+workspace supplies one visible Linux container recipe and fixed HW1/HW2/HW3/PA3
+preflights on Windows, macOS, and Linux. All learning indicators are private
+self-evaluation and remain separate from Canvas grades.
+
+The release suite compiles/runs all 13 public starters and 13 completed
+internal-only references, then executes seven coursework reference suites.
+Internal references are excluded from the student VSIX and are not current
+assignment answers.
+
+The common route requires an installed, running Docker engine. The extension
+diagnoses that prerequisite and links official OS-specific setup instructions;
+it does not silently install Docker or change administrator/virtualization
+settings. Linux/macOS students with Python 3, Make, and a POSIX C compiler may
+also run the transparent native convenience route.
+
+The xv6 release suite additionally clones the official MIT x86 source at an
+exact commit, clean-builds and boots it in QEMU, executes the historical PA1B
+instrumentation, executes a known-good simplified FQ/AQ/EQ PA2 scheduler, and
+runs the full upstream `usertests`. Student setup and behavioral tests are
+bundled; the known-good kernel patches stay under `instructor-sources/` and are
+rejected by the VSIX boundary audit.
 
 ## Build
 

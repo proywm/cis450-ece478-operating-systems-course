@@ -303,16 +303,17 @@ export interface CourseworkItem {
   modules: readonly number[];
   evidence: readonly string[];
   expectedExtensions: readonly string[];
+  practiceLabIds: readonly string[];
 }
 
 export const COURSEWORK: readonly CourseworkItem[] = [
-  { id: 'hw1', kind: 'Homework', title: 'Homework 1 · CPU Virtualization and Scheduling', focus: 'Processes, restricted execution, scheduling metrics, MLFQ, and simulator reasoning.', modules: [2, 3], evidence: ['Show calculations, not only final numbers.', 'Include simulator commands and reconcile manual work.', 'Submit only the format required by the current Canvas assignment.'], expectedExtensions: ['pdf', 'docx', 'md', 'txt'] },
-  { id: 'pa1a', kind: 'Programming', title: 'Programming 1A · Reproducible xv6 Environment', focus: 'Build/run xv6 and document a portable development workflow.', modules: [1, 2], evidence: ['Successful clean build and xv6 boot.', 'Versioned environment evidence.', 'Troubleshooting record and contribution statement if Canvas permits a team.'], expectedExtensions: ['c', 'h', 'patch', 'diff', 'txt', 'md', 'pdf', 'zip', 'tar', 'gz'] },
-  { id: 'pa1b', kind: 'Programming', title: 'Programming 1B · Process Instrumentation', focus: 'Add and observe a user process and selected process-control-block state.', modules: [2, 3], evidence: ['Small, explainable code changes.', 'Expected versus observed trace.', 'Every change identified in the report.'], expectedExtensions: ['c', 'h', 'patch', 'diff', 'txt', 'md', 'pdf', 'zip', 'tar', 'gz'] },
-  { id: 'hw2', kind: 'Homework', title: 'Homework 2 · Memory Virtualization', focus: 'Segmentation, paging, TLBs, effective access time, and replacement.', modules: [4, 5, 6], evidence: ['Label VPN/offset/PFN arithmetic.', 'Show each effective-access-time probability term.', 'Provide frame-by-frame replacement traces.'], expectedExtensions: ['pdf', 'docx', 'md', 'txt'] },
-  { id: 'pa2', kind: 'Programming', title: 'Programming 2 · xv6 Scheduler', focus: 'Design, implement, and test a simplified scheduler modification.', modules: [3], evidence: ['State queue invariants before coding.', 'Use targeted kernel logging.', 'Explain behavior rather than pasting output.', 'Fall 2026 specification and deadline come from Canvas.'], expectedExtensions: ['c', 'h', 'patch', 'diff', 'txt', 'md', 'pdf', 'zip', 'tar', 'gz'] },
-  { id: 'hw3', kind: 'Homework', title: 'Homework 3 · Concurrency', focus: 'Threads, races, locks, condition variables, semaphores, and deadlock.', modules: [7, 8, 9, 10], evidence: ['Name shared state and invariants.', 'Trace at least one harmful interleaving.', 'Separate safety from liveness claims.'], expectedExtensions: ['pdf', 'docx', 'md', 'txt'] },
-  { id: 'pa3', kind: 'Programming', title: 'Programming 3 · Synchronization System', focus: 'Coordinate concurrent actors with pthread locks and semaphores; historical source used traffic control.', modules: [7, 8, 9, 10], evidence: ['Deterministic test scenarios where possible.', 'Timestamped event trace.', 'Safety and progress argument.', 'Fall 2026 specification and deadline come from Canvas.'], expectedExtensions: ['c', 'h', 'patch', 'diff', 'txt', 'md', 'pdf', 'zip', 'tar', 'gz'] }
+  { id: 'hw1', kind: 'Homework', title: 'Homework 1 · CPU Virtualization and Scheduling', focus: 'Processes, restricted execution, scheduling metrics, MLFQ, and simulator reasoning.', modules: [2, 3], evidence: ['Show calculations, not only final numbers.', 'Include simulator commands and reconcile manual work.', 'Submit only the format required by the current Canvas assignment.'], expectedExtensions: ['pdf', 'docx', 'md', 'txt'], practiceLabIds: ['process-api', 'scheduler-trace'] },
+  { id: 'pa1a', kind: 'Programming', title: 'Programming 1A · Reproducible xv6 Environment', focus: 'Build and boot a pinned official x86 xv6 reference, then document a reproducible workflow; compare the active Canvas specification before assessed work.', modules: [1, 2], evidence: ['Run the PA1A preflight from a clean tree and reach the xv6 shell.', 'Record the exact source commit, execution route, and environment versions.', 'Explain one observed failure/repair and contribution statement if Canvas permits a team.'], expectedExtensions: ['c', 'h', 'patch', 'diff', 'txt', 'md', 'pdf', 'zip', 'tar', 'gz'], practiceLabIds: ['environment-evidence'] },
+  { id: 'pa1b', kind: 'Programming', title: 'Programming 1B · Process Instrumentation', focus: 'Add and observe a user process and selected process-control-block state in the verified x86 xv6 reference; Canvas controls the active fields and output.', modules: [2, 3], evidence: ['Keep the spin workload observable under -O2 and make small, explainable kernel changes.', 'Run the PA1B preflight and compare expected versus observed PCB/runtime evidence.', 'Identify every changed file and explain why each change is needed.'], expectedExtensions: ['c', 'h', 'patch', 'diff', 'txt', 'md', 'pdf', 'zip', 'tar', 'gz'], practiceLabIds: ['process-api'] },
+  { id: 'hw2', kind: 'Homework', title: 'Homework 2 · Memory Virtualization', focus: 'Segmentation, paging, TLBs, effective access time, and replacement.', modules: [4, 5, 6], evidence: ['Label VPN/offset/PFN arithmetic.', 'Show each effective-access-time probability term.', 'Provide frame-by-frame replacement traces.'], expectedExtensions: ['pdf', 'docx', 'md', 'txt'], practiceLabIds: ['relocation-segmentation', 'paging-tlb', 'replacement'] },
+  { id: 'pa2', kind: 'Programming', title: 'Programming 2 · xv6 Scheduler', focus: 'Design, implement, and behaviorally test the historical simplified FQ/AQ/EQ scheduler reference; verify the current Fall 2026 policy in Canvas.', modules: [3], evidence: ['State queue membership, transition, locking, and time-accounting invariants before coding.', 'Run the PA2 QEMU preflight: distinct FQ service, three-tick AQ chunks, process completion, and upstream usertests.', 'Explain behavior and limitations rather than pasting output.', 'Fall 2026 specification, source revision, tests, and deadline come from Canvas.'], expectedExtensions: ['c', 'h', 'patch', 'diff', 'txt', 'md', 'pdf', 'zip', 'tar', 'gz'], practiceLabIds: ['scheduler-trace'] },
+  { id: 'hw3', kind: 'Homework', title: 'Homework 3 · Concurrency', focus: 'Threads, races, locks, condition variables, semaphores, and deadlock.', modules: [7, 8, 9, 10], evidence: ['Name shared state and invariants.', 'Trace at least one harmful interleaving.', 'Separate safety from liveness claims.'], expectedExtensions: ['pdf', 'docx', 'md', 'txt'], practiceLabIds: ['thread-race', 'lock-invariant', 'condition-buffer', 'deadlock-order'] },
+  { id: 'pa3', kind: 'Programming', title: 'Programming 3 · Synchronization System', focus: 'Coordinate concurrent actors with pthread locks and semaphores; historical source used traffic control.', modules: [7, 8, 9, 10], evidence: ['Deterministic test scenarios where possible.', 'Timestamped event trace.', 'Safety and progress argument.', 'Fall 2026 specification and deadline come from Canvas.'], expectedExtensions: ['c', 'h', 'patch', 'diff', 'txt', 'md', 'pdf', 'zip', 'tar', 'gz'], practiceLabIds: ['lock-invariant', 'condition-buffer', 'deadlock-order'] }
 ] as const;
 
 export const SOURCE_BOUNDARIES = {
@@ -322,14 +323,23 @@ export const SOURCE_BOUNDARIES = {
     'Mondays and Wednesdays, 2:00–3:45 p.m., CASL 1048',
     'No GSI or grader is currently assigned or confirmed; check Canvas and department announcements for updates.'
   ],
+  verifiedReference: [
+    'Public HW1/HW2/HW3/PA3 prerequisite runner executed all mapped formative C/pthread and Python analogs',
+    'One visible linux/amd64 Ubuntu container recipe supplies the common Windows/macOS/Linux course toolchain; Docker remains an explicit host prerequisite',
+    'Official MIT x86 xv6-public pinned at commit eeb7b415dbcb12cc362d0783e41c3d1f44066b17',
+    'Historical Winter 2026 PA1A/PA1B and simplified FQ/AQ/EQ PA2 behavior executed in QEMU',
+    'Known-good PA2 reference passed deterministic one-CPU assertions and full upstream usertests on one and two CPUs',
+    'Private known-good patches are retained for instructor audit and excluded from the student VSIX'
+  ],
   historicalPolicy: [
     'Winter 2026 syllabus: participation 10%, homework 15%, programming 40%, exams 35% (midterm 15%, final 20%)',
     'Three homework assignments and four programming components',
-    'OSTEP required and free online; xv6 recommended for projects'
+    'OSTEP required and free online; the historical assignments used x86 xv6-public'
   ],
   canvasOnly: [
     'Fall 2026 assignment wording, release dates, deadlines, submission types, team rules, and late policy',
     'Direct Fall 2026 course URL',
+    'Whether Fall 2026 uses the pinned xv6 reference or a different revision/specification',
     'Exam dates, office hours, grading-policy changes, official grades, and any future GSI or grader assignment'
   ]
 } as const;

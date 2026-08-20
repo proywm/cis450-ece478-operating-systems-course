@@ -54,11 +54,16 @@ persistence. By the end of the course, students should be able to:
 - **Required, free online:** Remzi H. Arpaci-Dusseau and Andrea C.
   Arpaci-Dusseau, *Operating Systems: Three Easy Pieces* (OSTEP),
   <https://pages.cs.wisc.edu/~remzi/OSTEP/>.
-- A computer capable of running VS Code and the course's Docker-based lab
-  environment. The exact xv6 revision and project image will be stated in
-  Canvas before assessed use.
+- A computer capable of running VS Code and the course's visible Linux
+  container through Docker on Windows, macOS, or Linux. Linux/macOS students
+  may also use an already-installed native POSIX toolchain. The extension does
+  not silently install Docker or change administrator settings. It provides a
+  verified historical reference based on official MIT x86 `xv6-public` commit
+  `eeb7b415dbcb12cc362d0783e41c3d1f44066b17`. Canvas will state whether the
+  active Fall 2026 assignment uses that revision or another source/image.
 - C and Unix command-line background. The course extension includes a setup
-  check, portable workspace, small demonstrations, and practice activities.
+  check, portable workspace, fixed solution-free preflights for HW1, HW2, HW3,
+  and PA3, small demonstrations, and practice activities.
 
 Contact the instructor early if the required environment is inaccessible;
 do not wait until an assignment deadline.
@@ -117,6 +122,12 @@ item controls.
 
 These are planning titles grounded in recent offerings. Canvas will contain the
 official Fall 2026 specifications and due dates.
+
+For preparation, the extension can create a solution-free pinned xv6 workspace
+and run local QEMU preflights for the historical PA1A, PA1B, and simplified
+FQ/AQ/EQ scheduler behaviors. The known-good release reference passes the full
+upstream xv6 `usertests` suite. These checks are formative: they do not upload,
+submit, grade, or replace the current Canvas prompt or instructor evaluation.
 
 ## Feedback and help
 

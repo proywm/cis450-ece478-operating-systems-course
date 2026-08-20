@@ -13,3 +13,16 @@ Evidence check: state diagram, shared-state table, lock/semaphore rationale,
 event trace, safety argument, progress argument, repeatable build/run command,
 and contribution record when a team is authorized.
 
+## Executable formative route
+
+Use the **lock invariant**, **bounded buffer**, and **deadlock ordering** guided
+labs. Their internal references are repeatedly compiled/run, but are not
+distributed to students. The historical traffic scenario may change, so the
+extension does not claim these small analogs solve the current Canvas project.
+
+Create the portable coursework workspace once, then choose **Run Portable
+Coursework Preflight → PA3**. The supplied Linux container gives every student
+the same C/pthread runtime on Windows, macOS, and Linux and runs the race,
+invariant, condition-variable, and finite-deadlock analogs. This validates the
+environment and prerequisite behaviors only; it cannot validate an unannounced
+Fall 2026 interface or rubric.

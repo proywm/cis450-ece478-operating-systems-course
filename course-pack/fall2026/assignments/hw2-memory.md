@@ -11,3 +11,14 @@ Evidence check: label every bit field and unit, show translation arithmetic,
 distinguish TLB miss from page fault, show probability terms, and include a
 frame-by-frame replacement trace rather than only a fault count.
 
+## Executable formative route
+
+Use the **relocation and segmentation**, **paging and TLB**, and **page
+replacement** guided labs. Their completed internal references check boundary
+faults, PTE/TLB behavior, and FIFO/LRU traces. Effective-access-time derivation
+and the current Canvas questions remain manual work.
+
+Create the portable coursework workspace once, then choose **Run Portable
+Coursework Preflight → HW2**. The same supplied Python runtime executes the
+translation, paging, and replacement analogs on Windows, macOS, and Linux;
+students do not need to assemble separate per-homework environments.

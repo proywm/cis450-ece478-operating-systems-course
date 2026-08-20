@@ -2,12 +2,19 @@
 
 ## Release verification — 2026-08-20
 
-- TypeScript, 27 automated content/safety tests, compiled webview JavaScript,
+- TypeScript, 38 automated content/safety/accessibility tests, compiled webview JavaScript,
   CSP-compatible event wiring, accessible-export checks, and VSIX packaging
   passed.
 - All 13 generated starters were created in disposable directories and their
   declared C, Python, or shell workflow ran successfully. The portable root C
   starter and `docker compose config --quiet` also passed.
+- All 13 completed internal references ran successfully, and seven coursework
+  suites reran 15 mapped executable checks. C references compiled with strict
+  warnings as errors. Package auditing excludes every internal reference.
+- The release cloned the exact official MIT x86 xv6 commit, clean-built and
+  booted it in QEMU, executed the private known-good PA1B reference, executed
+  the private known-good PA2 FQ/AQ/EQ scheduler, and completed full upstream
+  `usertests`. A separate clean two-CPU run also completed full `usertests`.
 - The generated Dockerfile has exact syntax/content assertions and no stray
   patch-marker commands. A daemon-backed `docker build --check` could not run
   because this node cannot access the Docker socket; a clean host/container
@@ -31,6 +38,15 @@
 - The environment checker is non-mutating. Workspace creation is explicit,
   refuses to overwrite an existing destination, and exposes the Docker recipe
   for review.
+- HW1, HW2, HW3, and PA3 each have a per-card prerequisite-preflight action.
+  A manifest prevents the extension from running these commands in an
+  unrelated workspace. Docker is the common Windows/macOS/Linux route; native
+  execution is offered only on detected POSIX hosts. The fixed Python runner
+  invokes no shell and runs only bundled formative analogs.
+- The xv6 generator verifies an exact official commit, adds only public
+  compatibility/setup/preflight files, records a solution-free baseline, and
+  refuses to overwrite a destination. PA1A/PA1B/PA2 preflights execute the
+  current workspace only after trust, route selection, and a modal explanation.
 - Canvas calendar import enforces a 2 MiB/500-event bound, preserves TZID and
   date-only events, removes unsafe links, and requires an explicit preview step
   before reminders are kept. Mixed-course titles are not silently accepted.
@@ -52,10 +68,14 @@
 - The course pack exports a no-script standalone HTML lesson collection for
   Canvas and assistive technology. It contains all 104 question explanations,
   source labels, and guided-lab steps without requiring webview JavaScript.
+- The optional companion uses an original inline terminal-window vector, opens
+  only local helper/practice surfaces, can be hidden/restored, closes with
+  Escape, restores focus, and disables motion under reduced-motion settings.
 
 ## Learning and integrity boundaries
 
 - Practice attempts, confidence, and status are local self-evaluation—not a
+  Canvas grade or instructor evaluation.
 - Saved questions, review dates, per-topic analytics, guided-lab checkmarks,
   coursework status, and reviewed calendar reminders also stay local.
 - The grade calculator is a planning estimate based on verified historical
@@ -66,6 +86,11 @@
   student's own attempt.
 - Read-only evidence validation reports file counts, size, and historical
   extension hints. It does not archive, upload, submit, or grade files.
+- The coursework pathway bar is explicitly self-reported and separate from
+  Canvas evaluation.
+- Internal completed references are excluded from the VSIX; package auditing
+  rejects test fixtures, instructor-only xv6 patches, solution/answer-key paths,
+  and student data.
 
 ## Remaining instructor checks before launch
 
@@ -75,8 +100,11 @@
   currently assigned or confirmed; check Canvas and department announcements
   for updates.
 - Publish all assignment specifications and due dates before the corresponding
-  module begins; confirm the xv6 revision/container.
+  module begins; explicitly confirm whether Fall 2026 uses the pinned historical
+  xv6 reference or another revision/container/specification.
 - Run the packaged VSIX in a clean Windows, macOS, and Linux VS Code profile;
   the repository test suite cannot prove host Docker/virtualization support.
+  Include Intel and Apple-silicon macOS; the supplied Compose recipe requests
+  `linux/amd64`, so Docker's x86-emulation capability must be confirmed.
 - Verify the generated Canvas HTML with the campus accessibility checker and a
   screen reader in the actual Canvas theme.

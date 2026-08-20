@@ -2,9 +2,13 @@
   "name": "systemstudio-cis450-ece478",
   "displayName": "SystemStudio CIS 450 / ECE 478",
   "description": "Accessible Fall 2026 Operating Systems learning hub with OSTEP-aligned modules, hands-on labs, local progress, and academic-integrity support.",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "private": true,
   "publisher": "probir-roy",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/proywm/cis450-ece478-operating-systems-course.git"
+  },
   "license": "SEE LICENSE IN LICENSE.txt",
   "engines": { "vscode": "^1.96.0" },
   "categories": ["Education", "Other"],
@@ -15,13 +19,19 @@
     "onCommand:systemstudioOs.openSyllabus",
     "onCommand:systemstudioOs.openAccessibleLessons",
     "onCommand:systemstudioOs.createLabWorkspace",
+    "onCommand:systemstudioOs.runCourseworkPreflight",
+    "onCommand:systemstudioOs.openPortableSetup",
+    "onCommand:systemstudioOs.reopenInCourseContainer",
     "onCommand:systemstudioOs.checkEnvironment",
     "onCommand:systemstudioOs.runCurrentC",
     "onCommand:systemstudioOs.exportCalendar",
     "onCommand:systemstudioOs.configureCanvas",
     "onCommand:systemstudioOs.importCanvasCalendar",
     "onCommand:systemstudioOs.createModuleLab",
-    "onCommand:systemstudioOs.validateEvidence"
+    "onCommand:systemstudioOs.validateEvidence",
+    "onCommand:systemstudioOs.prepareXv6",
+    "onCommand:systemstudioOs.verifyXv6",
+    "onCommand:systemstudioOs.openXv6Guide"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -30,14 +40,20 @@
       { "command": "systemstudioOs.openCanvas", "title": "CIS 450 / ECE 478: Open Canvas", "icon": "$(cloud)" },
       { "command": "systemstudioOs.openSyllabus", "title": "CIS 450 / ECE 478: Open Fall 2026 Syllabus", "icon": "$(file-pdf)" },
       { "command": "systemstudioOs.openAccessibleLessons", "title": "CIS 450 / ECE 478: Open Accessible Lesson Collection", "icon": "$(book)" },
-      { "command": "systemstudioOs.createLabWorkspace", "title": "CIS 450 / ECE 478: Create Portable OS Lab Workspace", "icon": "$(new-folder)" },
-      { "command": "systemstudioOs.checkEnvironment", "title": "CIS 450 / ECE 478: Check Docker and C Toolchain", "icon": "$(tools)" },
+      { "command": "systemstudioOs.createLabWorkspace", "title": "CIS 450 / ECE 478: Create Portable OS Coursework Workspace", "icon": "$(new-folder)" },
+      { "command": "systemstudioOs.runCourseworkPreflight", "title": "CIS 450 / ECE 478: Run Portable Coursework Preflight", "icon": "$(beaker)" },
+      { "command": "systemstudioOs.openPortableSetup", "title": "CIS 450 / ECE 478: Open Cross-platform Setup Guide", "icon": "$(book)" },
+      { "command": "systemstudioOs.reopenInCourseContainer", "title": "CIS 450 / ECE 478: Reopen in Course Dev Container", "icon": "$(remote-explorer)" },
+      { "command": "systemstudioOs.checkEnvironment", "title": "CIS 450 / ECE 478: Check Cross-platform Course Environment", "icon": "$(tools)" },
       { "command": "systemstudioOs.runCurrentC", "title": "CIS 450 / ECE 478: Build and Run Current C File", "icon": "$(run)" },
       { "command": "systemstudioOs.exportCalendar", "title": "CIS 450 / ECE 478: Export Fall 2026 Calendar", "icon": "$(calendar)" },
       { "command": "systemstudioOs.configureCanvas", "title": "CIS 450 / ECE 478: Configure Canvas Links", "icon": "$(settings-gear)" },
       { "command": "systemstudioOs.importCanvasCalendar", "title": "CIS 450 / ECE 478: Import Canvas Calendar (.ics)", "icon": "$(calendar)" },
       { "command": "systemstudioOs.createModuleLab", "title": "CIS 450 / ECE 478: Create Guided Module Lab", "icon": "$(beaker)" },
-      { "command": "systemstudioOs.validateEvidence", "title": "CIS 450 / ECE 478: Validate Coursework Evidence Files", "icon": "$(verified)" }
+      { "command": "systemstudioOs.validateEvidence", "title": "CIS 450 / ECE 478: Validate Coursework Evidence Files", "icon": "$(verified)" },
+      { "command": "systemstudioOs.prepareXv6", "title": "CIS 450 / ECE 478: Prepare Pinned xv6 Reference Workspace", "icon": "$(repo-clone)" },
+      { "command": "systemstudioOs.verifyXv6", "title": "CIS 450 / ECE 478: Run xv6 Assignment Preflight", "icon": "$(beaker)" },
+      { "command": "systemstudioOs.openXv6Guide", "title": "CIS 450 / ECE 478: Open xv6 Workspace Guide", "icon": "$(book)" }
     ],
     "viewsContainers": {
       "activitybar": [
@@ -82,16 +98,19 @@
     "compile": "node esbuild.mjs",
     "test:webview": "node scripts/checkWebviewSyntax.mjs",
     "test:starters": "tsx scripts/smokeLabs.ts",
+    "test:references": "tsx scripts/smokeReferences.ts",
+    "test:xv6": "tsx scripts/smokeXv6.ts",
+    "audit:vsix": "node scripts/auditVsix.mjs",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test test/*.test.ts",
-    "check": "npm run export:lessons && npm run stage:course-pack && npm run typecheck && npm test && npm run test:starters && npm run compile && npm run test:webview",
-    "package": "npm run check && npx @vscode/vsce package --no-dependencies"
+    "check": "npm run export:lessons && npm run stage:course-pack && npm run typecheck && npm test && npm run test:starters && npm run test:references && npm run test:xv6 && npm run compile && npm run test:webview",
+    "package": "npm run check && npx @vscode/vsce package --no-dependencies && npm run audit:vsix"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
     "@types/vscode": "^1.96.0",
     "@vscode/vsce": "^3.2.1",
-    "esbuild": "^0.24.2",
+    "esbuild": "^0.28.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   }

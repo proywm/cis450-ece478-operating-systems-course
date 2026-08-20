@@ -33,10 +33,15 @@ test('coursework reflects three homework and four programming components', () =>
   assert.equal(COURSEWORK.filter((item) => item.kind === 'Programming').length, 4);
   assert.equal(COURSEWORK.length, 7);
   assert.ok(COURSEWORK.every((item) => item.expectedExtensions.length > 0));
+  const labIds = new Set(['environment-evidence', 'process-api', 'scheduler-trace', 'relocation-segmentation', 'paging-tlb', 'replacement', 'thread-race', 'lock-invariant', 'condition-buffer', 'deadlock-order', 'io-trace', 'links-metadata', 'crash-consistency']);
+  assert.ok(COURSEWORK.every((item) => item.practiceLabIds.length > 0 && item.practiceLabIds.every((id) => labIds.has(id))));
 });
 
 test('current facts and unverified Canvas details are explicitly separated', () => {
   assert.ok(SOURCE_BOUNDARIES.verifiedCurrent.some((fact) => fact.includes('CASL 1048')));
+  assert.ok(SOURCE_BOUNDARIES.verifiedReference.some((fact) => fact.includes('eeb7b415')));
+  assert.ok(SOURCE_BOUNDARIES.verifiedReference.some((fact) => fact.includes('upstream usertests')));
   assert.ok(SOURCE_BOUNDARIES.canvasOnly.some((fact) => fact.includes('assignment wording')));
   assert.ok(SOURCE_BOUNDARIES.canvasOnly.some((fact) => fact.includes('Direct Fall 2026 course URL')));
+  assert.ok(SOURCE_BOUNDARIES.canvasOnly.some((fact) => fact.includes('different revision')));
 });

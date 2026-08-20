@@ -9,8 +9,8 @@ function available(command: string): boolean {
   return spawnSync(command, ['--version'], { stdio: 'ignore' }).status === 0;
 }
 
-function run(command: string, args: string[], cwd: string, label: string): void {
-  const result = spawnSync(command, args, { cwd, encoding: 'utf8', timeout: 15_000 });
+function run(command: string, args: string[], cwd: string, label: string, timeout = 15_000): void {
+  const result = spawnSync(command, args, { cwd, encoding: 'utf8', timeout });
   if (result.error || result.status !== 0) {
     throw new Error(`${label} failed (${String(result.status)}):\n${result.stdout}\n${result.stderr}\n${result.error?.message ?? ''}`);
   }
@@ -42,12 +42,14 @@ try {
     await writeFile(target, content, 'utf8');
   }
   run('make', ['run'], workspace, 'portable workspace root starter');
+  run('python3', ['.systemstudio/coursework.py', 'check', 'all'], workspace, 'HW1/HW2/HW3/PA3 portable prerequisite runner', 120_000);
   if (available('docker')) {
     run('docker', ['compose', 'config', '--quiet'], workspace, 'portable workspace Compose configuration');
     if (spawnSync('docker', ['info'], { stdio: 'ignore' }).status === 0) {
       run('docker', ['build', '--check', '--file', '.devcontainer/Dockerfile', '.'], workspace, 'portable workspace Dockerfile build check');
+      run('docker', ['compose', 'run', '--rm', 'oslab', 'python3', '.systemstudio/coursework.py', 'check', 'all'], workspace, 'containerized HW1/HW2/HW3/PA3 prerequisite runner', 300_000);
     } else {
-      process.stdout.write('SKIP Dockerfile daemon-backed build check (Docker socket unavailable); static Dockerfile assertions and Compose validation passed.\n');
+      process.stdout.write('SKIP Dockerfile daemon-backed build and container execution (Docker socket unavailable); native execution, static Dockerfile assertions, and Compose validation passed.\n');
     }
   }
 } finally {

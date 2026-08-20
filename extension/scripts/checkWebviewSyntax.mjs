@@ -15,7 +15,7 @@ try {
   if (!html.includes('CIS 450 / ECE 478') || !html.includes('CASL 1048')) {
     throw new Error('The generated learning hub is missing verified course identity or room.');
   }
-  for (const marker of ['104 explained questions', 'Rerun orientation', 'Practice & review', 'Review before keeping', 'cannot promise anonymity', 'aria-modal="true"', 'MutationObserver']) {
+  for (const marker of ['104 explained questions', 'Rerun orientation', 'Practice & review', 'Review before keeping', 'cannot promise anonymity', 'aria-modal="true"', 'MutationObserver', 'Optional OS learning companion', 'prefers-reduced-motion', 'Self-reported coursework planning progression', 'Create portable coursework workspace', 'Run coursework preflight', 'Cross-platform setup', 'Prepare verified xv6 reference', 'Run assignment preflight', 'Verified reference implementations']) {
     if (!html.includes(marker)) throw new Error(`The generated learning hub is missing the release marker: ${marker}`);
   }
   if (/\sonclick\s*=/i.test(html)) throw new Error('Inline click handlers are incompatible with the webview CSP and accessibility event model.');

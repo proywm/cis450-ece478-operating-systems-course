@@ -12,3 +12,15 @@ the exact command and reconcile the output with a manual trace.
 Ask the helper about a concept or a smaller analogous trace; do not request or
 submit a generated solution to the current homework.
 
+## Executable formative route
+
+Use the extension's **fork, exec, and wait trace** and **scheduler metric
+workbench** guided labs. Their public starters and completed internal reference
+behaviors are compile/run-tested during release. They practice prerequisite
+behavior; they do not reveal or replace the current Canvas questions.
+
+Create the portable coursework workspace once, then choose **Run Portable
+Coursework Preflight → HW1**. On Windows, macOS, and Linux, the common command
+executes both analogs inside the supplied Linux container. A native
+Linux/macOS route is offered only when Python 3, Make, and a POSIX C compiler
+are actually detected.

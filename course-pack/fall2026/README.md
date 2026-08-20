@@ -14,3 +14,11 @@ This pack supports the active course while preserving a clear authority line:
    outside the student pack in `instructor-sources/`.
 5. The accessible lesson collection contains eight explained, source-grounded
    questions and a five-step guided evidence lab for each of 13 modules.
+6. Each coursework guide links to release-tested formative lab routes. Completed
+   internal references verify executable behavior but are not distributed in
+   the student pack and are not current assignment solutions.
+7. PA1A, PA1B, and PA2 also have a pinned real-xv6 reference path: official MIT
+   x86 `xv6-public` at commit
+   `eeb7b415dbcb12cc362d0783e41c3d1f44066b17`, executed in QEMU against the
+   historical Winter 2026 behavior. Canvas must confirm whether it applies to
+   active Fall 2026 assessed work.

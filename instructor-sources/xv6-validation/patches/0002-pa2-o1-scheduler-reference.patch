@@ -1,0 +1,264 @@
+diff --git a/defs.h b/defs.h
+index 82fb982..8af9648 100644
+--- a/defs.h
++++ b/defs.h
+@@ -113,6 +113,7 @@ struct proc*    myproc();
+ void            pinit(void);
+ void            procdump(void);
+ void            scheduler(void) __attribute__((noreturn));
++void            scheduler_tick(void);
+ void            sched(void);
+ void            setproc(struct proc*);
+ void            sleep(void*, struct spinlock*);
+diff --git a/proc.c b/proc.c
+index 29d5809..20051d9 100644
+--- a/proc.c
++++ b/proc.c
+@@ -12,6 +12,21 @@ struct {
+   struct proc proc[NPROC];
+ } ptable;
+ 
++enum { QUEUE_FIRST = 0, QUEUE_ACTIVE = 1, QUEUE_EXPIRED = 2 };
++enum { FIRST_TICKS = 1, ACTIVE_TICKS = 3 };
++
++struct runqueue {
++  struct proc *items[NPROC];
++  uint head;
++  uint count;
++};
++
++static struct runqueue firstq;
++static struct runqueue active_store;
++static struct runqueue expired_store;
++static struct runqueue *activeq = &active_store;
++static struct runqueue *expiredq = &expired_store;
++
+ static struct proc *initproc;
+ 
+ int nextpid = 1;
+@@ -19,6 +34,58 @@ extern void forkret(void);
+ extern void trapret(void);
+ 
+ static void wakeup1(void *chan);
++static void enqueueproc(struct proc *p, int athead);
++
++// Run-queue helpers. Every caller holds ptable.lock.
++static void
++queueput(struct runqueue *q, struct proc *p, int athead)
++{
++  uint slot;
++
++  if(p->onrunq)
++    panic("queueput duplicate");
++  if(q->count == NPROC)
++    panic("queueput full");
++  if(athead){
++    q->head = (q->head + NPROC - 1) % NPROC;
++    slot = q->head;
++  } else {
++    slot = (q->head + q->count) % NPROC;
++  }
++  q->items[slot] = p;
++  q->count++;
++  p->onrunq = 1;
++}
++
++static struct proc*
++queueget(struct runqueue *q)
++{
++  struct proc *p;
++
++  while(q->count){
++    p = q->items[q->head];
++    q->items[q->head] = 0;
++    q->head = (q->head + 1) % NPROC;
++    q->count--;
++    p->onrunq = 0;
++    if(p->state == RUNNABLE)
++      return p;
++  }
++  return 0;
++}
++
++static void
++enqueueproc(struct proc *p, int athead)
++{
++  if(p->state != RUNNABLE)
++    panic("enqueueproc state");
++  if(p->queuetype == QUEUE_FIRST)
++    queueput(&firstq, p, athead);
++  else if(p->queuetype == QUEUE_EXPIRED)
++    queueput(expiredq, p, athead);
++  else
++    queueput(activeq, p, athead);
++}
+ 
+ void
+ pinit(void)
+@@ -89,7 +156,9 @@ found:
+   p->state = EMBRYO;
+   p->pid = nextpid++;
+   p->queuetype = 0;
+-  p->quantumsize = 4;
++  p->quantumsize = FIRST_TICKS;
++  p->onrunq = 0;
++  p->resumehead = 0;
+ 
+   release(&ptable.lock);
+ 
+@@ -151,6 +220,7 @@ userinit(void)
+   acquire(&ptable.lock);
+ 
+   p->state = RUNNABLE;
++  enqueueproc(p, 0);
+ 
+   release(&ptable.lock);
+ }
+@@ -217,6 +287,7 @@ fork(void)
+   acquire(&ptable.lock);
+ 
+   np->state = RUNNABLE;
++  enqueueproc(np, 0);
+ 
+   release(&ptable.lock);
+ 
+@@ -325,6 +396,7 @@ void
+ scheduler(void)
+ {
+   struct proc *p;
++  struct runqueue *swapq;
+   struct cpu *c = mycpu();
+   c->proc = 0;
+   
+@@ -332,33 +404,63 @@ scheduler(void)
+     // Enable interrupts on this processor.
+     sti();
+ 
+-    // Loop over process table looking for process to run.
+     acquire(&ptable.lock);
+-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+-      if(p->state != RUNNABLE)
+-        continue;
++    p = queueget(&firstq);
++    if(p == 0){
++      if(activeq->count == 0 && expiredq->count != 0){
++        swapq = activeq;
++        activeq = expiredq;
++        expiredq = swapq;
++      }
++      p = queueget(activeq);
++      if(p)
++        p->queuetype = QUEUE_ACTIVE;
++    }
+ 
+-      // Switch to chosen process.  It is the process's job
+-      // to release ptable.lock and then reacquire it
+-      // before jumping back to us.
++    if(p){
+       c->proc = p;
+       switchuvm(p);
+       p->state = RUNNING;
+-
+-      if(strncmp(p->name, "spin", sizeof(p->name)) == 0)
+-        cprintf("Process %s is of Process ID %d, Queue Type %d, and Quantum Size %d\n",
+-                p->name, p->pid, p->queuetype, p->quantumsize);
+-
++      p->resumehead = 0;
+       swtch(&(c->scheduler), p->context);
+       switchkvm();
+-
+-      // Process is done running for now.
+-      // It should have changed its p->state before coming back.
++      if(p->state == RUNNABLE)
++        enqueueproc(p, p->resumehead);
+       c->proc = 0;
+     }
+     release(&ptable.lock);
++  }
++}
++
++// Charge one 10 ms timer tick to the running process. Called immediately
++// before the timer path yields the CPU.
++void
++scheduler_tick(void)
++{
++  struct proc *p = myproc();
++  char *queue;
+ 
++  if(p == 0)
++    return;
++  acquire(&ptable.lock);
++  if(p->state == RUNNING){
++    queue = p->queuetype == QUEUE_FIRST ? "FQ" : "AQ";
++    if(strncmp(p->name, "spin", sizeof(p->name)) == 0)
++      cprintf("Process spin %d has consumed 10 ms in %s\n", p->pid, queue);
++    if(p->quantumsize > 0)
++      p->quantumsize--;
++    if(p->quantumsize == 0){
++      if(p->queuetype == QUEUE_FIRST)
++        p->queuetype = QUEUE_ACTIVE;
++      else
++        p->queuetype = QUEUE_EXPIRED;
++      p->quantumsize = ACTIVE_TICKS;
++      p->resumehead = 0;
++    } else {
++      p->resumehead = 1;
++    }
+   }
++  release(&ptable.lock);
+ }
+ 
+ // Enter scheduler.  Must hold only ptable.lock
+@@ -467,7 +569,10 @@ wakeup1(void *chan)
+ 
+   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+     if(p->state == SLEEPING && p->chan == chan)
+-      p->state = RUNNABLE;
++      {
++        p->state = RUNNABLE;
++        enqueueproc(p, 0);
++      }
+ }
+ 
+ // Wake up all processes sleeping on chan.
+@@ -493,7 +598,10 @@ kill(int pid)
+       p->killed = 1;
+       // Wake process from sleep if necessary.
+       if(p->state == SLEEPING)
+-        p->state = RUNNABLE;
++        {
++          p->state = RUNNABLE;
++          enqueueproc(p, 0);
++        }
+       release(&ptable.lock);
+       return 0;
+     }
+diff --git a/proc.h b/proc.h
+index 4bc0a06..93201bd 100644
+--- a/proc.h
++++ b/proc.h
+@@ -48,6 +48,8 @@ struct proc {
+   int killed;                  // If non-zero, have been killed
+   int queuetype;               // Scheduler queue type (PA1/P2 scaffold)
+   int quantumsize;             // Remaining timer ticks in the queue
++  int onrunq;                  // Process is present in exactly one run queue
++  int resumehead;              // Continue an unexpired AQ time slice
+   struct file *ofile[NOFILE];  // Open files
+   struct inode *cwd;           // Current directory
+   char name[16];               // Process name (debugging)
+diff --git a/trap.c b/trap.c
+index 41c66eb..a488be7 100644
+--- a/trap.c
++++ b/trap.c
+@@ -103,8 +103,10 @@ trap(struct trapframe *tf)
+   // Force process to give up CPU on clock tick.
+   // If interrupts were on while locks held, would need to check nlock.
+   if(myproc() && myproc()->state == RUNNING &&
+-     tf->trapno == T_IRQ0+IRQ_TIMER)
++     tf->trapno == T_IRQ0+IRQ_TIMER){
++    scheduler_tick();
+     yield();
++  }
+ 
+   // Check if the process has been killed since we yielded
+   if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER)

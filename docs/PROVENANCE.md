@@ -30,6 +30,15 @@ address translation, scheduler implementation, concurrency, and a pthread
 synchronization system. Historical dates and submission details are not copied
 into the active course pack.
 
+The exact Winter 2026 PA1 Part 1, PA1 Part 2, and PA2 PDFs are retained under
+`instructor-sources/reference-assignment-pdfs/`. Executable validation maps them
+to the official MIT x86 `xv6-public` repository at commit
+`eeb7b415dbcb12cc362d0783e41c3d1f44066b17`. The known-good reference was built
+and booted in QEMU; its PA1 runtime evidence and PA2 FQ/AQ/EQ behavior were
+observed; full upstream `usertests` passed on clean one- and two-CPU images.
+This is explicitly labeled a historical reference, not an inferred Fall 2026
+assignment source.
+
 Nine locally available instructor PowerPoint sources ground concurrency and
 persistence modules. Virtualization modules are grounded in the recent
 homework/programming prompts and explicitly mapped OSTEP chapters. The project
@@ -45,6 +54,13 @@ extension responds with a visible 13-module map, advance readings, concise text
 explanations, formative checks with explanations, hands-on artifacts, a
 portable lab, evidence checklists, and a focused help ladder.
 
+The portable lab now maps HW1, HW2, HW3, and PA3 to fixed prerequisite
+preflights in one visible Ubuntu container recipe. This directly addresses the
+compiler/environment setup concern without treating a successful environment
+check as proof of assignment correctness. Docker installation, virtualization,
+and managed-device permission remain host prerequisites rather than claimed
+extension capabilities.
+
 ## Not verified—therefore not claimed
 
 - Direct Fall 2026 Canvas course ID
@@ -53,6 +69,7 @@ portable lab, evidence checklists, and a focused help ladder.
 - Fall 2026 office hours
 - Any grading-policy change after Winter 2026
 - Any future CIS 450 / ECE 478 GSI or grader assignment
-- Which xv6 revision or container image will be required in Fall 2026
+- Whether Fall 2026 will use the verified historical xv6 reference or another
+  revision/container/specification
 
 Those details are labeled Canvas-authoritative throughout the product.
