@@ -2,7 +2,7 @@
   "name": "systemstudio-cis450-ece478",
   "displayName": "SystemStudio CIS 450 / ECE 478",
   "description": "Accessible Fall 2026 Operating Systems learning hub with OSTEP-aligned modules, hands-on labs, local progress, and academic-integrity support.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "publisher": "probir-roy",
   "license": "SEE LICENSE IN LICENSE.txt",
@@ -17,7 +17,11 @@
     "onCommand:systemstudioOs.createLabWorkspace",
     "onCommand:systemstudioOs.checkEnvironment",
     "onCommand:systemstudioOs.runCurrentC",
-    "onCommand:systemstudioOs.exportCalendar"
+    "onCommand:systemstudioOs.exportCalendar",
+    "onCommand:systemstudioOs.configureCanvas",
+    "onCommand:systemstudioOs.importCanvasCalendar",
+    "onCommand:systemstudioOs.createModuleLab",
+    "onCommand:systemstudioOs.validateEvidence"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -29,7 +33,11 @@
       { "command": "systemstudioOs.createLabWorkspace", "title": "CIS 450 / ECE 478: Create Portable OS Lab Workspace", "icon": "$(new-folder)" },
       { "command": "systemstudioOs.checkEnvironment", "title": "CIS 450 / ECE 478: Check Docker and C Toolchain", "icon": "$(tools)" },
       { "command": "systemstudioOs.runCurrentC", "title": "CIS 450 / ECE 478: Build and Run Current C File", "icon": "$(run)" },
-      { "command": "systemstudioOs.exportCalendar", "title": "CIS 450 / ECE 478: Export Fall 2026 Calendar", "icon": "$(calendar)" }
+      { "command": "systemstudioOs.exportCalendar", "title": "CIS 450 / ECE 478: Export Fall 2026 Calendar", "icon": "$(calendar)" },
+      { "command": "systemstudioOs.configureCanvas", "title": "CIS 450 / ECE 478: Configure Canvas Links", "icon": "$(settings-gear)" },
+      { "command": "systemstudioOs.importCanvasCalendar", "title": "CIS 450 / ECE 478: Import Canvas Calendar (.ics)", "icon": "$(calendar)" },
+      { "command": "systemstudioOs.createModuleLab", "title": "CIS 450 / ECE 478: Create Guided Module Lab", "icon": "$(beaker)" },
+      { "command": "systemstudioOs.validateEvidence", "title": "CIS 450 / ECE 478: Validate Coursework Evidence Files", "icon": "$(verified)" }
     ],
     "viewsContainers": {
       "activitybar": [
@@ -46,16 +54,37 @@
         "view": "systemstudioOs.course",
         "contents": "Open the active Fall 2026 course hub.\n[Open Learning Hub](command:systemstudioOs.openLearningHub)"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "SystemStudio CIS 450 / ECE 478",
+      "properties": {
+        "systemstudioOs.canvasCourseUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Direct Fall 2026 UM-Dearborn Canvas course URL. Leave blank until the course URL is verified."
+        },
+        "systemstudioOs.canvasDiscussionUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Optional verified Canvas discussion URL for pre-class questions. The extension only copies a draft and opens this page."
+        },
+        "systemstudioOs.canvasPrivateMessageUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Optional verified Canvas Inbox or course-contact URL for private pre-class questions."
+        }
+      }
+    }
   },
   "scripts": {
     "export:lessons": "tsx scripts/exportAccessible.ts",
     "stage:course-pack": "node scripts/stageCoursePack.mjs",
     "compile": "node esbuild.mjs",
     "test:webview": "node scripts/checkWebviewSyntax.mjs",
+    "test:starters": "tsx scripts/smokeLabs.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test test/*.test.ts",
-    "check": "npm run export:lessons && npm run stage:course-pack && npm run typecheck && npm test && npm run compile && npm run test:webview",
+    "check": "npm run export:lessons && npm run stage:course-pack && npm run typecheck && npm test && npm run test:starters && npm run compile && npm run test:webview",
     "package": "npm run check && npx @vscode/vsce package --no-dependencies"
   },
   "devDependencies": {

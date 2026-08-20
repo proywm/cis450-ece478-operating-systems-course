@@ -20,13 +20,21 @@ and not a copy of the CIS 310 content.
 
 - Section 001, Dr. Probir Roy
 - Monday/Wednesday, 2:00–3:45 p.m., CASL 1048
-- GSI: Syed Salauddin Mohammad Tariq (Tariq)
+- No GSI or grader is currently assigned or confirmed; check Canvas and
+  department announcements for updates.
 - Classes begin Wednesday, August 26, 2026
 
 Canvas remains authoritative for assignment specifications, due dates,
 submission links, exam details, policy changes, and official grades. The direct
 Fall 2026 course URL was not present in the local or email evidence, so the
 extension opens the UM-Dearborn Canvas dashboard rather than inventing a link.
+The link is configurable after the instructor verifies the direct course URL.
+
+The extension now includes 104 source-grounded questions, five-question
+practice with spaced review and analytics, thirteen executable guided lab
+starters, a self-paced walkthrough, coursework evidence planning, guarded local
+help, and reviewed-before-save Canvas calendar import. All learning indicators
+are private self-evaluation and remain separate from Canvas grades.
 
 ## Build
 
@@ -39,4 +47,3 @@ npm run package
 
 The generated `.vsix` is private course software. Do not publish it to a public
 marketplace or repository.
-

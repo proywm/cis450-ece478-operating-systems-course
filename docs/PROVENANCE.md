@@ -5,9 +5,11 @@
 - Di Ma's August 14, 2026 email attachment, *CIS Class Schedule Fall 2026*,
   generated August 14, lists Dr. Probir Roy for CIS 450-001, Monday/Wednesday
   2:00–3:45 p.m., CASL 1048.
-- The instructor's August 20, 2026 email to Susan Guinn identifies Syed
-  Salauddin Mohammad Tariq (`ssmtariq@umich.edu`) as the Fall 2026 CIS 450 / ECE
-  478 GSI.
+- Official department notices assign the previously proposed student to CIS
+  200 Lab 002 with Dr. Abu-Nasr, not CIS 450 / ECE 478. Susan Guinn has been
+  asked to remove the earlier Canvas role. No GSI or grader is currently
+  assigned or confirmed; check Canvas and department announcements for
+  updates.
 - Instructor identity, email, phone, and CIS 230 office location agree across
   the Fall 2025 and Winter 2026 syllabi.
 - The official 2026–2027 academic-calendar dates already validated for the
@@ -50,7 +52,7 @@ portable lab, evidence checklists, and a focused help ladder.
 - Fall 2026 exam dates and room
 - Fall 2026 office hours
 - Any grading-policy change after Winter 2026
+- Any future CIS 450 / ECE 478 GSI or grader assignment
 - Which xv6 revision or container image will be required in Fall 2026
 
 Those details are labeled Canvas-authoritative throughout the product.
-

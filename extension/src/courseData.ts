@@ -1,12 +1,16 @@
+import { SUPPLEMENTAL_QUESTIONS } from './expandedQuestions.js';
+
 export type ModuleUnit = 'Virtualization' | 'Concurrency' | 'Persistence';
 
 export interface PracticeQuestion {
   id: string;
-  level: 'Remember' | 'Understand' | 'Apply' | 'Analyze';
+  level: 'Remember' | 'Understand' | 'Apply' | 'Analyze' | 'Evaluate';
   prompt: string;
   choices: readonly string[];
   answer: number;
   explanation: string;
+  hint?: string;
+  source: string;
 }
 
 export interface CourseModule {
@@ -24,6 +28,9 @@ export interface CourseModule {
   questions: readonly PracticeQuestion[];
 }
 
+type AuthoredQuestion = Omit<PracticeQuestion, 'source'> & { source?: string };
+type AuthoredCourseModule = Omit<CourseModule, 'questions'> & { questions: readonly AuthoredQuestion[] };
+
 const OSTEP = 'https://pages.cs.wisc.edu/~remzi/OSTEP/';
 
 export const COURSE = {
@@ -34,9 +41,7 @@ export const COURSE = {
   instructor: 'Dr. Probir Roy',
   instructorEmail: 'probirr@umich.edu',
   instructorOffice: 'CIS Building, Room 230',
-  gsi: 'Syed Salauddin Mohammad Tariq',
-  gsiPreferred: 'Tariq',
-  gsiEmail: 'ssmtariq@umich.edu',
+  gsiStatus: 'No GSI or grader is currently assigned or confirmed; check Canvas and department announcements for updates.',
   meeting: 'Mondays and Wednesdays, 2:00–3:45 p.m.',
   room: 'CASL 1048',
   canvasUrl: 'https://canvas.umd.umich.edu/',
@@ -45,7 +50,7 @@ export const COURSE = {
   textbookUrl: OSTEP
 } as const;
 
-export const MODULES: readonly CourseModule[] = [
+const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
   {
     id: 'm01', number: 1, unit: 'Virtualization', title: 'What an Operating System Does',
     objectives: ['Explain virtualization, concurrency, and persistence as the course\'s three organizing ideas.', 'Distinguish mechanism from policy.', 'Use a Unix shell, compiler, and debugger safely.'],
@@ -282,6 +287,14 @@ export const MODULES: readonly CourseModule[] = [
   }
 ] as const;
 
+export const MODULES: readonly CourseModule[] = AUTHORED_MODULES.map((module) => ({
+  ...module,
+  questions: [...module.questions, ...(SUPPLEMENTAL_QUESTIONS[module.id] ?? [])].map((question) => ({
+    ...question,
+    source: question.source ?? module.reading
+  }))
+}));
+
 export interface CourseworkItem {
   id: string;
   kind: 'Homework' | 'Programming';
@@ -289,16 +302,17 @@ export interface CourseworkItem {
   focus: string;
   modules: readonly number[];
   evidence: readonly string[];
+  expectedExtensions: readonly string[];
 }
 
 export const COURSEWORK: readonly CourseworkItem[] = [
-  { id: 'hw1', kind: 'Homework', title: 'Homework 1 · CPU Virtualization and Scheduling', focus: 'Processes, restricted execution, scheduling metrics, MLFQ, and simulator reasoning.', modules: [2, 3], evidence: ['Show calculations, not only final numbers.', 'Include simulator commands and reconcile manual work.', 'Submit only the format required by the current Canvas assignment.'] },
-  { id: 'pa1a', kind: 'Programming', title: 'Programming 1A · Reproducible xv6 Environment', focus: 'Build/run xv6 and document a portable development workflow.', modules: [1, 2], evidence: ['Successful clean build and xv6 boot.', 'Versioned environment evidence.', 'Troubleshooting record and contribution statement if Canvas permits a team.'] },
-  { id: 'pa1b', kind: 'Programming', title: 'Programming 1B · Process Instrumentation', focus: 'Add and observe a user process and selected process-control-block state.', modules: [2, 3], evidence: ['Small, explainable code changes.', 'Expected versus observed trace.', 'Every change identified in the report.'] },
-  { id: 'hw2', kind: 'Homework', title: 'Homework 2 · Memory Virtualization', focus: 'Segmentation, paging, TLBs, effective access time, and replacement.', modules: [4, 5, 6], evidence: ['Label VPN/offset/PFN arithmetic.', 'Show each effective-access-time probability term.', 'Provide frame-by-frame replacement traces.'] },
-  { id: 'pa2', kind: 'Programming', title: 'Programming 2 · xv6 Scheduler', focus: 'Design, implement, and test a simplified scheduler modification.', modules: [3], evidence: ['State queue invariants before coding.', 'Use targeted kernel logging.', 'Explain behavior rather than pasting output.', 'Fall 2026 specification and deadline come from Canvas.'] },
-  { id: 'hw3', kind: 'Homework', title: 'Homework 3 · Concurrency', focus: 'Threads, races, locks, condition variables, semaphores, and deadlock.', modules: [7, 8, 9, 10], evidence: ['Name shared state and invariants.', 'Trace at least one harmful interleaving.', 'Separate safety from liveness claims.'] },
-  { id: 'pa3', kind: 'Programming', title: 'Programming 3 · Synchronization System', focus: 'Coordinate concurrent actors with pthread locks and semaphores; historical source used traffic control.', modules: [7, 8, 9, 10], evidence: ['Deterministic test scenarios where possible.', 'Timestamped event trace.', 'Safety and progress argument.', 'Fall 2026 specification and deadline come from Canvas.'] }
+  { id: 'hw1', kind: 'Homework', title: 'Homework 1 · CPU Virtualization and Scheduling', focus: 'Processes, restricted execution, scheduling metrics, MLFQ, and simulator reasoning.', modules: [2, 3], evidence: ['Show calculations, not only final numbers.', 'Include simulator commands and reconcile manual work.', 'Submit only the format required by the current Canvas assignment.'], expectedExtensions: ['pdf', 'docx', 'md', 'txt'] },
+  { id: 'pa1a', kind: 'Programming', title: 'Programming 1A · Reproducible xv6 Environment', focus: 'Build/run xv6 and document a portable development workflow.', modules: [1, 2], evidence: ['Successful clean build and xv6 boot.', 'Versioned environment evidence.', 'Troubleshooting record and contribution statement if Canvas permits a team.'], expectedExtensions: ['c', 'h', 'patch', 'diff', 'txt', 'md', 'pdf', 'zip', 'tar', 'gz'] },
+  { id: 'pa1b', kind: 'Programming', title: 'Programming 1B · Process Instrumentation', focus: 'Add and observe a user process and selected process-control-block state.', modules: [2, 3], evidence: ['Small, explainable code changes.', 'Expected versus observed trace.', 'Every change identified in the report.'], expectedExtensions: ['c', 'h', 'patch', 'diff', 'txt', 'md', 'pdf', 'zip', 'tar', 'gz'] },
+  { id: 'hw2', kind: 'Homework', title: 'Homework 2 · Memory Virtualization', focus: 'Segmentation, paging, TLBs, effective access time, and replacement.', modules: [4, 5, 6], evidence: ['Label VPN/offset/PFN arithmetic.', 'Show each effective-access-time probability term.', 'Provide frame-by-frame replacement traces.'], expectedExtensions: ['pdf', 'docx', 'md', 'txt'] },
+  { id: 'pa2', kind: 'Programming', title: 'Programming 2 · xv6 Scheduler', focus: 'Design, implement, and test a simplified scheduler modification.', modules: [3], evidence: ['State queue invariants before coding.', 'Use targeted kernel logging.', 'Explain behavior rather than pasting output.', 'Fall 2026 specification and deadline come from Canvas.'], expectedExtensions: ['c', 'h', 'patch', 'diff', 'txt', 'md', 'pdf', 'zip', 'tar', 'gz'] },
+  { id: 'hw3', kind: 'Homework', title: 'Homework 3 · Concurrency', focus: 'Threads, races, locks, condition variables, semaphores, and deadlock.', modules: [7, 8, 9, 10], evidence: ['Name shared state and invariants.', 'Trace at least one harmful interleaving.', 'Separate safety from liveness claims.'], expectedExtensions: ['pdf', 'docx', 'md', 'txt'] },
+  { id: 'pa3', kind: 'Programming', title: 'Programming 3 · Synchronization System', focus: 'Coordinate concurrent actors with pthread locks and semaphores; historical source used traffic control.', modules: [7, 8, 9, 10], evidence: ['Deterministic test scenarios where possible.', 'Timestamped event trace.', 'Safety and progress argument.', 'Fall 2026 specification and deadline come from Canvas.'], expectedExtensions: ['c', 'h', 'patch', 'diff', 'txt', 'md', 'pdf', 'zip', 'tar', 'gz'] }
 ] as const;
 
 export const SOURCE_BOUNDARIES = {
@@ -306,7 +320,7 @@ export const SOURCE_BOUNDARIES = {
     'Fall 2026, section 001',
     'Instructor: Dr. Probir Roy',
     'Mondays and Wednesdays, 2:00–3:45 p.m., CASL 1048',
-    'GSI: Syed Salauddin Mohammad Tariq (Tariq)'
+    'No GSI or grader is currently assigned or confirmed; check Canvas and department announcements for updates.'
   ],
   historicalPolicy: [
     'Winter 2026 syllabus: participation 10%, homework 15%, programming 40%, exams 35% (midterm 15%, final 20%)',
@@ -316,6 +330,6 @@ export const SOURCE_BOUNDARIES = {
   canvasOnly: [
     'Fall 2026 assignment wording, release dates, deadlines, submission types, team rules, and late policy',
     'Direct Fall 2026 course URL',
-    'Exam dates, office hours, grading-policy changes, and official grades'
+    'Exam dates, office hours, grading-policy changes, official grades, and any future GSI or grader assignment'
   ]
 } as const;

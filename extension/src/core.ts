@@ -83,7 +83,7 @@ export function tutorReply(question: string): TutorReply {
   if (answerRequest.test(normalized) && assessedWork.test(normalized)) {
     return {
       mode: 'integrity-guardrail', title: 'I can coach the reasoning, not produce a submission',
-      response: 'I will not provide a finished answer, implementation, or report for assessed coursework. I can help you identify the relevant invariant, trace one smaller analogous example, interpret an error, or review reasoning you wrote yourself. Canvas and the instructor/GSI define the allowed collaboration and AI-use rules.',
+      response: 'I will not provide a finished answer, implementation, or report for assessed coursework. I can help you identify the relevant invariant, trace one smaller analogous example, interpret an error, or review reasoning you wrote yourself. Canvas and the instructor define the allowed collaboration and AI-use rules.',
       prompts: ['Restate the requirement in your own words.', 'Identify the state or invariant that must hold.', 'Build the smallest non-submission example that tests one idea.', 'Show your attempt and ask about one specific mismatch.'],
       moduleNumber: module?.number
     };

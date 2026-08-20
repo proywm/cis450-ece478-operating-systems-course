@@ -19,7 +19,7 @@ test('calendar identifies verified room and leaves exact exam details to Canvas'
   assert.match(calendar, /Canvas is authoritative/);
 });
 
-test('grade estimate uses verified 10/15/40/15/20 weights', () => {
+test('grade estimate uses verified historical 10/15/40/15/20 weights', () => {
   const result = estimateGrade({ participation: 80, homework: 90, programming: 70, midterm: 100, finalExam: 85 });
   assert.equal(result.percent, 81.5);
   assert.equal(result.letter, 'B−');
@@ -53,4 +53,3 @@ test('helper maps concept questions to the course', () => {
   assert.equal(reply.mode, 'course-help');
   assert.equal(reply.moduleNumber, 7);
 });
-

@@ -9,14 +9,16 @@
 **Phone:** (313) 583-6620  
 **Email:** probirr@umich.edu  
 **Office hours:** See the current Canvas syllabus/announcement; or by appointment.  
-**GSI:** Syed Salauddin Mohammad Tariq (“Tariq”), ssmtariq@umich.edu  
+**Course staffing:** No GSI or grader is currently assigned or confirmed; check
+Canvas and department announcements for updates.
 **Meetings:** Mondays and Wednesdays, 2:00–3:45 p.m., CASL 1048  
 **Course site:** UM-Dearborn Canvas. Canvas is authoritative for announcements,
 deadlines, assignment specifications, submissions, feedback, exam information,
 and official grades.
 
 > Instructor review required before Canvas publication. The meeting schedule
-> and staff are verified for Fall 2026. The grading scheme below is carried
+> is verified for Fall 2026. No GSI or grader is currently assigned or
+> confirmed; check Canvas and department announcements for updates. The grading scheme below is carried
 > forward from the matching Fall 2025 and Winter 2026 syllabi and must be
 > confirmed by the instructor in Canvas.
 
@@ -58,7 +60,7 @@ persistence. By the end of the course, students should be able to:
 - C and Unix command-line background. The course extension includes a setup
   check, portable workspace, small demonstrations, and practice activities.
 
-Contact the instructor/GSI early if the required environment is inaccessible;
+Contact the instructor early if the required environment is inaccessible;
 do not wait until an assignment deadline.
 
 ## Learning sequence
@@ -72,7 +74,7 @@ The SystemStudio OS extension presents every module as:
 5. private local reflection/progress.
 
 Extension progress is self-reported and ungraded. It is not sent to Canvas or
-staff and must not be confused with instructor/GSI evaluation.
+staff and must not be confused with instructor or Canvas evaluation.
 
 ## Assessment and grading
 
@@ -119,7 +121,7 @@ official Fall 2026 specifications and due dates.
 ## Feedback and help
 
 Students should receive the rubric or evidence expectations when coursework is
-released. For efficient help, send the instructor/GSI the relevant requirement,
+released. For efficient help, send the instructor the relevant requirement,
 your smallest reproducible attempt, expected behavior, actual output, and one
 focused question. Questions about grades, accommodations, or private work
 should use a private Canvas message rather than a public discussion.
@@ -198,4 +200,3 @@ may change; Canvas is authoritative.
 11. I/O devices
 12. Files, directories, and metadata
 13. File-system implementation and crash consistency
-

@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { COURSE, MODULES } from '../src/courseData.js';
+import { guidedLab } from '../src/labs.js';
 
 const destination = resolve(process.cwd(), '../course-pack/fall2026/lessons');
 
@@ -9,7 +10,9 @@ function escape(value: string): string {
 }
 
 const navigation = MODULES.map((module) => `<li><a href="#module-${module.number}">Module ${module.number}: ${escape(module.title)}</a></li>`).join('\n');
-const content = MODULES.map((module) => `
+const content = MODULES.map((module) => {
+const lab = guidedLab(module.number);
+return `
 <section id="module-${module.number}" aria-labelledby="module-${module.number}-title">
   <p class="eyebrow">${escape(module.unit)} · Module ${module.number}</p>
   <h2 id="module-${module.number}-title">${escape(module.title)}</h2>
@@ -17,11 +20,12 @@ const content = MODULES.map((module) => `
   <ul>${module.objectives.map((item) => `<li>${escape(item)}</li>`).join('')}</ul>
   <p><strong>Prepare:</strong> <a href="${escape(module.readingUrl)}">${escape(module.reading)}</a></p>
   ${module.lesson.map((paragraph) => `<p>${escape(paragraph)}</p>`).join('\n')}
-  <aside aria-label="Hands-on practice"><h3>Hands-on practice</h3><p>${escape(module.handsOn)}</p><p><strong>Evidence artifact:</strong> ${escape(module.artifact)}</p></aside>
+  <aside aria-label="Hands-on practice"><h3>Hands-on practice</h3><p>${escape(module.handsOn)}</p><p><strong>Evidence artifact:</strong> ${escape(module.artifact)}</p>${lab ? `<h4>${escape(lab.title)}</h4><ol>${lab.steps.map((step) => `<li><strong>${escape(step.instruction)}</strong><br>Evidence: ${escape(step.evidence)}</li>`).join('')}</ol><p><strong>Run:</strong> <code>${escape(lab.runCommand)}</code></p><p><strong>Reflect:</strong> ${escape(lab.reflection)}</p><p><strong>Lab source:</strong> ${escape(lab.source)}</p>` : ''}</aside>
   <h3>Readiness questions with explanations</h3>
-  ${module.questions.map((question) => `<details><summary><span class="level">${escape(question.level)}</span> ${escape(question.prompt)}</summary><ol type="A">${question.choices.map((choice) => `<li>${escape(choice)}</li>`).join('')}</ol><p><strong>Answer:</strong> ${String.fromCharCode(65 + question.answer)}. ${escape(question.explanation)}</p></details>`).join('\n')}
+  ${module.questions.map((question) => `<details><summary><span class="level">${escape(question.level)}</span> ${escape(question.prompt)}</summary><ol type="A">${question.choices.map((choice) => `<li>${escape(choice)}</li>`).join('')}</ol>${question.hint ? `<p><strong>Hint:</strong> ${escape(question.hint)}</p>` : ''}<p><strong>Answer:</strong> ${String.fromCharCode(65 + question.answer)}. ${escape(question.explanation)}</p><p><strong>Source:</strong> ${escape(question.source)}</p></details>`).join('\n')}
   <p><a href="#top">Back to module list</a></p>
-</section>`).join('\n');
+</section>`;
+}).join('\n');
 
 const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">

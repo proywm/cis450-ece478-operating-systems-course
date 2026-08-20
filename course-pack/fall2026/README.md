@@ -3,7 +3,8 @@
 This pack supports the active course while preserving a clear authority line:
 
 1. Canvas contains official assignment wording, due dates, submissions,
-   instructor/GSI feedback, and grades.
+   instructor feedback and grades. No GSI or grader is currently assigned or
+   confirmed; check Canvas and department announcements for updates.
 2. The syllabus is a Fall 2026 working draft grounded in the most recent
    verified syllabus and current schedule. The instructor must approve it
    before Canvas publication.
@@ -11,4 +12,5 @@ This pack supports the active course while preserving a clear authority line:
    they do not replace assigned OSTEP reading.
 4. Assignment files are planning/evidence guides. Historical prompts are kept
    outside the student pack in `instructor-sources/`.
-
+5. The accessible lesson collection contains eight explained, source-grounded
+   questions and a five-step guided evidence lab for each of 13 modules.
