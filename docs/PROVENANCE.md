@@ -12,6 +12,8 @@
   updates.
 - Instructor identity, email, phone, and CIS 230 office location agree across
   the Fall 2025 and Winter 2026 syllabi.
+- The instructor supplied the active Fall 2026 Canvas course URL:
+  `https://canvas.umd.umich.edu/courses/552201`.
 - The official 2026–2027 academic-calendar dates already validated for the
   companion Fall 2026 course establish August 26 start, September 7 holiday,
   Thanksgiving recess, December 7 end of classes, December 8–9 study days, and
@@ -46,13 +48,22 @@ links to OSTEP rather than redistributing the book.
 
 ## Student-evaluation design response
 
-The Winter 2026 evaluation specifically identified late-posted material,
-mismatched reading schedules, rushed slides, limited practical setup guidance,
-late feedback, unclear project starts, and a desire for concrete Docker,
-Makefile, C, race-condition, semaphore, and programming demonstrations. The
-extension responds with a visible 13-module map, advance readings, concise text
-explanations, formative checks with explanations, hands-on artifacts, a
-portable lab, evidence checklists, and a focused help ladder.
+Fall 2024, Fall 2025, and Winter 2026 evaluations repeatedly identified a steep
+transition into C/xv6 programming, compiler/Docker setup friction, limited
+practical demonstrations, unclear project starts or evidence expectations,
+lecture pacing, delayed feedback, and reading schedules that did not match the
+actual class sequence. Relevant historical course-email threads independently
+showed Apple-silicon/QEMU input problems, archive/extraction ambiguity,
+difficulty translating an in-class scheduler into xv6, and uncertainty about
+required boot evidence. No student names, messages, or identifiers are copied
+into this repository.
+
+The extension responds with a visible 13-module map; a 27-meeting dated plan;
+29 direct links to the current official OSTEP chapter PDFs with focus prompts;
+concise accessible explanations; 104 formative questions with explanations;
+hands-on artifacts; a portable lab; a headless two-CPU PA1A baseline that
+checks CPU and shell boot markers; evidence checklists; early project routes;
+and a focused FAQ/help clinic.
 
 The portable lab now maps HW1, HW2, HW3, and PA3 to fixed prerequisite
 preflights in one visible Ubuntu container recipe. This directly addresses the
@@ -63,7 +74,6 @@ extension capabilities.
 
 ## Not verified—therefore not claimed
 
-- Direct Fall 2026 Canvas course ID
 - Fall 2026 assignment release/due dates or exact prompt wording
 - Fall 2026 exam dates and room
 - Fall 2026 office hours

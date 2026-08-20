@@ -109,10 +109,11 @@ It contains no PA1 PCB implementation and no PA2 scheduler solution.
 ## PA1A path: reproduce before modifying
 
 Run the PA1A preflight on the untouched setup commit. It performs a clean build,
-boots the current kernel in QEMU with one CPU, waits for the interactive shell,
-and executes a marker command. Record the exact commit, native/Docker route,
-tool versions, and any repair. If this baseline fails, fix the environment
-before changing kernel code.
+boots the current kernel in headless QEMU with two CPUs, verifies both CPU start
+messages and \`init: starting sh\`, waits for the interactive shell, and executes
+a marker command. Record the exact commit, native/Docker route, tool versions,
+full relevant transcript, and any repair. If this baseline fails, fix the
+environment before changing kernel code.
 
 ## PA1B path: make the workload observable
 
@@ -186,6 +187,7 @@ import time
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 ANSI = re.compile(r"\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07]*(?:\x07|\x1b\\))")
+QEMU_MACHINE = "pc-i440fx-2.9"
 
 def fail(message: str) -> None:
     raise SystemExit("FAIL: " + message)
@@ -211,8 +213,14 @@ def require_text(path: str, patterns: list[tuple[str, str]]) -> None:
 class Qemu:
     def __init__(self, cpus: int = 1):
         import pty
+        machines = subprocess.run(["qemu-system-i386", "-machine", "help"],
+                                  text=True, stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT).stdout
+        if QEMU_MACHINE not in machines:
+            fail("QEMU lacks the %s compatibility machine required by pinned x86 xv6; use the supplied Ubuntu 22.04 Docker route" % QEMU_MACHINE)
         self.master, slave = pty.openpty()
-        self.proc = subprocess.Popen(["make", "qemu-nox", "CPUS=%d" % cpus],
+        self.proc = subprocess.Popen(["make", "qemu-nox", "CPUS=%d" % cpus,
+                                      "QEMUEXTRA=-machine %s" % QEMU_MACHINE],
                                      cwd=ROOT, stdin=slave, stdout=slave, stderr=slave,
                                      close_fds=True)
         os.close(slave)
@@ -258,14 +266,17 @@ def clean_build() -> None:
 
 def pa1a() -> None:
     clean_build()
-    q = Qemu(1)
+    q = Qemu(2)
     try:
+        q.wait(r"cpu0: starting", 90)
+        q.wait(r"cpu1: starting", 90)
+        q.wait(r"init: starting sh", 90)
         q.wait(r"\$ ", 90)
         q.send("echo SYSTEMSTUDIO_XV6_BOOT_OK")
         q.wait(r"SYSTEMSTUDIO_XV6_BOOT_OK", 20)
     finally:
         q.stop()
-    print("PASS PA1A: pinned xv6 built and reached an interactive shell.")
+    print("PASS PA1A: two CPUs started on the pinned compatible QEMU machine, init launched sh, and the interactive marker completed.")
 
 def pa1b() -> None:
     require_text("spin.c", [(r"volatile\s+int\s+x", "make x volatile so -O2 cannot remove the timer workload")])

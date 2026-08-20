@@ -12,7 +12,7 @@
 **Course staffing:** No GSI or grader is currently assigned or confirmed; check
 Canvas and department announcements for updates.
 **Meetings:** Mondays and Wednesdays, 2:00–3:45 p.m., CASL 1048  
-**Course site:** UM-Dearborn Canvas. Canvas is authoritative for announcements,
+**Course site:** [Fall 2026 Canvas course 552201](https://canvas.umd.umich.edu/courses/552201). Canvas is authoritative for announcements,
 deadlines, assignment specifications, submissions, feedback, exam information,
 and official grades.
 
@@ -72,7 +72,7 @@ do not wait until an assignment deadline.
 
 The SystemStudio OS extension presents every module as:
 
-1. mapped OSTEP reading before class;
+1. exact, official OSTEP chapter links with a focus prompt before class;
 2. accessible text explanation and examples;
 3. readiness questions with explanations;
 4. hands-on trace, simulator, C/pthread, xv6, or file-system activity; and
@@ -140,6 +140,25 @@ should use a private Canvas message rather than a public discussion.
 The extension's offline helper offers concept routing and debugging prompts. It
 does not have authority over deadlines or grades.
 
+### Support routes based on recurring student barriers
+
+- Run the environment check before beginning assessed work. The common
+  container supplies C, pthreads, Make, Python, GDB, Valgrind, strace, and QEMU
+  on Windows, macOS, and Linux; Docker itself remains an explicit prerequisite.
+- Apple-silicon and other hosts can use the headless `linux/amd64` xv6
+  preflight instead of relying on a graphical QEMU window. The PA1A reference
+  checks both CPU start messages, `init: starting sh`, and an interactive
+  marker.
+- Use the clean pinned clone when a downloaded archive or nested extraction is
+  ambiguous. It refuses to overwrite an existing directory and verifies the
+  source commit.
+- Before an xv6 or pthread project, complete the mapped smaller lab, state the
+  invariants and expected trace, and run the solution-free preflight. A pass is
+  immediate formative feedback, not an official evaluation.
+- Follow the current Canvas rubric for evidence. After submitting, reopen the
+  receipt and attached files. A local folder, screenshot, or passing preflight
+  is not a Canvas submission.
+
 ## Generative AI and academic integrity
 
 University academic-integrity rules and the current Canvas assignment policy
@@ -196,18 +215,38 @@ sexual violence, bias, and discrimination are available at
 The extension exports 27 regular class meetings. Topics and assessed-work dates
 may change; Canvas is authoritative.
 
-## Topic map
+## Dated topic and OSTEP reading plan
 
-1. OS overview and portable C/Unix environment
-2. Processes and process APIs
-3. CPU mechanisms and scheduling
-4. Address spaces, relocation, and segmentation
-5. Paging, TLBs, and page tables
-6. Demand paging and replacement
-7. Threads and race conditions
-8. Locks and critical sections
-9. Condition variables and semaphores
-10. Deadlock and liveness
-11. I/O devices
-12. Files, directories, and metadata
-13. File-system implementation and crash consistency
+The meeting dates, time, and room below are verified. The topic order and
+readings are the current preparation plan; Canvas announcements control topic
+changes and all assessed-work dates.
+
+| # | Date | Module | Planned class focus | Read before class |
+|---:|---|---|---|---|
+| 1 | Wed Aug 26 | 1 | OS goals and the common C/Unix environment | OSTEP Ch. 2 |
+| 2 | Mon Aug 31 | 2 | Process abstraction and state | OSTEP Ch. 4 |
+| 3 | Wed Sep 2 | 2 | fork, exec, wait, shells, and process evidence lab | OSTEP Ch. 5 |
+| 4 | Wed Sep 9 | 3 | Limited direct execution, traps, and context switches | OSTEP Ch. 6 |
+| 5 | Mon Sep 14 | 3 | Scheduling metrics and foundational policies | OSTEP Ch. 7 |
+| 6 | Wed Sep 16 | 3 | MLFQ, proportional share, and multiprocessor scheduling | OSTEP Ch. 8–10 |
+| 7 | Mon Sep 21 | 4 | Address spaces and the memory API | OSTEP Ch. 13–14 |
+| 8 | Wed Sep 23 | 4 | Base/bounds translation and segmentation | OSTEP Ch. 15–16 |
+| 9 | Mon Sep 28 | 5 | Paging fundamentals and address decomposition | OSTEP Ch. 18 |
+| 10 | Wed Sep 30 | 5 | TLBs and advanced page tables | OSTEP Ch. 19–20 |
+| 11 | Mon Oct 5 | 6 | Demand paging and page-fault mechanism | OSTEP Ch. 21 |
+| 12 | Wed Oct 7 | 6 | Replacement policy, locality, and thrashing | OSTEP Ch. 22 |
+| 13 | Mon Oct 12 | 1–6 | Virtualization integration studio: traces, simulators, and xv6 evidence | Review Ch. 2, 4–10, 13–16, 18–22 as needed |
+| 14 | Wed Oct 14 | 7 | Threads, shared state, and race conditions | OSTEP Ch. 26 |
+| 15 | Mon Oct 19 | 7 | pthread API and observable race lab | OSTEP Ch. 27 |
+| 16 | Wed Oct 21 | 8 | Lock goals, atomic primitives, spinning, and sleeping | OSTEP Ch. 28 |
+| 17 | Mon Oct 26 | 8 | Lock-based data structures and invariant scope | OSTEP Ch. 29 |
+| 18 | Wed Oct 28 | 9 | Condition variables, predicates, and producer/consumer | OSTEP Ch. 30 |
+| 19 | Mon Nov 2 | 9 | Semaphores and resource/order synchronization | OSTEP Ch. 31 |
+| 20 | Wed Nov 4 | 10 | Concurrency bugs and deadlock conditions | OSTEP Ch. 32 |
+| 21 | Mon Nov 9 | 10 | Liveness diagnosis and lock-order studio | Review OSTEP Ch. 32 |
+| 22 | Wed Nov 11 | 11 | I/O devices, polling, interrupts, and DMA | OSTEP Ch. 36 |
+| 23 | Mon Nov 16 | 11 | Device interaction and system-call trace studio | Review OSTEP Ch. 36 |
+| 24 | Wed Nov 18 | 12 | Files, directories, descriptors, and metadata | OSTEP Ch. 39 |
+| 25 | Mon Nov 30 | 12 | Links, open-file state, and persistence evidence lab | Review OSTEP Ch. 39 |
+| 26 | Wed Dec 2 | 13 | File-system implementation and FFS locality | OSTEP Ch. 40–41 |
+| 27 | Mon Dec 7 | 13 | Crash consistency, journaling, and course integration | OSTEP Ch. 42 |

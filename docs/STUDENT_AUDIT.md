@@ -2,7 +2,7 @@
 
 ## Release verification — 2026-08-20
 
-- TypeScript, 38 automated content/safety/accessibility tests, compiled webview JavaScript,
+- TypeScript, automated content/safety/accessibility tests, compiled webview JavaScript,
   CSP-compatible event wiring, accessible-export checks, and VSIX packaging
   passed.
 - All 13 generated starters were created in disposable directories and their
@@ -30,11 +30,19 @@
   navigation. The first-run walkthrough is self-paced, skippable, and rerunnable.
 - Each module exposes reading, novice explanation, eight explained questions,
   source evidence, a five-step guided lab, and local reflection status.
+- The dated 27-meeting plan exposes 29 direct official OSTEP chapter links,
+  including a focused before-class reading purpose for every assigned chapter.
+  The plan covers virtualization, concurrency, and persistence and does not
+  copy or redistribute the book.
 - Coursework is separated into three homework and four programming components.
   It is explicitly a planning map so stale historical requirements cannot be
   mistaken for Fall 2026 instructions.
 - Canvas is one click away and is repeatedly identified as the authority for
   submissions, deadlines, feedback, and grades.
+- The verified Fall 2026 course link is
+  `https://canvas.umd.umich.edu/courses/552201`; discussion and private-message
+  destinations remain instructor-configurable because their exact URLs were
+  not verified.
 - The environment checker is non-mutating. Workspace creation is explicit,
   refuses to overwrite an existing destination, and exposes the Docker recipe
   for review.
@@ -53,6 +61,11 @@
 - The pre-class composer copies a structured draft and opens a configured
   Canvas discussion or private route. It never posts and never claims that an
   anonymous preference made a post anonymous.
+- The FAQ and generated troubleshooting guide address recurring anonymized
+  concerns found in recent evaluations and course email: C/Make background,
+  Docker and Apple-silicon setup, graphical QEMU input, archive/path mistakes,
+  xv6 scheduler translation, ambiguous evidence, specification edge cases,
+  immediate formative feedback, and Canvas-versus-planning grade displays.
 
 ## Accessibility
 
@@ -95,7 +108,7 @@
 ## Remaining instructor checks before launch
 
 - Confirm or replace the provisional grading policy in the Fall 2026 syllabus.
-- Add the direct Canvas URL and current office hours.
+- Add current office hours when confirmed.
 - Add any future department-confirmed GSI or grader. No GSI or grader is
   currently assigned or confirmed; check Canvas and department announcements
   for updates.

@@ -11,10 +11,19 @@ test('course identity contains no CIS 310 or senior-design carryover', () => {
 test('all 13 modules include eight source-grounded explained questions across Bloom levels', () => {
   assert.equal(MODULES.length, 13);
   assert.equal(MODULES.flatMap((module) => module.questions).length, 104);
+  assert.equal(MODULES.flatMap((module) => module.readings).length, 29);
   for (const module of MODULES) {
     assert.ok(module.objectives.length >= 3, module.id);
     assert.ok(module.lesson.length >= 3, module.id);
     assert.match(module.readingUrl, /^https:\/\/pages\.cs\.wisc\.edu\/.*OSTEP/);
+    assert.ok(module.readings.length >= 1, module.id);
+    for (const reading of module.readings) {
+      assert.match(reading.url, /^https:\/\/pages\.cs\.wisc\.edu\/~remzi\/OSTEP\/[a-z0-9-]+\.pdf$/);
+      assert.match(reading.chapter, /^Chapter \d+$/);
+      assert.ok(reading.focus.length > 35, `${module.id} ${reading.chapter}`);
+      const chapterNumber = reading.chapter.replace('Chapter ', '');
+      assert.ok(module.questions.some((question) => new RegExp(`\\b${chapterNumber}\\b`).test(question.source)), `${module.id} ${reading.chapter} has no specifically mapped question source`);
+    }
     assert.ok(module.handsOn.length > 40, module.id);
     assert.ok(module.artifact.length > 30, module.id);
     assert.equal(module.questions.length, 8, module.id);
@@ -39,9 +48,11 @@ test('coursework reflects three homework and four programming components', () =>
 
 test('current facts and unverified Canvas details are explicitly separated', () => {
   assert.ok(SOURCE_BOUNDARIES.verifiedCurrent.some((fact) => fact.includes('CASL 1048')));
+  assert.equal(COURSE.canvasUrl, 'https://canvas.umd.umich.edu/courses/552201');
+  assert.ok(SOURCE_BOUNDARIES.verifiedCurrent.some((fact) => fact.includes('552201')));
   assert.ok(SOURCE_BOUNDARIES.verifiedReference.some((fact) => fact.includes('eeb7b415')));
   assert.ok(SOURCE_BOUNDARIES.verifiedReference.some((fact) => fact.includes('upstream usertests')));
   assert.ok(SOURCE_BOUNDARIES.canvasOnly.some((fact) => fact.includes('assignment wording')));
-  assert.ok(SOURCE_BOUNDARIES.canvasOnly.some((fact) => fact.includes('Direct Fall 2026 course URL')));
+  assert.ok(!SOURCE_BOUNDARIES.canvasOnly.some((fact) => fact.includes('Direct Fall 2026 course URL')));
   assert.ok(SOURCE_BOUNDARIES.canvasOnly.some((fact) => fact.includes('different revision')));
 });

@@ -2,7 +2,7 @@
   "name": "systemstudio-cis450-ece478",
   "displayName": "SystemStudio CIS 450 / ECE 478",
   "description": "Accessible Fall 2026 Operating Systems learning hub with OSTEP-aligned modules, hands-on labs, local progress, and academic-integrity support.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "publisher": "probir-roy",
   "repository": {
@@ -77,7 +77,7 @@
         "systemstudioOs.canvasCourseUrl": {
           "type": "string",
           "default": "",
-          "description": "Direct Fall 2026 UM-Dearborn Canvas course URL. Leave blank until the course URL is verified."
+          "description": "Optional override for the verified Fall 2026 Canvas course URL (course 552201). Leave blank to use the bundled verified link."
         },
         "systemstudioOs.canvasDiscussionUrl": {
           "type": "string",

@@ -13,6 +13,13 @@ export interface PracticeQuestion {
   source: string;
 }
 
+export interface ReadingResource {
+  chapter: string;
+  title: string;
+  url: string;
+  focus: string;
+}
+
 export interface CourseModule {
   id: string;
   number: number;
@@ -21,6 +28,7 @@ export interface CourseModule {
   objectives: readonly string[];
   reading: string;
   readingUrl: string;
+  readings: readonly ReadingResource[];
   lesson: readonly string[];
   handsOn: string;
   artifact: string;
@@ -29,7 +37,7 @@ export interface CourseModule {
 }
 
 type AuthoredQuestion = Omit<PracticeQuestion, 'source'> & { source?: string };
-type AuthoredCourseModule = Omit<CourseModule, 'questions'> & { questions: readonly AuthoredQuestion[] };
+type AuthoredCourseModule = Omit<CourseModule, 'questions' | 'readings'> & { questions: readonly AuthoredQuestion[] };
 
 const OSTEP = 'https://pages.cs.wisc.edu/~remzi/OSTEP/';
 
@@ -44,7 +52,7 @@ export const COURSE = {
   gsiStatus: 'No GSI or grader is currently assigned or confirmed; check Canvas and department announcements for updates.',
   meeting: 'Mondays and Wednesdays, 2:00–3:45 p.m.',
   room: 'CASL 1048',
-  canvasUrl: 'https://canvas.umd.umich.edu/',
+  canvasUrl: 'https://canvas.umd.umich.edu/courses/552201',
   academicCalendarUrl: 'https://umdearborn.edu/sites/default/files/unmanaged/pdf/registrar/2026-2027-academic-calendar.pdf',
   textbook: 'Operating Systems: Three Easy Pieces (OSTEP), free online',
   textbookUrl: OSTEP
@@ -100,9 +108,9 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     artifact: 'Gantt chart, metric calculations, simulator command, and a short policy tradeoff paragraph.',
     sourceBasis: 'Winter 2026 HW1 scheduling questions and PA2 scheduler goals; OSTEP scheduling chapters.',
     questions: [
-      { id: 'm03q1', level: 'Understand', prompt: 'Why does an OS need a timer interrupt?', choices: ['To allocate disk blocks', 'To regain CPU control from a running process', 'To translate addresses', 'To create a file descriptor'], answer: 1, explanation: 'The timer provides a non-cooperative path back into the kernel so the scheduler can preempt.' },
-      { id: 'm03q2', level: 'Apply', prompt: 'Jobs A(3) and B(1) arrive together. Under non-preemptive SJF, which order minimizes average turnaround?', choices: ['A then B', 'B then A', 'Either is identical', 'They must alternate'], answer: 1, explanation: 'Running the shortest job first completes B at 1 and A at 4, reducing average completion time.' },
-      { id: 'm03q3', level: 'Analyze', prompt: 'What MLFQ mechanism primarily addresses starvation?', choices: ['Longer process names', 'Periodic priority boosts', 'Disabling preemption', 'One global time quantum only'], answer: 1, explanation: 'Boosting waiting jobs returns them to a higher-priority queue so they eventually receive service.' }
+      { id: 'm03q1', level: 'Understand', prompt: 'Why does an OS need a timer interrupt?', choices: ['To allocate disk blocks', 'To regain CPU control from a running process', 'To translate addresses', 'To create a file descriptor'], answer: 1, explanation: 'The timer provides a non-cooperative path back into the kernel so the scheduler can preempt.', source: 'OSTEP Chapter 6: Limited Direct Execution' },
+      { id: 'm03q2', level: 'Apply', prompt: 'Jobs A(3) and B(1) arrive together. Under non-preemptive SJF, which order minimizes average turnaround?', choices: ['A then B', 'B then A', 'Either is identical', 'They must alternate'], answer: 1, explanation: 'Running the shortest job first completes B at 1 and A at 4, reducing average completion time.', source: 'OSTEP Chapter 7: Scheduling Introduction' },
+      { id: 'm03q3', level: 'Analyze', prompt: 'What MLFQ mechanism primarily addresses starvation?', choices: ['Longer process names', 'Periodic priority boosts', 'Disabling preemption', 'One global time quantum only'], answer: 1, explanation: 'Boosting waiting jobs returns them to a higher-priority queue so they eventually receive service.', source: 'OSTEP Chapter 8: Multi-Level Feedback Queue' }
     ]
   },
   {
@@ -118,9 +126,9 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     artifact: 'Translation table with validity decision, arithmetic, and physical address or protection fault.',
     sourceBasis: 'Winter 2026 HW2 address-space, base/bounds, and segmentation items; OSTEP VM chapters.',
     questions: [
-      { id: 'm04q1', level: 'Remember', prompt: 'Which region normally grows as dynamic allocation occurs?', choices: ['Code', 'Heap', 'Program counter', 'Page table register'], answer: 1, explanation: 'malloc-family allocation typically expands or maps heap storage.' },
-      { id: 'm04q2', level: 'Apply', prompt: 'With base 4000 and bound 500, what happens to virtual address 300?', choices: ['Fault', 'Physical 3700', 'Physical 4300', 'Physical 4500'], answer: 2, explanation: '300 is within the 500-byte bound, so translation is base + offset = 4300.' },
-      { id: 'm04q3', level: 'Analyze', prompt: 'What is a main cost of variable-sized segmentation?', choices: ['No protection', 'External fragmentation', 'No sharing', 'Every access causes a disk read'], answer: 1, explanation: 'Variable-sized segments leave noncontiguous holes that can make allocation difficult.' }
+      { id: 'm04q1', level: 'Remember', prompt: 'Which region normally grows as dynamic allocation occurs?', choices: ['Code', 'Heap', 'Program counter', 'Page table register'], answer: 1, explanation: 'malloc-family allocation typically expands or maps heap storage.', source: 'OSTEP Chapter 13: Address Spaces' },
+      { id: 'm04q2', level: 'Apply', prompt: 'With base 4000 and bound 500, what happens to virtual address 300?', choices: ['Fault', 'Physical 3700', 'Physical 4300', 'Physical 4500'], answer: 2, explanation: '300 is within the 500-byte bound, so translation is base + offset = 4300.', source: 'OSTEP Chapter 15: Address Translation' },
+      { id: 'm04q3', level: 'Analyze', prompt: 'What is a main cost of variable-sized segmentation?', choices: ['No protection', 'External fragmentation', 'No sharing', 'Every access causes a disk read'], answer: 1, explanation: 'Variable-sized segments leave noncontiguous holes that can make allocation difficult.', source: 'OSTEP Chapter 16: Segmentation' }
     ]
   },
   {
@@ -154,8 +162,8 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     artifact: 'Frame-by-frame table, page-fault counts, and a locality-based explanation.',
     sourceBasis: 'Winter 2026 HW2 effective access time and replacement questions; OSTEP replacement chapters.',
     questions: [
-      { id: 'm06q1', level: 'Understand', prompt: 'What distinguishes a page fault from a TLB miss?', choices: ['A page fault means the referenced page is not currently resident or access is invalid', 'A TLB miss always terminates the process', 'A page fault never enters the kernel', 'They are identical'], answer: 0, explanation: 'A TLB miss concerns the translation cache; a page fault concerns page-table validity/residency or protection.' },
-      { id: 'm06q2', level: 'Remember', prompt: 'Why is OPT mainly a benchmark?', choices: ['It requires future references', 'It cannot count faults', 'It uses no memory', 'It is identical to FIFO'], answer: 0, explanation: 'OPT evicts the page whose next use is farthest in the future, information a real system does not possess.' },
+      { id: 'm06q1', level: 'Understand', prompt: 'What distinguishes a page fault from a TLB miss?', choices: ['A page fault means the referenced page is not currently resident or access is invalid', 'A TLB miss always terminates the process', 'A page fault never enters the kernel', 'They are identical'], answer: 0, explanation: 'A TLB miss concerns the translation cache; a page fault concerns page-table validity/residency or protection.', source: 'OSTEP Chapter 21: Swapping Mechanisms' },
+      { id: 'm06q2', level: 'Remember', prompt: 'Why is OPT mainly a benchmark?', choices: ['It requires future references', 'It cannot count faults', 'It uses no memory', 'It is identical to FIFO'], answer: 0, explanation: 'OPT evicts the page whose next use is farthest in the future, information a real system does not possess.', source: 'OSTEP Chapter 22: Swapping Policies' },
       { id: 'm06q3', level: 'Analyze', prompt: 'What pattern best signals thrashing?', choices: ['High CPU use and no faults', 'Frequent faults with little useful execution', 'One compulsory miss at startup', 'A large TLB'], answer: 1, explanation: 'Thrashing spends much of the time moving pages rather than running useful instructions.' }
     ]
   },
@@ -280,15 +288,74 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     artifact: 'Block-access trace and crash-consistency table showing states before commit, after commit, and after checkpoint.',
     sourceBasis: 'Packaged lecture sources 3-4 and 3-5; OSTEP file-system implementation and journaling chapters.',
     questions: [
-      { id: 'm13q1', level: 'Apply', prompt: 'Creating a new regular file typically changes which structures?', choices: ['Only the CPU scheduler', 'A directory, an inode allocation structure, and inode metadata', 'Only the TLB', 'Only the process stack'], answer: 1, explanation: 'Creation allocates/initializes metadata and connects a directory name to it; data blocks may be allocated when content is written.' },
-      { id: 'm13q2', level: 'Understand', prompt: 'What problem does journaling primarily address?', choices: ['CPU fairness', 'Consistency after interrupted multi-step updates', 'Virtual-address size', 'Thread creation speed'], answer: 1, explanation: 'A crash can interrupt related writes; the journal provides a recoverable transaction boundary.' },
-      { id: 'm13q3', level: 'Analyze', prompt: 'Why is write ordering important even with a journal?', choices: ['Recovery assumptions depend on commit/data reaching storage in the intended order', 'Disks execute C code', 'Page offsets must change', 'It prevents all hardware failure'], answer: 0, explanation: 'If storage reorders writes, a commit record may become durable before required log data unless barriers/order are enforced.' }
+      { id: 'm13q1', level: 'Apply', prompt: 'Creating a new regular file typically changes which structures?', choices: ['Only the CPU scheduler', 'A directory, an inode allocation structure, and inode metadata', 'Only the TLB', 'Only the process stack'], answer: 1, explanation: 'Creation allocates/initializes metadata and connects a directory name to it; data blocks may be allocated when content is written.', source: 'OSTEP Chapter 40: File System Implementation' },
+      { id: 'm13q2', level: 'Understand', prompt: 'What problem does journaling primarily address?', choices: ['CPU fairness', 'Consistency after interrupted multi-step updates', 'Virtual-address size', 'Thread creation speed'], answer: 1, explanation: 'A crash can interrupt related writes; the journal provides a recoverable transaction boundary.', source: 'OSTEP Chapter 42: Crash Consistency' },
+      { id: 'm13q3', level: 'Analyze', prompt: 'Why is write ordering important even with a journal?', choices: ['Recovery assumptions depend on commit/data reaching storage in the intended order', 'Disks execute C code', 'Page offsets must change', 'It prevents all hardware failure'], answer: 0, explanation: 'If storage reorders writes, a commit record may become durable before required log data unless barriers/order are enforced.', source: 'OSTEP Chapter 42: Crash Consistency' }
     ]
   }
 ] as const;
 
+const MODULE_READINGS: Readonly<Record<string, readonly ReadingResource[]>> = {
+  m01: [
+    { chapter: 'Chapter 2', title: 'Introduction to Operating Systems', url: `${OSTEP}intro.pdf`, focus: 'Virtualization, concurrency, persistence, protection, and the distinction between mechanism and policy.' }
+  ],
+  m02: [
+    { chapter: 'Chapter 4', title: 'The Abstraction: The Process', url: `${OSTEP}cpu-intro.pdf`, focus: 'Process state, process lists, and transitions among running, ready, and blocked.' },
+    { chapter: 'Chapter 5', title: 'Interlude: Process API', url: `${OSTEP}cpu-api.pdf`, focus: 'fork, wait, exec, process control, and how a shell uses the API.' }
+  ],
+  m03: [
+    { chapter: 'Chapter 6', title: 'Mechanism: Limited Direct Execution', url: `${OSTEP}cpu-mechanisms.pdf`, focus: 'Traps, restricted operations, timer interrupts, and context switching.' },
+    { chapter: 'Chapter 7', title: 'Scheduling: Introduction', url: `${OSTEP}cpu-sched.pdf`, focus: 'Turnaround and response metrics; FIFO, SJF, STCF, and round robin.' },
+    { chapter: 'Chapter 8', title: 'Scheduling: The Multi-Level Feedback Queue', url: `${OSTEP}cpu-sched-mlfq.pdf`, focus: 'Feedback rules, gaming, starvation, boosts, and workload behavior.' },
+    { chapter: 'Chapter 9', title: 'Scheduling: Proportional Share', url: `${OSTEP}cpu-sched-lottery.pdf`, focus: 'Lottery scheduling, tickets, fairness, and stride scheduling.' },
+    { chapter: 'Chapter 10', title: 'Multiprocessor Scheduling', url: `${OSTEP}cpu-sched-multi.pdf`, focus: 'Caches, affinity, load balancing, and multi-queue tradeoffs.' }
+  ],
+  m04: [
+    { chapter: 'Chapter 13', title: 'The Abstraction: Address Spaces', url: `${OSTEP}vm-intro.pdf`, focus: 'Code, heap, stack, isolation, and the goals of memory virtualization.' },
+    { chapter: 'Chapter 14', title: 'Interlude: Memory API', url: `${OSTEP}vm-api.pdf`, focus: 'malloc/free, allocation errors, and memory-management interfaces.' },
+    { chapter: 'Chapter 15', title: 'Mechanism: Address Translation', url: `${OSTEP}vm-mechanism.pdf`, focus: 'Base-and-bounds translation, protection, and OS/hardware responsibilities.' },
+    { chapter: 'Chapter 16', title: 'Segmentation', url: `${OSTEP}vm-segmentation.pdf`, focus: 'Segment registers, growth, sharing, and external fragmentation.' }
+  ],
+  m05: [
+    { chapter: 'Chapter 18', title: 'Paging: Introduction', url: `${OSTEP}vm-paging.pdf`, focus: 'Pages, frames, VPN/offset decomposition, PTEs, and page-table cost.' },
+    { chapter: 'Chapter 19', title: 'Translation Lookaside Buffers', url: `${OSTEP}vm-tlbs.pdf`, focus: 'TLB hits and misses, context switches, replacement, and correctness.' },
+    { chapter: 'Chapter 20', title: 'Advanced Page Tables', url: `${OSTEP}vm-smalltables.pdf`, focus: 'Larger pages, hybrids, and multi-level page-table space/time tradeoffs.' }
+  ],
+  m06: [
+    { chapter: 'Chapter 21', title: 'Swapping: Mechanisms', url: `${OSTEP}vm-beyondphys.pdf`, focus: 'Present bits, page faults, swap space, page-in/page-out, and restart.' },
+    { chapter: 'Chapter 22', title: 'Swapping: Policies', url: `${OSTEP}vm-beyondphys-policy.pdf`, focus: 'OPT, FIFO, LRU approximations, Clock, locality, and thrashing.' }
+  ],
+  m07: [
+    { chapter: 'Chapter 26', title: 'Concurrency: An Introduction', url: `${OSTEP}threads-intro.pdf`, focus: 'Thread state, shared address spaces, critical sections, and harmful interleavings.' },
+    { chapter: 'Chapter 27', title: 'Interlude: Thread API', url: `${OSTEP}threads-api.pdf`, focus: 'pthread creation, joining, arguments, return values, locks, and condition-variable API.' }
+  ],
+  m08: [
+    { chapter: 'Chapter 28', title: 'Locks', url: `${OSTEP}threads-locks.pdf`, focus: 'Mutual exclusion, atomic hardware primitives, spinning, sleeping, fairness, and correctness.' },
+    { chapter: 'Chapter 29', title: 'Lock-based Concurrent Data Structures', url: `${OSTEP}threads-locks-usage.pdf`, focus: 'Protecting invariants in counters, lists, queues, and hash tables; lock granularity.' }
+  ],
+  m09: [
+    { chapter: 'Chapter 30', title: 'Condition Variables', url: `${OSTEP}threads-cv.pdf`, focus: 'Predicates, wait/signal, Mesa semantics, producer/consumer, and covering conditions.' },
+    { chapter: 'Chapter 31', title: 'Semaphores', url: `${OSTEP}threads-sema.pdf`, focus: 'Binary/counting semaphores, ordering, bounded buffers, readers/writers, and dining philosophers.' }
+  ],
+  m10: [
+    { chapter: 'Chapter 32', title: 'Common Concurrency Problems', url: `${OSTEP}threads-bugs.pdf`, focus: 'Atomicity/order violations, deadlock conditions, prevention, avoidance, detection, and liveness.' }
+  ],
+  m11: [
+    { chapter: 'Chapter 36', title: 'I/O Devices', url: `${OSTEP}file-devices.pdf`, focus: 'Device registers, polling, interrupts, DMA, drivers, and the I/O software stack.' }
+  ],
+  m12: [
+    { chapter: 'Chapter 39', title: 'Files and Directories', url: `${OSTEP}file-intro.pdf`, focus: 'File descriptors, open/read/write, directories, links, metadata, permissions, mounting, and fsync.' }
+  ],
+  m13: [
+    { chapter: 'Chapter 40', title: 'File System Implementation', url: `${OSTEP}file-implementation.pdf`, focus: 'Inodes, bitmaps, directories, allocation, pathname traversal, caching, and write traffic.' },
+    { chapter: 'Chapter 41', title: 'Fast File System', url: `${OSTEP}file-ffs.pdf`, focus: 'Cylinder/block groups, placement policy, locality, large files, and fragmentation.' },
+    { chapter: 'Chapter 42', title: 'Crash Consistency: FSCK and Journaling', url: `${OSTEP}file-journaling.pdf`, focus: 'Interrupted updates, fsck, write-ahead logging, recovery, ordering, and checksums.' }
+  ]
+} as const;
+
 export const MODULES: readonly CourseModule[] = AUTHORED_MODULES.map((module) => ({
   ...module,
+  readings: MODULE_READINGS[module.id] ?? [],
   questions: [...module.questions, ...(SUPPLEMENTAL_QUESTIONS[module.id] ?? [])].map((question) => ({
     ...question,
     source: question.source ?? module.reading
@@ -321,6 +388,7 @@ export const SOURCE_BOUNDARIES = {
     'Fall 2026, section 001',
     'Instructor: Dr. Probir Roy',
     'Mondays and Wednesdays, 2:00–3:45 p.m., CASL 1048',
+    'Direct Canvas course: https://canvas.umd.umich.edu/courses/552201',
     'No GSI or grader is currently assigned or confirmed; check Canvas and department announcements for updates.'
   ],
   verifiedReference: [
@@ -338,7 +406,6 @@ export const SOURCE_BOUNDARIES = {
   ],
   canvasOnly: [
     'Fall 2026 assignment wording, release dates, deadlines, submission types, team rules, and late policy',
-    'Direct Fall 2026 course URL',
     'Whether Fall 2026 uses the pinned xv6 reference or a different revision/specification',
     'Exam dates, office hours, grading-policy changes, official grades, and any future GSI or grader assignment'
   ]

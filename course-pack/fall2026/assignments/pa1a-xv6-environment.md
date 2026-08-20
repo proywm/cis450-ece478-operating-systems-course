@@ -17,15 +17,25 @@ allowed help, tests, and deadline.
    systemstudio-xv6-reference-baseline`, and compare this historical reference
    with the current Canvas prompt.
 5. Run **Run xv6 Assignment Preflight → PA1A**. The validator performs a clean
-   build, starts the current kernel in `qemu-system-i386`, waits for an
-   interactive xv6 shell, sends a marker command, and closes QEMU cleanly.
+   build, starts the current kernel with two CPUs in headless
+   `qemu-system-i386` on a tested legacy-compatible machine, checks
+   `cpu0: starting`, `cpu1: starting`, and
+   `init: starting sh`, waits for an interactive xv6 shell, sends a marker
+   command, and closes QEMU cleanly.
+
+The explicit machine selection matters: a modern QEMU default was verified to
+accept `-smp 2` while exposing only one CPU to this historical xv6 source. If
+the required compatibility machine is unavailable locally, use the supplied
+Ubuntu 22.04 Docker route rather than accepting a misleading one-CPU result.
 
 On Linux, the extension can use local GCC/Make/Python/QEMU. On Windows, macOS,
 or a Linux host without those dependencies, it offers the visible Docker
 recipe in `.systemstudio/`; it does not silently install or start Docker.
 
-Evidence to practice: clean build/boot output, exact commands, version summary,
-one failure and repair, and an accessibility/portability note.
+Evidence to practice: clean build/boot output including both CPU-start markers
+and the shell marker, exact commands, source commit, version summary, one
+failure and repair, and an accessibility/portability note. Canvas controls
+whether identity, time, screenshots, a transcript, or a report is required.
 
 ## Executable formative route
 

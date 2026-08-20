@@ -10,7 +10,8 @@ test('learning hub exposes the pedagogically relevant parity surfaces', async ()
     'Guided OS labs', 'Coursework planning and evidence', 'My learning progress',
     'Optional historical-weight grade planning estimate', 'Frequently asked questions',
     'Ask before class through Canvas', 'Self-paced orientation',
-    'Self-reported coursework planning progression'
+    'Self-reported coursework planning progression', 'Open dated OSTEP course plan',
+    '29 exact official OSTEP chapter links', 'Start here when blocked'
   ]) assert.ok(html.includes(marker), marker);
 });
 

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildCalendar, estimateGrade, fall2026Meetings, letterFor, progressPercent, tutorReply } from '../src/core.js';
+import { buildCalendar, estimateGrade, fall2026Meetings, fall2026Schedule, letterFor, progressPercent, tutorReply } from '../src/core.js';
 
 test('verified Fall 2026 calendar has 27 Monday/Wednesday meetings', () => {
   const meetings = fall2026Meetings();
@@ -10,6 +10,16 @@ test('verified Fall 2026 calendar has 27 Monday/Wednesday meetings', () => {
   assert.equal(meetings.some((meeting) => ['2026-09-07', '2026-11-23', '2026-11-25'].includes(meeting.date)), false);
 });
 
+test('all verified meetings have a dated module and OSTEP preparation plan', () => {
+  const schedule = fall2026Schedule();
+  assert.equal(schedule.length, 27);
+  assert.equal(schedule[0]?.topic, 'OS goals and the common C/Unix environment');
+  assert.equal(schedule[0]?.prepare, 'OSTEP Chapter 2');
+  assert.deepEqual(schedule.at(-1)?.moduleNumbers, [13]);
+  assert.equal(schedule.at(-1)?.prepare, 'OSTEP Chapter 42');
+  assert.ok(schedule.every((meeting) => meeting.moduleNumbers.length > 0 && meeting.prepare.includes('OSTEP')));
+});
+
 test('calendar identifies verified room and leaves exact exam details to Canvas', () => {
   const calendar = buildCalendar();
   assert.match(calendar, /CASL 1048/);
@@ -17,6 +27,9 @@ test('calendar identifies verified room and leaves exact exam details to Canvas'
   assert.match(calendar, /T154500/);
   assert.match(calendar, /Exact exam date\\, time\\, room\\, and format are not yet verified/);
   assert.match(calendar, /Canvas is authoritative/);
+  assert.match(calendar, /MLFQ\\, proportional share\\, and multiprocessor scheduling/);
+  assert.match(calendar, /Prepare: OSTEP Chapters 8–10/);
+  assert.match(calendar, /URL:https:\/\/canvas\.umd\.umich\.edu\/courses\/552201/);
 });
 
 test('grade estimate uses verified historical 10/15/40/15/20 weights', () => {

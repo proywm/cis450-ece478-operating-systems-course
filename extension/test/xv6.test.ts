@@ -45,7 +45,9 @@ test('public workspace contains reproducible tooling and no assignment implement
 test('validator covers build, boot, instrumentation, queue quanta, and regression behavior', () => {
   const validator = xv6WorkspaceFiles()['.systemstudio/verify_xv6.py'] ?? '';
   for (const marker of [
-    'make", "clean', 'Qemu(1)', 'SYSTEMSTUDIO_XV6_BOOT_OK',
+    'make", "clean', 'Qemu(2)', 'pc-i440fx-2.9', 'qemu-system-i386',
+    'cpu0: starting', 'cpu1: starting',
+    'init: starting sh', 'SYSTEMSTUDIO_XV6_BOOT_OK',
     'Queue Type\\s+0.*Quantum Size\\s+4',
     'first three observed spin quanta', 'three consecutive 10 ms ticks',
     'normalized = re.sub', 'zombie![\\s\\S]*', 'usertests', 'ALL TESTS PASSED'

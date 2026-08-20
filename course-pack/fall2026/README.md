@@ -1,5 +1,11 @@
 # CIS 450 / ECE 478 Fall 2026 course pack
 
+The active Canvas course is
+<https://canvas.umd.umich.edu/courses/552201>. The bundled dated plan maps the
+27 Monday/Wednesday meetings to 29 official OSTEP chapter links. Each learning
+module combines those readings with accessible explanations, eight explained
+questions, private self-evaluation, and a tested hands-on route.
+
 This pack supports the active course while preserving a clear authority line:
 
 1. Canvas contains official assignment wording, due dates, submissions,

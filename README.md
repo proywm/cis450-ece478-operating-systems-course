@@ -30,14 +30,16 @@ and not a copy of the CIS 310 content.
 
 Canvas remains authoritative for assignment specifications, due dates,
 submission links, exam details, policy changes, and official grades. The direct
-Fall 2026 course URL was not present in the local or email evidence, so the
-extension opens the UM-Dearborn Canvas dashboard rather than inventing a link.
-The link is configurable after the instructor verifies the direct course URL.
+Fall 2026 course link is <https://canvas.umd.umich.edu/courses/552201>; optional
+discussion and private-message routes remain configurable because no specific
+Canvas topic/Inbox URL was supplied.
 
-The extension now includes 104 source-grounded questions, five-question
-practice with spaced review and analytics, thirteen executable guided lab
-starters, a self-paced walkthrough, coursework evidence planning, guarded local
-help, and reviewed-before-save Canvas calendar import. A generated portable
+The extension now includes a 27-meeting dated reading plan, 29 exact official
+OSTEP chapter links with reading-focus prompts, 104 source-grounded questions,
+five-question practice with spaced review and analytics, thirteen executable
+guided lab starters, explicit self-evaluation, a self-paced walkthrough,
+coursework evidence planning, a student-evidence-informed FAQ/help clinic, and
+reviewed-before-save Canvas calendar import. A generated portable
 workspace supplies one visible Linux container recipe and fixed HW1/HW2/HW3/PA3
 preflights on Windows, macOS, and Linux. All learning indicators are private
 self-evaluation and remain separate from Canvas grades.

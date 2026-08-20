@@ -1,5 +1,27 @@
 # Change log
 
+## 0.5.0 — 2026-08-20
+
+- Added a dated 27-meeting Fall 2026 plan that maps every class meeting to the
+  relevant lecture module and 29 direct, official OSTEP chapter links across
+  virtualization, concurrency, and persistence.
+- Exposed every chapter and its focused before-class prompt in the learning
+  hub and accessible Canvas-ready export; all 104 explained questions and
+  private self-evaluations remain attached to their mapped modules.
+- Added the verified CIS 450 / ECE 478 Canvas course 552201 as the default
+  course link while retaining safe instructor overrides for discussions and
+  private messages.
+- Expanded the FAQ and troubleshooting routes using anonymized recurring
+  student-evaluation and email concerns: C/Make prerequisites, Docker and
+  Apple-silicon setup, xv6 translation, archive recovery, evidence ambiguity,
+  scheduler specifications, formative feedback, and Canvas-grade boundaries.
+- Tightened PA1A to select a tested legacy-compatible QEMU machine and verify a
+  clean two-CPU xv6 boot, both CPU startup messages, shell startup, a runnable
+  shell marker, and process exit. This fixes the verified case where a modern
+  default QEMU machine accepted `-smp 2` but exposed only one CPU to xv6.
+- Updated the syllabus and accessible lesson collection with the reading plan,
+  support routes, and explicit Canvas-authority boundaries.
+
 ## 0.4.0 — 2026-08-20
 
 - Added a manifest-validated portable coursework workspace for HW1, HW2, HW3,

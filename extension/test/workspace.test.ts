@@ -43,6 +43,9 @@ test('workspace exposes one cross-platform container recipe and transparent task
   assert.ok(tasks.tasks.some((task) => task.args[task.args.length - 1] === 'all'));
   assert.match(files['SETUP.md']!, /Windows, macOS, and Linux/);
   assert.match(files['SETUP.md']!, /does not silently install Docker/);
+  assert.match(files['TROUBLESHOOTING.md']!, /Apple silicon/i);
+  assert.match(files['TROUBLESHOOTING.md']!, /headless `qemu-nox`/i);
+  assert.match(files['TROUBLESHOOTING.md']!, /current Canvas rubric/i);
 });
 
 test('coursework manifest parser rejects spoofed or incomplete workspaces', () => {

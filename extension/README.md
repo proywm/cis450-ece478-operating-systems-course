@@ -3,8 +3,9 @@
 The Fall 2026 Operating Systems learning hub for section 001.
 
 - 13 visible modules across virtualization, concurrency, and persistence
-- mapped free OSTEP reading, concise accessible explanations, and 104 readiness
-  questions with hints, source grounding, and justifications
+- a dated 27-meeting plan mapped to 29 direct official OSTEP chapter links,
+  concise accessible explanations, and 104 readiness questions with hints,
+  source grounding, and justifications
 - five-question practice, saved/due/spaced review, confidence checks, and
   private per-topic analytics
 - thirteen guided C, Python, pthread, scheduler, memory, I/O, and file-system
@@ -23,7 +24,7 @@ The Fall 2026 Operating Systems learning hub for section 001.
 - optional original animated learning companion with reduced-motion and
   hide/restore controls
 - accessible standalone syllabus and lesson collection
-- verified Fall 2026 meeting calendar export
+- verified Fall 2026 meeting calendar and OSTEP preparation-plan export
 - configurable Canvas links with HTTPS/host validation, reviewed-before-save Canvas ICS import,
   and a pre-class question composer that never posts or promises anonymity
 
@@ -46,3 +47,9 @@ an already-installed native POSIX toolchain as a transparent convenience route.
 
 Canvas is authoritative for current assignments, deadlines, submissions,
 exams, feedback, policies, and official grades.
+
+The default Fall 2026 Canvas course is
+<https://canvas.umd.umich.edu/courses/552201>. See the in-extension FAQ and the
+generated `TROUBLESHOOTING.md` for setup, Apple-silicon/QEMU, archive, evidence,
+xv6, and coursework-specification diagnostics grounded in recurring student
+concerns.

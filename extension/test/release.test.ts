@@ -26,7 +26,11 @@ test('accessible syllabus and lesson export avoid Google Drive and stale course 
   }
   const lessons = await readFile(files[1]!, 'utf8');
   assert.equal((lessons.match(/<details>/g) ?? []).length, 104);
+  assert.equal((lessons.match(/<tr><td>/g) ?? []).length, 27);
+  assert.equal((lessons.match(/https:\/\/pages\.cs\.wisc\.edu\/~remzi\/OSTEP\/[a-z0-9-]+\.pdf/g) ?? []).length, 29);
   assert.match(lessons, /<strong>Source:<\/strong>/);
+  assert.match(lessons, /Dated OSTEP preparation plan/);
+  assert.match(lessons, /https:\/\/canvas\.umd\.umich\.edu\/courses\/552201/);
 });
 
 test('bundled course pack does not contain exams or student submissions', async () => {

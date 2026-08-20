@@ -122,6 +122,42 @@ function bestModule(question: string) {
 
 export interface Meeting { number: number; date: string; day: 'Monday' | 'Wednesday' }
 
+export interface PlannedMeeting extends Meeting {
+  moduleNumbers: readonly number[];
+  topic: string;
+  prepare: string;
+}
+
+const TOPIC_PLAN: readonly Omit<PlannedMeeting, keyof Meeting>[] = [
+  { moduleNumbers: [1], topic: 'OS goals and the common C/Unix environment', prepare: 'OSTEP Chapter 2' },
+  { moduleNumbers: [2], topic: 'Process abstraction and state', prepare: 'OSTEP Chapter 4' },
+  { moduleNumbers: [2], topic: 'fork, exec, wait, shells, and process evidence lab', prepare: 'OSTEP Chapter 5' },
+  { moduleNumbers: [3], topic: 'Limited direct execution, traps, and context switches', prepare: 'OSTEP Chapter 6' },
+  { moduleNumbers: [3], topic: 'Scheduling metrics and foundational policies', prepare: 'OSTEP Chapter 7' },
+  { moduleNumbers: [3], topic: 'MLFQ, proportional share, and multiprocessor scheduling', prepare: 'OSTEP Chapters 8–10' },
+  { moduleNumbers: [4], topic: 'Address spaces and the memory API', prepare: 'OSTEP Chapters 13–14' },
+  { moduleNumbers: [4], topic: 'Base/bounds translation and segmentation', prepare: 'OSTEP Chapters 15–16' },
+  { moduleNumbers: [5], topic: 'Paging fundamentals and address decomposition', prepare: 'OSTEP Chapter 18' },
+  { moduleNumbers: [5], topic: 'TLBs and advanced page tables', prepare: 'OSTEP Chapters 19–20' },
+  { moduleNumbers: [6], topic: 'Demand paging and page-fault mechanism', prepare: 'OSTEP Chapter 21' },
+  { moduleNumbers: [6], topic: 'Replacement policy, locality, and thrashing', prepare: 'OSTEP Chapter 22' },
+  { moduleNumbers: [1, 2, 3, 4, 5, 6], topic: 'Virtualization integration studio: traces, simulators, and xv6 evidence', prepare: 'Review OSTEP Chapters 2, 4–10, 13–16, and 18–22 as needed' },
+  { moduleNumbers: [7], topic: 'Threads, shared state, and race conditions', prepare: 'OSTEP Chapter 26' },
+  { moduleNumbers: [7], topic: 'pthread API and observable race lab', prepare: 'OSTEP Chapter 27' },
+  { moduleNumbers: [8], topic: 'Lock goals, atomic primitives, spinning, and sleeping', prepare: 'OSTEP Chapter 28' },
+  { moduleNumbers: [8], topic: 'Lock-based data structures and invariant scope', prepare: 'OSTEP Chapter 29' },
+  { moduleNumbers: [9], topic: 'Condition variables, predicates, and producer/consumer', prepare: 'OSTEP Chapter 30' },
+  { moduleNumbers: [9], topic: 'Semaphores and resource/order synchronization', prepare: 'OSTEP Chapter 31' },
+  { moduleNumbers: [10], topic: 'Concurrency bugs and deadlock conditions', prepare: 'OSTEP Chapter 32' },
+  { moduleNumbers: [10], topic: 'Liveness diagnosis and lock-order studio', prepare: 'Review OSTEP Chapter 32' },
+  { moduleNumbers: [11], topic: 'I/O devices, polling, interrupts, and DMA', prepare: 'OSTEP Chapter 36' },
+  { moduleNumbers: [11], topic: 'Device interaction and system-call trace studio', prepare: 'Review OSTEP Chapter 36' },
+  { moduleNumbers: [12], topic: 'Files, directories, descriptors, and metadata', prepare: 'OSTEP Chapter 39' },
+  { moduleNumbers: [12], topic: 'Links, open-file state, persistence evidence lab', prepare: 'Review OSTEP Chapter 39' },
+  { moduleNumbers: [13], topic: 'File-system implementation and FFS locality', prepare: 'OSTEP Chapters 40–41' },
+  { moduleNumbers: [13], topic: 'Crash consistency, journaling, and course integration', prepare: 'OSTEP Chapter 42' }
+] as const;
+
 export function fall2026Meetings(): Meeting[] {
   const start = new Date('2026-08-26T12:00:00Z');
   const end = new Date('2026-12-07T12:00:00Z');
@@ -136,11 +172,17 @@ export function fall2026Meetings(): Meeting[] {
   return meetings;
 }
 
+export function fall2026Schedule(): PlannedMeeting[] {
+  const meetings = fall2026Meetings();
+  if (meetings.length !== TOPIC_PLAN.length) throw new Error('Fall 2026 topic plan no longer matches the verified meeting calendar.');
+  return meetings.map((meeting, index) => ({ ...meeting, ...TOPIC_PLAN[index]! }));
+}
+
 export function buildCalendar(): string {
-  const meetingEvents = fall2026Meetings().map((meeting) => event(
+  const meetingEvents = fall2026Schedule().map((meeting) => event(
     `meeting-${meeting.number}`,
-    `CIS 450 / ECE 478 class ${meeting.number} of 27`,
-    `Regular class meeting in ${COURSE.room}. Check Canvas for the current topic and all assignment or schedule changes.`,
+    `CIS 450 / ECE 478 · ${meeting.topic}`,
+    `Planned meeting ${meeting.number} of 27. Prepare: ${meeting.prepare}. Module${meeting.moduleNumbers.length === 1 ? '' : 's'} ${meeting.moduleNumbers.join(', ')}. This is a learning plan; Canvas announcements control topic changes and all assessed-work dates.`,
     `DTSTART;TZID=America/Detroit:${compact(meeting.date)}T140000\r\nDTEND;TZID=America/Detroit:${compact(meeting.date)}T154500`,
     COURSE.room
   ));
