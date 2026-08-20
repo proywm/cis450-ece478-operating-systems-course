@@ -1,0 +1,69 @@
+{
+  "name": "systemstudio-cis450-ece478",
+  "displayName": "SystemStudio CIS 450 / ECE 478",
+  "description": "Accessible Fall 2026 Operating Systems learning hub with OSTEP-aligned modules, hands-on labs, local progress, and academic-integrity support.",
+  "version": "0.1.0",
+  "private": true,
+  "publisher": "probir-roy",
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "engines": { "vscode": "^1.96.0" },
+  "categories": ["Education", "Other"],
+  "activationEvents": [
+    "onView:systemstudioOs.course",
+    "onCommand:systemstudioOs.openLearningHub",
+    "onCommand:systemstudioOs.openCanvas",
+    "onCommand:systemstudioOs.openSyllabus",
+    "onCommand:systemstudioOs.openAccessibleLessons",
+    "onCommand:systemstudioOs.createLabWorkspace",
+    "onCommand:systemstudioOs.checkEnvironment",
+    "onCommand:systemstudioOs.runCurrentC",
+    "onCommand:systemstudioOs.exportCalendar"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      { "command": "systemstudioOs.openLearningHub", "title": "CIS 450 / ECE 478: Open Learning Hub", "icon": "$(book)" },
+      { "command": "systemstudioOs.openCanvas", "title": "CIS 450 / ECE 478: Open Canvas", "icon": "$(cloud)" },
+      { "command": "systemstudioOs.openSyllabus", "title": "CIS 450 / ECE 478: Open Fall 2026 Syllabus", "icon": "$(file-pdf)" },
+      { "command": "systemstudioOs.openAccessibleLessons", "title": "CIS 450 / ECE 478: Open Accessible Lesson Collection", "icon": "$(book)" },
+      { "command": "systemstudioOs.createLabWorkspace", "title": "CIS 450 / ECE 478: Create Portable OS Lab Workspace", "icon": "$(new-folder)" },
+      { "command": "systemstudioOs.checkEnvironment", "title": "CIS 450 / ECE 478: Check Docker and C Toolchain", "icon": "$(tools)" },
+      { "command": "systemstudioOs.runCurrentC", "title": "CIS 450 / ECE 478: Build and Run Current C File", "icon": "$(run)" },
+      { "command": "systemstudioOs.exportCalendar", "title": "CIS 450 / ECE 478: Export Fall 2026 Calendar", "icon": "$(calendar)" }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        { "id": "systemstudioOs", "title": "CIS 450 / ECE 478", "icon": "media/os.svg" }
+      ]
+    },
+    "views": {
+      "systemstudioOs": [
+        { "id": "systemstudioOs.course", "name": "Operating Systems Course" }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "systemstudioOs.course",
+        "contents": "Open the active Fall 2026 course hub.\n[Open Learning Hub](command:systemstudioOs.openLearningHub)"
+      }
+    ]
+  },
+  "scripts": {
+    "export:lessons": "tsx scripts/exportAccessible.ts",
+    "stage:course-pack": "node scripts/stageCoursePack.mjs",
+    "compile": "node esbuild.mjs",
+    "test:webview": "node scripts/checkWebviewSyntax.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts",
+    "check": "npm run export:lessons && npm run stage:course-pack && npm run typecheck && npm test && npm run compile && npm run test:webview",
+    "package": "npm run check && npx @vscode/vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/vscode": "^1.96.0",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.24.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

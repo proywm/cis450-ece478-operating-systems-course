@@ -1,0 +1,6 @@
+extension/node_modules/
+extension/dist/
+extension/course-pack/
+extension/*.vsix
+*.log
+.DS_Store

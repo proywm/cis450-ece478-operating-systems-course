@@ -1,0 +1,9 @@
+Copyright (c) 2026 Probir Roy. All rights reserved.
+
+This SystemStudio CIS 450 / ECE 478 extension is private, unpublished
+software. No license is granted to copy, modify, distribute, sublicense, or
+sell it without the copyright holder's written permission.
+
+Third-party resources retain their own licenses. See the repository-level
+THIRD_PARTY_NOTICES.md.
+
