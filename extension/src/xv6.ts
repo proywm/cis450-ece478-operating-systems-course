@@ -1,3 +1,5 @@
+import { courseAgentsMd } from './aiCoach.js';
+
 export const XV6_REMOTE = 'https://github.com/mit-pdos/xv6-public.git';
 export const XV6_COMMIT = 'eeb7b415dbcb12cc362d0783e41c3d1f44066b17';
 export const XV6_BASELINE_TAG = 'systemstudio-xv6-reference-baseline';
@@ -36,6 +38,7 @@ export function xv6WorkspaceFiles(): Record<string, string> {
     activeCourseBoundary: 'Validated against the Winter 2026 reference assignments; current Fall 2026 Canvas requirements remain authoritative.'
   };
   return {
+    'AGENTS.md': courseAgentsMd(),
     '.systemstudio/manifest.json': `${JSON.stringify(manifest, null, 2)}\n`,
     '.systemstudio/Dockerfile': `FROM ubuntu:22.04
 ARG DEBIAN_FRONTEND=noninteractive

@@ -2,7 +2,8 @@
 
 ## 0.9.1 — 2026-08-21
 
-- Updated the packaged cross-platform integration test to require the new U-M AI assistance selector instead of the removed Copilot coach command.
+- Replaced the multi-provider AI chooser with the student-owned U-M Codex CLI as the single online setup and learning coach; added cross-platform readiness checks, explicit in-terminal prompt consent, and persistent `AGENTS.md` academic-integrity guardrails. Offline Orbit remains available as a non-AI fallback.
+- Updated the packaged cross-platform integration test to require the Codex CLI setup and learning-coach workflow.
 
 ## 0.9.0 — 2026-08-21
 

@@ -12,18 +12,19 @@ import {
   AI_ASSISTANCE_ONBOARDING_VERSION,
   aiAssistanceLabel,
   aiAssistanceState,
-  classifyTutorDestination,
+  courseAgentsMd,
+  LEARNING_COACH_SYSTEM_PROMPT,
   moduleCoachPrompt,
   normalizeAiAssistanceState,
   setupCoachPrompt,
   type AiAssistancePreference
 } from './aiCoach.js';
+import { probeCodexCli, UM_CODEX_CLASSROOM_URL } from './codexCli.js';
 
 const execFileAsync = promisify(execFile);
 const DOCKER_SERVER_VERSION_ARGS = ['version', '--format', '{{.Server.Version}}'];
 const AI_ASSISTANCE_STATE_KEY = 'aiAssistance.state';
 const FIRST_RUN_SETUP_KEY = 'orbitSetupOnboarding.version';
-const UM_GPT_URL = 'https://umgpt.umich.edu/';
 let hub: LearningHub | undefined;
 
 export interface SystemStudioExtensionApi {
@@ -96,10 +97,10 @@ class CourseTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     }
     if (element.kind === 'start') {
       return [
-        action('1. Configure or check AI assistance', 'systemstudioOs.configureAiAssistance', 'ai', 'Maizey · U-M GPT · private offline Orbit'),
+        action('1. Configure or check U-M Codex', 'systemstudioOs.configureAiAssistance', 'ai', 'U-M Codex CLI · private offline Orbit'),
         action('2. Set up or repair my course environment', 'systemstudioOs.setupCourseEnvironment', 'setup', 'Orbit-guided Docker + course-container workflow'),
         action('Open course home', 'systemstudioOs.openLearningHub', 'home', 'modules · practice · progress · coursework'),
-        action('Ask Orbit AI learning coach', 'systemstudioOs.openAiTutor', 'ai', 'U-M Maizey · U-M GPT · private offline Orbit'),
+        action('Open U-M Codex learning coach', 'systemstudioOs.openAiTutor', 'ai', 'U-M Codex CLI · private offline Orbit'),
         action('Open Canvas', 'systemstudioOs.openCanvas', 'canvas', 'deadlines · submissions · official grades')
       ];
     }
@@ -144,7 +145,7 @@ class CourseTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     if (element.kind === 'support') {
       return [
         action('Ask Orbit AI learning coach', 'systemstudioOs.openAiTutor', 'ai', 'attempt-first hints · student account'),
-        action('Configure or check AI assistance', 'systemstudioOs.configureAiAssistance', 'ai', 'saved student-owned assistance route'),
+        action('Configure or check U-M Codex', 'systemstudioOs.configureAiAssistance', 'ai', 'student-owned U-M configuration'),
         action('Open FAQ and offline helper', 'systemstudioOs.openLearningHub', 'help', 'private deterministic support', ['help']),
         action(`${COURSE.meeting} · ${COURSE.room}`, 'systemstudioOs.openLearningHub', 'info', 'verified Fall 2026 schedule'),
         action(`Instructor: ${COURSE.instructor}`, 'systemstudioOs.openLearningHub', 'info', COURSE.instructorOffice),
@@ -153,7 +154,7 @@ class CourseTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         action('Export Fall 2026 calendar', 'systemstudioOs.exportCalendar', 'action', '27 meetings · planned topics and readings'),
         action('Open Fall 2026 syllabus', 'systemstudioOs.openSyllabus', 'action', 'accessible HTML · instructor review required'),
         action('Open accessible lesson collection', 'systemstudioOs.openAccessibleLessons', 'action', '13 standalone HTML modules'),
-        action('Choose an AI learning coach', 'systemstudioOs.openAiTutor', 'action', 'published U-M Maizey App · U-M GPT · offline Orbit'),
+        action('Open U-M Codex learning coach', 'systemstudioOs.openAiTutor', 'action', 'integrated terminal · course guardrails · offline Orbit fallback'),
         action('Configure direct Canvas links', 'systemstudioOs.configureCanvas', 'action', 'HTTPS UM-Dearborn Canvas host only'),
         action('Import Canvas calendar', 'systemstudioOs.importCanvasCalendar', 'action', 'local .ics · no upload'),
         action('Open Canvas', 'systemstudioOs.openCanvas', 'action', 'deadlines · submissions · official grades')
@@ -298,28 +299,7 @@ type QuestionProvider = AiAssistancePreference | 'explain';
 
 async function chooseQuestionProvider(context: vscode.ExtensionContext): Promise<QuestionProvider | undefined> {
   const saved = normalizeAiAssistanceState(context.globalState.get(AI_ASSISTANCE_STATE_KEY));
-  if (saved) {
-    const selection = await vscode.window.showQuickPick([
-      {
-        label: `$(sparkle) Use ${aiAssistanceLabel(saved.preference)}`,
-        description: 'saved during first-run setup; change it at any time',
-        provider: saved.preference as QuestionProvider
-      },
-      {
-        label: '$(settings-gear) Choose or check a different helper',
-        description: 'verify Maizey, U-M GPT, or private offline support',
-        provider: 'configure' as const
-      },
-      {
-        label: '$(info) Compare the choices',
-        description: 'course grounding, general troubleshooting, availability, and privacy',
-        provider: 'explain' as const
-      }
-    ], { placeHolder: 'Use the saved Orbit assistance route or choose another' });
-    if (!selection) return undefined;
-    if (selection.provider === 'configure') return configureAiAssistance(context, false);
-    return selection.provider;
-  }
+  if (saved) return saved.preference;
   return configureAiAssistance(context, false);
 }
 
@@ -329,14 +309,9 @@ async function configureAiAssistance(
 ): Promise<QuestionProvider | undefined> {
   const selection = await vscode.window.showQuickPick([
     {
-      label: '$(mortar-board) U-M Maizey in Canvas (Recommended for course questions)',
-      description: 'U-M sign-in · indexed visible Canvas sources · setup guidance after indexing',
-      preference: 'maizey' as const
-    },
-    {
-      label: '$(comment-discussion) U-M GPT (General U-M assistant)',
-      description: 'no-cost U-M access · broad troubleshooting · not automatically course-grounded',
-      preference: 'umgpt' as const
+      label: '$(terminal) U-M Codex CLI (Recommended)',
+      description: 'one U-M-supported AI route · integrated terminal · student-owned authentication',
+      preference: 'codex' as const
     },
     {
       label: '$(shield) Private offline Orbit helper',
@@ -344,11 +319,11 @@ async function configureAiAssistance(
       preference: 'offline' as const
     },
     {
-      label: '$(info) Compare before choosing',
-      description: 'Maizey for course grounding; U-M GPT for broad help; offline for no-network support',
+      label: '$(info) What is shared?',
+      description: 'Codex sees the reviewed prompt and permitted workspace; offline FAQ sends nothing',
       preference: 'explain' as const
     }
-  ], { placeHolder: 'Choose the assistance Orbit should use during setup and learning' });
+  ], { placeHolder: 'Use U-M Codex for AI help or the non-AI offline FAQ' });
   if (!selection) return undefined;
   if (selection.preference === 'explain') return 'explain';
 
@@ -358,60 +333,48 @@ async function configureAiAssistance(
     return 'offline';
   }
 
-  if (selection.preference === 'umgpt') {
-    await vscode.env.openExternal(vscode.Uri.parse(UM_GPT_URL));
-    const confirmation = await vscode.window.showInformationMessage(
-      'After signing in with your U-M uniqname and MFA, can you open U-M GPT? Orbit cannot inspect your browser session, so only you can confirm access.',
-      { modal: true },
-      'Yes, U-M GPT opens',
-      'Use offline Orbit'
-    );
-    if (confirmation === 'Yes, U-M GPT opens') {
-      await context.globalState.update(AI_ASSISTANCE_STATE_KEY, aiAssistanceState('umgpt', 'student-confirmed'));
-      if (offerTest) {
-        const testPrompt = 'I am checking my operating-systems learning-coach setup. Ask me one short, ungraded process-state question and wait for my attempt before giving feedback.';
-        await vscode.env.clipboard.writeText(testPrompt);
-        await vscode.window.showInformationMessage('U-M GPT is selected. A reviewed test prompt is on your clipboard; nothing was sent automatically.');
-      }
-      return 'umgpt';
-    }
-    if (confirmation === 'Use offline Orbit') {
+  const status = await probeCodexCli();
+  if (!status.ready) {
+    const action = await vscode.window.showWarningMessage(status.detail, { modal: true }, 'Open official U-M setup', 'Retry check', 'Use offline Orbit');
+    if (action === 'Open official U-M setup') {
+      await vscode.env.openExternal(vscode.Uri.parse(UM_CODEX_CLASSROOM_URL));
+      await vscode.window.showInformationMessage('After completing the U-M Codex CLI setup, restart VS Code so its PATH is refreshed, then run “Configure or Check U-M Codex” again. The extension never asks for or stores your API key.');
+    } else if (action === 'Retry check') {
+      return configureAiAssistance(context, offerTest);
+    } else if (action === 'Use offline Orbit') {
       await context.globalState.update(AI_ASSISTANCE_STATE_KEY, aiAssistanceState('offline', 'local-ready'));
       return 'offline';
     }
     return undefined;
   }
+  await context.globalState.update(AI_ASSISTANCE_STATE_KEY, aiAssistanceState('codex', 'local-ready'));
+  await vscode.window.showInformationMessage(`${status.version}: U-M Codex CLI is available. Authentication is checked inside Codex; SystemStudio does not read or store the student's key.`);
+  if (offerTest) await launchCodexLearningCoach(context, 'I am checking my operating-systems learning-coach setup. Ask me one short, ungraded process-state question and wait for my attempt before giving feedback.');
+  return 'codex';
+}
 
-  const configured = vscode.workspace.getConfiguration('systemstudioOs').get<string>('maizeyTutorUrl', '').trim();
-  const destination = configured ? classifyTutorDestination(configured) : { kind: 'canvas' as const, url: configuredCanvasUrl('canvasCourseUrl') };
-  if (destination.kind === 'maizey-management' || destination.kind === 'invalid') {
-    await vscode.window.showWarningMessage('The configured Maizey destination is not a student tutor. Use the Fall 2026 Canvas course or configure a published student-facing App—not a project overview, settings, data-source, or billing page.');
-    return undefined;
+async function launchCodexLearningCoach(context: vscode.ExtensionContext, starterPrompt?: string): Promise<boolean> {
+  const status = await probeCodexCli();
+  if (!status.ready || !status.command) {
+    await context.globalState.update(AI_ASSISTANCE_STATE_KEY, undefined);
+    await configureAiAssistance(context, false);
+    return false;
   }
-  const target = destination.kind === 'maizey-app' ? destination.url : configuredCanvasUrl('canvasCourseUrl');
-  await vscode.env.openExternal(vscode.Uri.parse(target));
-  const confirmation = await vscode.window.showInformationMessage(
-    'After U-M sign-in, can you open the CIS 450 / ECE 478 Maizey tutor from Canvas course navigation or this published App? The extension cannot inspect your browser session, so only you can confirm access.',
-    { modal: true },
-    'Yes, Maizey opens',
-    'Use U-M GPT instead',
-    'Use offline Orbit'
-  );
-  if (confirmation === 'Yes, Maizey opens') {
-    await context.globalState.update(AI_ASSISTANCE_STATE_KEY, aiAssistanceState('maizey', 'student-confirmed'));
-    await vscode.window.showInformationMessage('U-M Maizey is selected as Orbit’s course and installation coach. Setup diagnostics are copied for your review; no files, credentials, grades, or unrestricted logs are sent automatically.');
-    return 'maizey';
+  const activeFolder = vscode.window.activeTextEditor ? vscode.workspace.getWorkspaceFolder(vscode.window.activeTextEditor.document.uri) : undefined;
+  let cwd = activeFolder?.uri ?? vscode.workspace.workspaceFolders?.[0]?.uri;
+  if (!cwd) {
+    cwd = vscode.Uri.joinPath(context.globalStorageUri, 'codex-learning-coach');
+    await vscode.workspace.fs.createDirectory(cwd);
+    await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(cwd, 'AGENTS.md'), Buffer.from(courseAgentsMd(), 'utf8'));
   }
-  if (confirmation === 'Use U-M GPT instead') {
-    await vscode.env.openExternal(vscode.Uri.parse(UM_GPT_URL));
-    await context.globalState.update(AI_ASSISTANCE_STATE_KEY, aiAssistanceState('umgpt', 'student-confirmed'));
-    return 'umgpt';
-  }
-  if (confirmation === 'Use offline Orbit') {
-    await context.globalState.update(AI_ASSISTANCE_STATE_KEY, aiAssistanceState('offline', 'local-ready'));
-    return 'offline';
-  }
-  return undefined;
+  const prompt = [LEARNING_COACH_SYSTEM_PROMPT, '', starterPrompt ?? 'Begin by asking which operating-systems concept I am studying, what I predicted or tried, and where the evidence first differed. Give one hint at a time.'].join('\n');
+  const terminal = vscode.window.createTerminal({ name: 'U-M Codex — CIS 450 / ECE 478', cwd });
+  terminal.show(false);
+  terminal.sendText(status.command, true);
+  const action = await vscode.window.showInformationMessage('U-M Codex opened inside VS Code. Wait until its composer appears, review /permissions, then send the guarded course prompt. SystemStudio has sent no key, grade, Canvas record, or prompt; Codex workspace access follows your selected permissions.', 'Send guarded course prompt', 'Open U-M setup page');
+  if (action === 'Send guarded course prompt') terminal.sendText(prompt.replace(/[\r\n]+/g, ' '), true);
+  if (action === 'Open U-M setup page') await vscode.env.openExternal(vscode.Uri.parse(UM_CODEX_CLASSROOM_URL));
+  return true;
 }
 
 async function promptForOrbitSetupOnFirstRun(context: vscode.ExtensionContext): Promise<boolean> {
@@ -419,7 +382,7 @@ async function promptForOrbitSetupOnFirstRun(context: vscode.ExtensionContext): 
   if (context.globalState.get<number>(FIRST_RUN_SETUP_KEY) === AI_ASSISTANCE_ONBOARDING_VERSION) return false;
   await context.globalState.update(FIRST_RUN_SETUP_KEY, AI_ASSISTANCE_ONBOARDING_VERSION);
   const action = await vscode.window.showInformationMessage(
-    'Welcome to CIS 450 / ECE 478. Orbit will first help you choose a private support route, verify it when possible, and then guide the portable course-environment setup. AI is optional and never blocks course access.',
+    'Welcome to CIS 450 / ECE 478. Orbit will first check the U-M Codex CLI learning coach, then guide the portable course-environment setup. The offline FAQ remains available, and AI never blocks course access.',
     { modal: true },
     'Begin assisted setup',
     'Use offline support',
@@ -431,13 +394,13 @@ async function promptForOrbitSetupOnFirstRun(context: vscode.ExtensionContext): 
   } else {
     let preference = await configureAiAssistance(context, true);
     if (preference === 'explain') {
-      await vscode.window.showInformationMessage('Use Maizey for indexed course and setup guidance, U-M GPT for broader troubleshooting, or offline Orbit when you prefer no network service. You can change this choice later.');
+      await vscode.window.showInformationMessage('U-M Codex CLI is the course’s only online AI route. It uses the student’s own U-M configuration in VS Code; offline Orbit is a deterministic no-network FAQ. You can change this choice later.');
       preference = await configureAiAssistance(context, true);
     }
   }
   const saved = normalizeAiAssistanceState(context.globalState.get(AI_ASSISTANCE_STATE_KEY));
   const next = await vscode.window.showInformationMessage(
-    `${saved ? aiAssistanceLabel(saved.preference) : 'Orbit offline guidance'} is available. Next, let Orbit create and verify the portable OS environment; if it stops, the selected helper will receive only the short diagnostic you review.`,
+    `${saved ? aiAssistanceLabel(saved.preference) : 'Orbit offline guidance'} is available. Next, let Orbit create and verify the portable OS environment; if it stops, only a short diagnostic that you review can be sent to U-M Codex after your explicit action.`,
     { modal: true },
     'Set up course environment',
     'Open self-paced orientation',
@@ -453,12 +416,12 @@ async function promptForOrbitSetupOnFirstRun(context: vscode.ExtensionContext): 
 }
 
 async function openAiTutor(context: vscode.ExtensionContext, starterPrompt?: string): Promise<void> {
-  const continueLabel = 'Choose learning coach';
+  const continueLabel = 'Open U-M Codex coach';
   const decision = await vscode.window.showInformationMessage(
     starterPrompt ? 'Use this module-grounded prompt with an OS learning coach?' : 'Open an optional CIS 450 / ECE 478 AI learning coach?',
     {
       modal: true,
-      detail: 'Attempt first. Ask for a hint, diagnostic question, analogous example, or feedback on your reasoning—not a graded answer. Maizey is course-grounded after the instructor publishes and indexes its student App; U-M GPT provides broader troubleshooting. Neither route receives files, grades, Canvas data, or course records automatically.'
+      detail: 'Attempt first. Ask for a hint, diagnostic question, analogous example, or feedback on your reasoning—not a graded answer. U-M Codex CLI is the only online AI route and runs in VS Code with student-owned U-M authentication. SystemStudio does not send files, grades, Canvas data, credentials, or course records automatically.'
     },
     continueLabel,
     'Review syllabus'
@@ -472,7 +435,7 @@ async function openAiTutor(context: vscode.ExtensionContext, starterPrompt?: str
   const selection = await chooseQuestionProvider(context);
   if (!selection) return;
   if (selection === 'explain') {
-    await vscode.window.showInformationMessage('U-M Maizey is preferred for indexed Canvas course and setup guidance. U-M GPT is the no-cost U-M general assistant for broader troubleshooting. The deterministic offline Orbit helper uses no AI service and can still route setup and course questions.');
+    await vscode.window.showInformationMessage('U-M Codex CLI is the only online AI route. It runs in VS Code with the student’s own U-M configuration and course guardrails. The deterministic offline Orbit helper uses no AI service and can still route setup and course questions.');
     return;
   }
   if (selection === 'offline') {
@@ -480,47 +443,7 @@ async function openAiTutor(context: vscode.ExtensionContext, starterPrompt?: str
     hub.showOfflineHelp(starterPrompt);
     return;
   }
-  if (selection === 'umgpt') {
-    if (starterPrompt) await vscode.env.clipboard.writeText(starterPrompt);
-    await vscode.env.openExternal(vscode.Uri.parse(UM_GPT_URL));
-    if (starterPrompt) await vscode.window.showInformationMessage('The reviewed module prompt is on your clipboard. Paste it into U-M GPT, include your attempt, and ask for one hint at a time.');
-    return;
-  }
-
-  if (starterPrompt) await vscode.env.clipboard.writeText(starterPrompt);
-  const configured = vscode.workspace.getConfiguration('systemstudioOs').get<string>('maizeyTutorUrl', '').trim();
-  const destination = classifyTutorDestination(configured);
-  if (destination.kind === 'maizey-management') {
-    const action = await vscode.window.showWarningMessage(
-      'That URL is a Maizey project-management page, not a student chat App. It will not be opened. Publish and index an App, then configure its student-facing share URL.',
-      'Open Canvas Course',
-      'Configure Student App URL'
-    );
-    if (action === 'Configure Student App URL') {
-      await vscode.commands.executeCommand('workbench.action.openSettings', 'systemstudioOs.maizeyTutorUrl');
-      return;
-    }
-    if (action !== 'Open Canvas Course') return;
-    await vscode.env.openExternal(vscode.Uri.parse(COURSE.canvasUrl));
-  } else if (destination.kind === 'maizey-app') {
-    await vscode.env.openExternal(vscode.Uri.parse(destination.url));
-  } else {
-    const action = await vscode.window.showInformationMessage(
-      'A published student-facing Maizey App is not configured for CIS 450 / ECE 478 yet. Use U-M GPT now, open Canvas to look for a course tutor, or configure a verified App URL.',
-      'Use U-M GPT',
-      'Open Canvas Course',
-      'Configure App URL'
-    );
-    if (action === 'Use U-M GPT') {
-      await vscode.env.openExternal(vscode.Uri.parse(UM_GPT_URL));
-      return;
-    }
-    if (action === 'Open Canvas Course') await vscode.env.openExternal(vscode.Uri.parse(COURSE.canvasUrl));
-    if (action === 'Configure App URL') await vscode.commands.executeCommand('workbench.action.openSettings', 'systemstudioOs.maizeyTutorUrl');
-  }
-  if (starterPrompt && destination.kind === 'maizey-app') {
-    await vscode.window.showInformationMessage('The module-grounded prompt is on your clipboard. Paste it into the U-M tutor, describe your attempt, and ask for one hint at a time.');
-  }
+  await launchCodexLearningCoach(context, starterPrompt);
 }
 
 async function configureCanvasLinks(): Promise<void> {
@@ -768,7 +691,7 @@ async function createModuleLab(moduleNumber?: number): Promise<void> {
     return;
   } catch {}
   await vscode.workspace.fs.createDirectory(root);
-  const files = labFiles(lab);
+  const files = { 'AGENTS.md': courseAgentsMd(), ...labFiles(lab) };
   for (const [relative, content] of Object.entries(files)) await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(root, relative), Buffer.from(content, 'utf8'));
   const choice = await vscode.window.showInformationMessage(`Created Module ${lab.moduleNumber} guided lab. Predict first, then use “${lab.runCommand}”.`, 'Open folder');
   if (choice === 'Open folder') await vscode.commands.executeCommand('vscode.openFolder', root, { forceNewWindow: true });
@@ -1444,7 +1367,7 @@ function enhanceSimulations(){const root=document.getElementById('simulations'),
 function enhanceCoursework(){const root=document.getElementById('coursework'),list=root.querySelector('.module-list');if(!list)return;const cards=[...list.children],groups=[{key:'homework',label:'Homework',nodes:cards.filter((_,index)=>String(DATA.coursework[index].kind).toLowerCase().includes('home'))},{key:'programming',label:'Programming work',nodes:cards.filter((_,index)=>!String(DATA.coursework[index].kind).toLowerCase().includes('home'))}];installSubtabs(root,'coursework',groups,list)}
 function enhancePractice(){const root=document.getElementById('practice'),set=root.querySelector('#practice-set'),analyticsRoot=root.querySelector('#analytics'),analyticsHeading=analyticsRoot?.previousElementSibling;if(!set||!analyticsRoot||!analyticsHeading)return;installSubtabs(root,'practice',[{key:'session',label:'Practice set',nodes:[set]},{key:'analytics',label:'Progress by topic',nodes:[analyticsHeading,analyticsRoot]}],set)}
 function enhanceHelp(){const root=document.getElementById('help'),sections=[...root.querySelectorAll(':scope > section')],boundary=root.querySelector(':scope > .notice');if(sections.length<6)return;const marker=document.createElement('div');sections[0].before(marker);installSubtabs(root,'help',[{key:'blocked',label:'Get unstuck',nodes:[sections[0]]},{key:'coaching',label:'AI & offline help',nodes:sections.slice(1,4)},{key:'faq',label:'FAQ',nodes:[sections[4]]},{key:'before-class',label:'Ask before class',nodes:[sections[5],...(boundary?[boundary]:[])]}],marker)}
-function renderHome(){const el=document.getElementById('home');el.innerHTML='<p class="eyebrow">Active student course material · Fall 2026</p><h1>'+esc(DATA.course.title)+'</h1><div class="notice"><strong>Verified meeting:</strong> '+esc(DATA.course.meeting)+', '+esc(DATA.course.room)+'.<br><strong>Instructor:</strong> '+esc(DATA.course.instructor)+' · '+esc(DATA.course.instructorOffice)+'<br><strong>Course staffing:</strong> '+esc(DATA.course.gsiStatus)+'</div><div class="grid"><article class="card"><h2>Prepare for the next class</h2><ol><li>Open the dated course plan.</li><li>Read each mapped OSTEP chapter using its focus prompt.</li><li>Read the accessible explanation.</li><li>Try the eight-question module check and record confidence.</li><li>Predict, run, and explain the mapped simulator or guided lab.</li></ol><div class="actions"><button id="home-schedule">Open course plan</button><button id="home-modules" class="secondary">Open modules</button><button id="home-practice" class="quiet">Practice five</button></div></article><article class="card"><h2>Build observable behavior</h2><p>Fifteen official OSTEP simulator presets and thirteen guided starters cover processes, scheduling, memory, concurrency, I/O, files, and recovery. The official simulator source is fetched at a pinned revision only after consent; it is not copied into this extension. A separate pinned MIT x86 xv6 path runs the historical PA1/PA2 behaviors in headless QEMU.</p><div class="actions"><button id="home-simulations">Open OSTEP simulations</button><button id="home-labs" class="secondary">Open guided labs</button><button data-command="systemstudioOs.createLabWorkspace" class="secondary">Create portable coursework workspace</button><button data-command="systemstudioOs.runCourseworkPreflight" class="secondary">Run coursework preflight</button><button data-command="systemstudioOs.openPortableSetup" class="quiet">Cross-platform setup</button><button data-command="systemstudioOs.prepareXv6" class="secondary">Prepare verified xv6 reference</button><button data-command="systemstudioOs.verifyXv6" class="secondary">Run xv6 preflight</button><button data-command="systemstudioOs.checkEnvironment" class="quiet">Check environment</button></div></article><article class="card"><h2>Ask when a concept is unclear</h2><p>Orbit can route to a published U-M Maizey App for course-grounded support, open no-cost U-M GPT for broader troubleshooting, or keep a question entirely local with the offline helper. AI coaching is attempt-first and will not produce graded work.</p><div class="actions"><button data-command="systemstudioOs.openAiTutor">Choose AI learning coach</button><button id="home-help" class="secondary">Open offline help and FAQ</button></div></article><article class="card"><h2>Canvas authority and planning</h2><p>Verified destination: <code>'+esc(DATA.canvasCourseUrl)+'</code></p><div class="actions"><button data-command="systemstudioOs.openCanvas">Open Canvas course 552201</button><button id="home-grades" class="secondary">Open grade predictor</button><button data-command="systemstudioOs.configureCanvas" class="secondary">Configure discussion/private routes</button><button data-command="systemstudioOs.exportCalendar" class="quiet">Export chapter-mapped calendar</button></div></article></div><div class="actions"><button id="rerun-walk" class="secondary">Rerun orientation</button><button data-command="systemstudioOs.openAccessibleLessons" class="secondary">Accessible lesson collection</button><button data-command="systemstudioOs.openSyllabus" class="secondary">Accessible syllabus</button></div><h2>Evidence boundaries</h2><div class="source-grid"><div class="card"><h3>Verified Fall 2026</h3><ul>'+DATA.boundaries.verifiedCurrent.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div><div class="card"><h3>Verified reference implementations</h3><ul>'+DATA.boundaries.verifiedReference.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div><div class="card"><h3>Historical planning basis</h3><ul>'+DATA.boundaries.historicalPolicy.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div><div class="card"><h3>Confirm in Canvas</h3><ul>'+DATA.boundaries.canvasOnly.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div></div>';el.querySelector('#home-schedule').onclick=()=>show('schedule');el.querySelector('#home-modules').onclick=()=>show('modules');el.querySelector('#home-practice').onclick=()=>show('practice');el.querySelector('#home-labs').onclick=()=>show('labs');el.querySelector('#home-simulations').onclick=()=>show('simulations');el.querySelector('#home-help').onclick=()=>show('help');el.querySelector('#home-grades').onclick=()=>show('grades');el.querySelector('#rerun-walk').onclick=()=>{state.walkthroughOpen=true;state.walkthroughStep=0;persist();renderWalkthrough()};bindCommands(el);}
+function renderHome(){const el=document.getElementById('home');el.innerHTML='<p class="eyebrow">Active student course material · Fall 2026</p><h1>'+esc(DATA.course.title)+'</h1><div class="notice"><strong>Verified meeting:</strong> '+esc(DATA.course.meeting)+', '+esc(DATA.course.room)+'.<br><strong>Instructor:</strong> '+esc(DATA.course.instructor)+' · '+esc(DATA.course.instructorOffice)+'<br><strong>Course staffing:</strong> '+esc(DATA.course.gsiStatus)+'</div><div class="grid"><article class="card"><h2>Prepare for the next class</h2><ol><li>Open the dated course plan.</li><li>Read each mapped OSTEP chapter using its focus prompt.</li><li>Read the accessible explanation.</li><li>Try the eight-question module check and record confidence.</li><li>Predict, run, and explain the mapped simulator or guided lab.</li></ol><div class="actions"><button id="home-schedule">Open course plan</button><button id="home-modules" class="secondary">Open modules</button><button id="home-practice" class="quiet">Practice five</button></div></article><article class="card"><h2>Build observable behavior</h2><p>Fifteen official OSTEP simulator presets and thirteen guided starters cover processes, scheduling, memory, concurrency, I/O, files, and recovery. The official simulator source is fetched at a pinned revision only after consent; it is not copied into this extension. A separate pinned MIT x86 xv6 path runs the historical PA1/PA2 behaviors in headless QEMU.</p><div class="actions"><button id="home-simulations">Open OSTEP simulations</button><button id="home-labs" class="secondary">Open guided labs</button><button data-command="systemstudioOs.createLabWorkspace" class="secondary">Create portable coursework workspace</button><button data-command="systemstudioOs.runCourseworkPreflight" class="secondary">Run coursework preflight</button><button data-command="systemstudioOs.openPortableSetup" class="quiet">Cross-platform setup</button><button data-command="systemstudioOs.prepareXv6" class="secondary">Prepare verified xv6 reference</button><button data-command="systemstudioOs.verifyXv6" class="secondary">Run xv6 preflight</button><button data-command="systemstudioOs.checkEnvironment" class="quiet">Check environment</button></div></article><article class="card"><h2>Ask when a concept is unclear</h2><p>Orbit opens U-M Codex CLI in the integrated terminal with course guardrails, or keeps a question entirely local with the deterministic offline helper. AI coaching is attempt-first and will not produce graded work.</p><div class="actions"><button data-command="systemstudioOs.openAiTutor">Open U-M Codex coach</button><button id="home-help" class="secondary">Open offline help and FAQ</button></div></article><article class="card"><h2>Canvas authority and planning</h2><p>Verified destination: <code>'+esc(DATA.canvasCourseUrl)+'</code></p><div class="actions"><button data-command="systemstudioOs.openCanvas">Open Canvas course 552201</button><button id="home-grades" class="secondary">Open grade predictor</button><button data-command="systemstudioOs.configureCanvas" class="secondary">Configure discussion/private routes</button><button data-command="systemstudioOs.exportCalendar" class="quiet">Export chapter-mapped calendar</button></div></article></div><div class="actions"><button id="rerun-walk" class="secondary">Rerun orientation</button><button data-command="systemstudioOs.openAccessibleLessons" class="secondary">Accessible lesson collection</button><button data-command="systemstudioOs.openSyllabus" class="secondary">Accessible syllabus</button></div><h2>Evidence boundaries</h2><div class="source-grid"><div class="card"><h3>Verified Fall 2026</h3><ul>'+DATA.boundaries.verifiedCurrent.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div><div class="card"><h3>Verified reference implementations</h3><ul>'+DATA.boundaries.verifiedReference.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div><div class="card"><h3>Historical planning basis</h3><ul>'+DATA.boundaries.historicalPolicy.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div><div class="card"><h3>Confirm in Canvas</h3><ul>'+DATA.boundaries.canvasOnly.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div></div>';el.querySelector('#home-schedule').onclick=()=>show('schedule');el.querySelector('#home-modules').onclick=()=>show('modules');el.querySelector('#home-practice').onclick=()=>show('practice');el.querySelector('#home-labs').onclick=()=>show('labs');el.querySelector('#home-simulations').onclick=()=>show('simulations');el.querySelector('#home-help').onclick=()=>show('help');el.querySelector('#home-grades').onclick=()=>show('grades');el.querySelector('#rerun-walk').onclick=()=>{state.walkthroughOpen=true;state.walkthroughStep=0;persist();renderWalkthrough()};bindCommands(el);}
 function renderSchedule(){const el=document.getElementById('schedule');const rows=DATA.schedule.map(m=>'<tr><td>'+m.number+'</td><td>'+esc(new Date(m.date+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}))+'</td><td><button class="quiet schedule-module" data-module-number="'+m.moduleNumbers[0]+'">'+m.moduleNumbers.map(n=>'M'+n).join(', ')+'</button></td><td>'+esc(m.topic)+'</td><td>'+esc(m.prepare)+'</td></tr>').join('');el.innerHTML='<p class="eyebrow">27 verified meetings · planned topic and reading sequence</p><h1>Fall 2026 course plan</h1><div class="notice warning"><strong>Preparation plan, not an assessment calendar.</strong> Meeting dates, time, and room are verified. Topic order and readings are the instructor’s current learning plan; Canvas announcements control changes, assignments, deadlines, and exams.</div><div class="actions"><button data-command="systemstudioOs.exportCalendar">Export this plan (.ics)</button><button data-command="systemstudioOs.openCanvas" class="secondary">Open Canvas course</button></div><table><caption>Monday/Wednesday preparation map</caption><thead><tr><th>Meeting</th><th>Date</th><th>Module</th><th>Planned class focus</th><th>Read before class</th></tr></thead><tbody>'+rows+'</tbody></table>';el.onclick=e=>{const b=e.target.closest('.schedule-module');if(b)openModule(Number(b.dataset.moduleNumber))};bindCommands(el);}
 function questionHtml(q,prefix){return '<div class="question" data-q="'+q.id+'"><p><span class="pill">'+esc(q.level)+'</span> <strong>'+esc(q.prompt)+'</strong></p>'+q.choices.map((c,i)=>'<label class="choice"><input type="radio" name="'+prefix+q.id+'" value="'+i+'"> '+esc(c)+'</label>').join('')+(q.hint?'<details><summary>Hint</summary><p>'+esc(q.hint)+'</p></details>':'')+'<div class="actions"><button class="check" data-q="'+q.id+'" data-prefix="'+prefix+'">Check reasoning</button><button class="quiet save" data-q="'+q.id+'">'+(state.learning.questions[q.id]?.saved?'Unsave':'Save for review')+'</button></div><div class="explanation" id="'+prefix+'ex-'+q.id+'" hidden aria-live="polite"></div><p class="source"><strong>Grounding:</strong> '+esc(q.source)+'</p></div>';}
 function simulatorButtons(simulator){return '<div class="actions"><button class="run-sim secondary" data-sim-id="'+simulator.id+'" data-sim-mode="practice" aria-label="Run a new prediction problem for '+esc(simulator.title)+'">New prediction problem</button><button class="run-sim quiet" data-sim-id="'+simulator.id+'" data-sim-mode="reveal" aria-label="Reveal '+esc(simulator.title)+' only after recording a prediction">Reveal after prediction</button></div>';}
@@ -1470,7 +1393,7 @@ function calculateGrade(){const keys=Object.keys(gradeLabels),values=keys.map(k=
 function renderProgress(){const values={"not-started":0,preparing:1,practicing:2,confident:3};let pts=0;DATA.modules.forEach(m=>pts+=values[state.moduleStatus[m.id]||'not-started']);const percent=Math.round(pts/(DATA.modules.length*3)*100),attempts=state.learning.attempts||[],correct=attempts.filter(x=>x.correct).length,labDone=Object.values(state.labSteps).reduce((n,x)=>n+(Array.isArray(x)?x.length:0),0),simPractice=DATA.simulations.filter(s=>(state.simulationRuns[s.id]?.practice||0)>0).length,simReveal=DATA.simulations.filter(s=>(state.simulationRuns[s.id]?.reveal||0)>0).length,courseReady=DATA.coursework.filter(x=>['ready-to-submit','submitted','receipt-confirmed'].includes(courseworkState(x.id).status)).length;const rows=DATA.modules.map(m=>{const a=analytics.find(x=>x.moduleNumber===m.number);return '<tr><td>'+m.number+'. '+esc(m.title)+'</td><td>'+esc((state.moduleStatus[m.id]||'not-started').replaceAll('-',' '))+'</td><td>'+(state.confidence[m.id]||'—')+'</td><td>'+(a?.attemptedQuestions||0)+'/8</td><td>'+(a?.due||0)+'</td></tr>'}).join('');const el=document.getElementById('progress');el.innerHTML='<p class="eyebrow">Private · local · self-evaluation</p><h1>My learning progress</h1><div class="grid"><div class="card"><p class="result">'+percent+'%</p><p>Self-reported module pathway</p><progress max="100" value="'+percent+'">'+percent+'%</progress></div><div class="card"><p class="result">'+attempts.length+'</p><p>Practice attempts · '+(attempts.length?Math.round(correct/attempts.length*100)+'% observed accuracy':'no accuracy yet')+'</p></div><div class="card"><p class="result">'+simPractice+'/15</p><p>Official simulator presets practiced · '+simReveal+' revealed after confirmation</p></div><div class="card"><p class="result">'+labDone+'</p><p>Guided-lab evidence steps checked</p></div><div class="card"><p class="result">'+courseReady+'/'+DATA.coursework.length+'</p><p>Coursework items locally marked ready or later</p></div></div><div class="notice"><strong>These indicators are not grades or instructor evaluations.</strong> They stay in this VS Code webview state and are not sent to Canvas. Official assessment and feedback are recorded in Canvas.</div><table><thead><tr><th>Module</th><th>Local status</th><th>Confidence</th><th>Questions tried</th><th>Due</th></tr></thead><tbody>'+rows+'</tbody></table><h2>Practice analytics</h2>'+analyticsTable()+'<div class="actions"><button id="open-grade-planner">Open grade predictor</button><button id="reset-local" class="secondary">Reset all local learning data</button></div>';el.querySelector('#open-grade-planner').onclick=()=>show('grades');el.querySelector('#reset-local').onclick=()=>{if(confirm('Reset local module status, confidence, practice history, simulator counts, saved/review questions, lab checkmarks, coursework planning, reviewed calendar events, and grade inputs? Canvas is not affected.')){const keepSection=state.section;state=Object.assign({},defaults,{section:keepSection,walkthroughOpen:false});practiceQuestions=[];analytics=[];icsPreview=[];persist();renderAll();show('progress');requestPractice()}};}
 function renderHelp(){
   const el=document.getElementById('help');
-  el.innerHTML='<p class="eyebrow">U-M AI coach · private offline helper · student-controlled Canvas handoff</p><h1>Questions and help</h1><section><h2>Start here when blocked</h2><div class="grid"><article class="card"><h3>Docker is installed but the environment is not ready</h3><p>On Windows and macOS, the portable route needs Docker Desktop running. Native GCC, Make, and QEMU are not required on Windows because the course container supplies them.</p><div class="actions"><button data-command="systemstudioOs.checkEnvironment">Check and recover environment</button><button data-command="systemstudioOs.openPortableSetup" class="secondary">Open setup guide</button></div></article><article class="card"><h3>QEMU or xv6 fails—especially on Apple silicon</h3><p>Use the headless linux/amd64 Docker preflight. It avoids the graphical emulator input path and preserves the first actionable failure.</p><div class="actions"><button data-command="systemstudioOs.prepareXv6">Prepare clean reference</button><button data-command="systemstudioOs.verifyXv6" class="secondary">Run xv6 preflight</button></div></article><article class="card"><h3>I know the algorithm but not where it belongs</h3><p>Ask the helper to route an invariant, trace, or first mismatch to the right module; it will not write the assessed implementation.</p><button class="quick" data-question="I can describe the scheduler on paper, but how do I identify the xv6 state transitions, timer accounting, and lock invariant I should inspect first?">Build a debugging route</button></article><article class="card"><h3>I am unsure what evidence to submit</h3><p>Open the current Canvas rubric first. Use local preflights to generate formative evidence, then verify required files and reopen the Canvas receipt.</p><div class="actions"><button data-command="systemstudioOs.openCanvas">Open Canvas course</button><button class="quick secondary" data-question="Help me build an evidence checklist from a requirement without doing the assignment for me.">Plan evidence</button></div></article></div></section><section class="card"><h2>Ask an actual AI learning coach</h2><p>Choose a U-M Maizey course tutor after its student App has been published and indexed, or use no-cost U-M GPT for broader troubleshooting. The extension copies only a prompt the student reviews; it does not attach files, grades, Canvas data, or course records.</p><button data-command="systemstudioOs.openAiTutor">Choose AI learning coach</button></section><section class="card"><h2>Optional animated Orbit companion</h2><label><input id="companion-enabled" type="checkbox"> Show Orbit, the original anime-inspired OS companion</label><p class="muted">Orbit opens local course tools and the explicit AI-coach chooser. Motion follows your reduced-motion setting, the original artwork is packaged locally, and the companion can be hidden at any time.</p></section><section class="card"><h2>Ask the offline OS learning helper</h2><p>This separate deterministic helper maps your question to course content and refuses submission-ready assessed work. It has no LLM or AI-service account and sends no question off this machine.</p><label for="question"><strong>Your question</strong></label><textarea id="question" placeholder="State the concept, prediction, evidence, and smallest mismatch."></textarea><div class="actions"><button id="ask">Ask offline helper</button><button class="quick" data-question="Can you give me the answer to homework 2?">Test the integrity boundary</button></div><div id="tutor-result" class="card" hidden aria-live="polite"></div></section><section><h2>Frequently asked questions</h2>'+DATA.faqs.map(f=>'<details><summary>'+esc(f.question)+'</summary><p>'+esc(f.answer)+'</p></details>').join('')+'</section><section class="card"><h2>Ask before class through Canvas</h2><p>The extension prepares and copies a draft; it does not post, impersonate you, send email, or promise anonymity. You review the course, recipient, visibility, and content in Canvas.</p><label>Topic<input id="pre-topic" maxlength="160"></label><label>Focused question<textarea id="pre-question" maxlength="2000"></textarea></label><label>What I understand so far<textarea id="pre-understanding" maxlength="2000"></textarea></label><label>What I tried or checked<textarea id="pre-attempted" maxlength="2000"></textarea></label><fieldset><legend>Canvas route</legend><label><input type="radio" name="pre-route" value="discussion" checked> Configured discussion</label><label><input type="radio" name="pre-route" value="private-message"> Configured private message/Inbox route</label></fieldset><label><input id="pre-anon" type="checkbox"> I would prefer anonymity if Canvas explicitly offers it</label><p class="muted">Checking this box does not make the post anonymous. Confirm the actual Canvas control before posting.</p><div class="actions"><button id="compose">Copy draft and open Canvas</button><button data-command="systemstudioOs.configureCanvas" class="secondary">Configure routes</button></div></section><div class="notice"><strong>Academic-integrity boundary:</strong> Ask for concept explanations, one hint, an analogous example, error interpretation, or feedback on your own reasoning. Do not request or submit generated answers, code, calculations, traces, or prose as your own. The current Canvas rules control each assessed task.</div>';
+  el.innerHTML='<p class="eyebrow">U-M AI coach · private offline helper · student-controlled Canvas handoff</p><h1>Questions and help</h1><section><h2>Start here when blocked</h2><div class="grid"><article class="card"><h3>Docker is installed but the environment is not ready</h3><p>On Windows and macOS, the portable route needs Docker Desktop running. Native GCC, Make, and QEMU are not required on Windows because the course container supplies them.</p><div class="actions"><button data-command="systemstudioOs.checkEnvironment">Check and recover environment</button><button data-command="systemstudioOs.openPortableSetup" class="secondary">Open setup guide</button></div></article><article class="card"><h3>QEMU or xv6 fails—especially on Apple silicon</h3><p>Use the headless linux/amd64 Docker preflight. It avoids the graphical emulator input path and preserves the first actionable failure.</p><div class="actions"><button data-command="systemstudioOs.prepareXv6">Prepare clean reference</button><button data-command="systemstudioOs.verifyXv6" class="secondary">Run xv6 preflight</button></div></article><article class="card"><h3>I know the algorithm but not where it belongs</h3><p>Ask the helper to route an invariant, trace, or first mismatch to the right module; it will not write the assessed implementation.</p><button class="quick" data-question="I can describe the scheduler on paper, but how do I identify the xv6 state transitions, timer accounting, and lock invariant I should inspect first?">Build a debugging route</button></article><article class="card"><h3>I am unsure what evidence to submit</h3><p>Open the current Canvas rubric first. Use local preflights to generate formative evidence, then verify required files and reopen the Canvas receipt.</p><div class="actions"><button data-command="systemstudioOs.openCanvas">Open Canvas course</button><button class="quick secondary" data-question="Help me build an evidence checklist from a requirement without doing the assignment for me.">Plan evidence</button></div></article></div></section><section class="card"><h2>Ask an actual AI learning coach</h2><p>Use U-M Codex CLI, the course’s single online AI learning coach, inside the VS Code terminal. The extension sends the guarded prompt only after the student selects the explicit in-editor action; it does not attach grades, Canvas data, or course records.</p><button data-command="systemstudioOs.openAiTutor">Open U-M Codex coach</button></section><section class="card"><h2>Optional animated Orbit companion</h2><label><input id="companion-enabled" type="checkbox"> Show Orbit, the original anime-inspired OS companion</label><p class="muted">Orbit opens local course tools and the U-M Codex learning coach. Motion follows your reduced-motion setting, the original artwork is packaged locally, and the companion can be hidden at any time.</p></section><section class="card"><h2>Ask the offline OS learning helper</h2><p>This separate deterministic helper maps your question to course content and refuses submission-ready assessed work. It has no LLM or AI-service account and sends no question off this machine.</p><label for="question"><strong>Your question</strong></label><textarea id="question" placeholder="State the concept, prediction, evidence, and smallest mismatch."></textarea><div class="actions"><button id="ask">Ask offline helper</button><button class="quick" data-question="Can you give me the answer to homework 2?">Test the integrity boundary</button></div><div id="tutor-result" class="card" hidden aria-live="polite"></div></section><section><h2>Frequently asked questions</h2>'+DATA.faqs.map(f=>'<details><summary>'+esc(f.question)+'</summary><p>'+esc(f.answer)+'</p></details>').join('')+'</section><section class="card"><h2>Ask before class through Canvas</h2><p>The extension prepares and copies a draft; it does not post, impersonate you, send email, or promise anonymity. You review the course, recipient, visibility, and content in Canvas.</p><label>Topic<input id="pre-topic" maxlength="160"></label><label>Focused question<textarea id="pre-question" maxlength="2000"></textarea></label><label>What I understand so far<textarea id="pre-understanding" maxlength="2000"></textarea></label><label>What I tried or checked<textarea id="pre-attempted" maxlength="2000"></textarea></label><fieldset><legend>Canvas route</legend><label><input type="radio" name="pre-route" value="discussion" checked> Configured discussion</label><label><input type="radio" name="pre-route" value="private-message"> Configured private message/Inbox route</label></fieldset><label><input id="pre-anon" type="checkbox"> I would prefer anonymity if Canvas explicitly offers it</label><p class="muted">Checking this box does not make the post anonymous. Confirm the actual Canvas control before posting.</p><div class="actions"><button id="compose">Copy draft and open Canvas</button><button data-command="systemstudioOs.configureCanvas" class="secondary">Configure routes</button></div></section><div class="notice"><strong>Academic-integrity boundary:</strong> Ask for concept explanations, one hint, an analogous example, error interpretation, or feedback on your own reasoning. Do not request or submit generated answers, code, calculations, traces, or prose as your own. The current Canvas rules control each assessed task.</div>';
   const enabled=el.querySelector('#companion-enabled');enabled.checked=state.companionEnabled!==false;enabled.onchange=()=>{state.companionEnabled=enabled.checked;if(!enabled.checked)state.companionOpen=false;persist();renderCompanion()};
   el.querySelector('#ask').onclick=()=>vscode.postMessage({type:'tutor',question:el.querySelector('#question').value});
   el.querySelectorAll('.quick').forEach(button=>button.onclick=e=>{el.querySelector('#question').value=e.currentTarget.dataset.question;el.querySelector('#ask').click();el.querySelector('#question').scrollIntoView({behavior:'smooth',block:'center'})});

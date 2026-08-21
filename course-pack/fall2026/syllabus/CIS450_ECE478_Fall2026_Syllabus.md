@@ -172,9 +172,12 @@ restricted instructor material to a third-party service.
 
 Appropriate learning questions include asking for a concept explanation, a
 smaller analogous example, an explanation of an error message, or feedback on
-reasoning you wrote. The extension's helper refuses requests for completed
-assignment answers and redirects to invariants, traces, and the student's own
-attempt.
+reasoning you wrote. U-M Codex CLI is the course's single online AI route and
+runs in VS Code with each student's own U-M configuration and course
+`AGENTS.md` guardrails. SystemStudio neither reads nor stores the U-M key. The
+learning coach and deterministic offline helper refuse requests for completed
+assignment answers and redirect to invariants, traces, and the student's own
+attempt. Review Codex `/permissions` before allowing file edits or commands.
 
 ## Attendance and participation
 

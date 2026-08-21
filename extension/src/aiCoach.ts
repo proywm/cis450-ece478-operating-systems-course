@@ -1,7 +1,5 @@
-const UM_TUTOR_HOSTS = new Set(['maizey.umich.edu', 'umgpt.umich.edu']);
-
-export const AI_ASSISTANCE_ONBOARDING_VERSION = 2;
-export type AiAssistancePreference = 'maizey' | 'umgpt' | 'offline';
+export const AI_ASSISTANCE_ONBOARDING_VERSION = 3;
+export type AiAssistancePreference = 'codex' | 'offline';
 export interface AiAssistanceState {
   version: number;
   preference: AiAssistancePreference;
@@ -13,7 +11,7 @@ export function normalizeAiAssistanceState(value: unknown): AiAssistanceState | 
   if (!value || typeof value !== 'object') return undefined;
   const candidate = value as Partial<AiAssistanceState>;
   if (candidate.version !== AI_ASSISTANCE_ONBOARDING_VERSION) return undefined;
-  if (!['maizey', 'umgpt', 'offline'].includes(String(candidate.preference))) return undefined;
+  if (!['codex', 'offline'].includes(String(candidate.preference))) return undefined;
   if (!['student-confirmed', 'local-ready'].includes(String(candidate.verification))) return undefined;
   if (typeof candidate.verifiedAt !== 'string' || !Number.isFinite(Date.parse(candidate.verifiedAt))) return undefined;
   return candidate as AiAssistanceState;
@@ -28,16 +26,9 @@ export function aiAssistanceState(
 }
 
 export function aiAssistanceLabel(preference: AiAssistancePreference): string {
-  if (preference === 'maizey') return 'U-M Maizey course and setup coach';
-  if (preference === 'umgpt') return 'U-M GPT general learning and setup coach';
+  if (preference === 'codex') return 'U-M Codex CLI learning and setup coach';
   return 'private offline Orbit helper';
 }
-
-export type TutorDestination =
-  | { kind: 'canvas'; url: string }
-  | { kind: 'maizey-app'; url: string }
-  | { kind: 'maizey-management'; url: string }
-  | { kind: 'invalid' };
 
 export type CoachRequest =
   | { allowed: true; prompt: string }
@@ -57,26 +48,22 @@ export const LEARNING_COACH_SYSTEM_PROMPT = [
   'Do not claim access to Canvas, grades, private course data, local files, or sources that were not included in the conversation.'
 ].join(' ');
 
-/** Classify only student-facing U-M tutor destinations; reject management pages. */
-export function classifyTutorDestination(value: string): TutorDestination {
-  try {
-    const parsed = new URL(value);
-    if (parsed.protocol !== 'https:' || parsed.username || parsed.password) return { kind: 'invalid' };
-    if (parsed.hostname === 'canvas.umd.umich.edu') {
-      return /^\/courses\/\d+(?:\/|$)/.test(parsed.pathname)
-        ? { kind: 'canvas', url: parsed.toString() }
-        : { kind: 'invalid' };
-    }
-    if (!UM_TUTOR_HOSTS.has(parsed.hostname)) return { kind: 'invalid' };
-    const managementSegment = parsed.pathname.toLowerCase().split('/').some((segment) =>
-      ['detail', 'overview', 'settings', 'data-sources', 'datasources', 'billing'].includes(segment)
-    );
-    return managementSegment
-      ? { kind: 'maizey-management', url: parsed.toString() }
-      : { kind: 'maizey-app', url: parsed.toString() };
-  } catch {
-    return { kind: 'invalid' };
-  }
+export function courseAgentsMd(): string {
+  return `# CIS 450 / ECE 478 Codex learning-coach instructions
+
+${LEARNING_COACH_SYSTEM_PROMPT}
+
+## Required interaction pattern
+
+- Treat this workspace as student-owned course work. Ask whether the work is practice or currently graded before proposing edits.
+- Ask for the student's prediction, attempt, observed evidence, and earliest uncertain step. Give one hint or smaller analogous example at a time.
+- Do not produce a completed homework answer, xv6 patch, pthread assignment, report, or submission-ready artifact.
+- Explain any proposed command before running it. Prefer inspection and formative public preflights; do not weaken, replace, or fabricate tests.
+- For C or xv6 debugging, help locate an invariant, state transition, trace, or first mismatch without writing the assessed implementation.
+- Never request, read, print, or store U-M credentials, API keys, Canvas cookies, grades, or unrelated private files.
+- Treat current Canvas instructions, the syllabus, and instructor directions as authoritative when they differ from local material.
+- Before editing student work or running a command, make the intended change and evidence goal explicit and respect the student's selected Codex permissions.
+`;
 }
 
 /** Apply a deterministic academic-integrity boundary before any prompt reaches an LLM. */

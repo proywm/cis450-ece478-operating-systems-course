@@ -40,6 +40,7 @@ test('workspace pins the official checkout and does not bundle third-party sourc
     '.devcontainer/Dockerfile',
     '.systemstudio/ostep-homework.json',
     '.vscode/tasks.json',
+    'AGENTS.md',
     'README.md',
     'compose.yaml'
   ]);

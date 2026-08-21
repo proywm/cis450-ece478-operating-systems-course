@@ -60,8 +60,8 @@ The beginner-facing tree starts by choosing optional assistance and then runs
 one **Set up or repair my course environment** workflow; manual commands remain
 under **Advanced Setup and Diagnostics**. An original animated Orbit companion
 opens a deterministic offline helper, short practice, or an actual U-M learning
-coach. The AI chooser uses a published U-M Maizey student App for course-grounded
-help or no-cost U-M GPT for broader troubleshooting. No instructor LLM key,
+coach. The single online AI route uses U-M Codex CLI inside VS Code with each
+student's own U-M configuration and persistent course guardrails. No instructor LLM key,
 private instructor-hosted model, file, or Canvas data is attached, and prompts
 remain student-reviewed and attempt-first.
 

@@ -31,7 +31,8 @@ test('public workspace contains reproducible tooling and no assignment implement
     '.systemstudio/manifest.json',
     '.systemstudio/spin.template.c',
     '.systemstudio/verify_xv6.py',
-    '.vscode/tasks.json'
+    '.vscode/tasks.json',
+    'AGENTS.md'
   ]);
   const combined = Object.values(files).join('\n');
   assert.match(combined, /Canvas remains\s+authoritative/i);

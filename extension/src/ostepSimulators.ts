@@ -1,3 +1,5 @@
+import { courseAgentsMd } from './aiCoach.js';
+
 export const OSTEP_HOMEWORK_REMOTE = 'https://github.com/remzi-arpacidusseau/ostep-homework.git';
 export const OSTEP_HOMEWORK_PAGE = 'https://pages.cs.wisc.edu/~remzi/OSTEP/Homework/homework.html';
 export const OSTEP_HOMEWORK_COMMIT = 'afb36ca8ddbf81d847d18f6bd18a87f0a18667f2';
@@ -170,6 +172,7 @@ export function ostepSimulatorWorkspaceFiles(): Record<string, string> {
   };
   const rows = OSTEP_SIMULATORS.map((simulator) => `| ${simulator.chapter} | ${simulator.title} | \`cd official/${simulator.directory}\`, then \`python3 ${simulatorArguments(simulator, 'practice').join(' ')}\` |`).join('\n');
   return {
+    'AGENTS.md': courseAgentsMd(),
     '.systemstudio/ostep-homework.json': `${JSON.stringify(manifest, null, 2)}\n`,
     '.devcontainer/Dockerfile': 'FROM python:3.12-slim\nWORKDIR /workspace\nCMD ["bash"]\n',
     'compose.yaml': 'services:\n  simulator:\n    build:\n      context: .\n      dockerfile: .devcontainer/Dockerfile\n    working_dir: /workspace\n    volumes:\n      - .:/workspace\n',

@@ -1,4 +1,5 @@
 import { GUIDED_LABS, type GuidedLab } from './labs.js';
+import { courseAgentsMd } from './aiCoach.js';
 
 export const PORTABLE_COURSEWORK_IDS = ['hw1', 'hw2', 'hw3', 'pa3'] as const;
 export type PortableCourseworkId = typeof PORTABLE_COURSEWORK_IDS[number];
@@ -190,6 +191,7 @@ ${lab.reflection}
 export function workspaceFiles(): Record<string, string> {
   const manifest: CourseworkWorkspaceManifest = { kind: 'systemstudio-os-portable-coursework', version: 1, coursework: [...PORTABLE_COURSEWORK_IDS] };
   const files: Record<string, string> = {
+    'AGENTS.md': courseAgentsMd(),
     '.devcontainer/devcontainer.json': JSON.stringify({ name: 'CIS 450 / ECE 478 OS Lab', dockerComposeFile: '../compose.yaml', service: 'oslab', workspaceFolder: '/workspace', shutdownAction: 'stopCompose', postCreateCommand: 'python3 .systemstudio/coursework.py doctor', customizations: { vscode: { extensions: ['ms-vscode.cpptools', 'ms-python.python'] } } }, null, 2) + '\n',
     'compose.yaml': "services:\n  oslab:\n    platform: linux/amd64\n    build:\n      context: .\n      dockerfile: .devcontainer/Dockerfile\n    working_dir: /workspace\n    volumes:\n      - .:/workspace\n    stdin_open: true\n    tty: true\n",
     '.devcontainer/Dockerfile': "FROM ubuntu:22.04\nARG DEBIAN_FRONTEND=noninteractive\nRUN apt-get update && apt-get install -y --no-install-recommends \\\n    build-essential gcc-multilib gdb git make python3 python3-pip qemu-system-x86 strace valgrind ca-certificates \\\n    && rm -rf /var/lib/apt/lists/*\nWORKDIR /workspace\nCMD [\"bash\"]\n",

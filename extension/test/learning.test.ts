@@ -81,7 +81,7 @@ test('evidence validation is read-only and bounded', () => {
 test('walkthrough is self-paced and covers all major student workflows', () => {
   assert.ok(WALKTHROUGH_STEPS.length >= 7);
   assert.deepEqual(WALKTHROUGH_STEPS.slice(0, 2).map((step) => step.id), ['assistance', 'setup']);
-  assert.match(WALKTHROUGH_STEPS[0]!.detail, /Maizey.*U-M GPT.*offline/i);
+  assert.match(WALKTHROUGH_STEPS[0]!.detail, /U-M Codex CLI.*offline/i);
   assert.match(WALKTHROUGH_STEPS.map((step) => `${step.title} ${step.detail}`).join(' '), /Practice in five-question sessions/);
   assert.match(WALKTHROUGH_STEPS.map((step) => step.detail).join(' '), /cannot promise anonymity/);
 });

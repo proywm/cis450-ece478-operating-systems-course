@@ -74,12 +74,12 @@
       },
       {
         "command": "systemstudioOs.configureAiAssistance",
-        "title": "CIS 450 / ECE 478: Configure or Check AI Assistance",
+        "title": "CIS 450 / ECE 478: Configure or Check U-M Codex",
         "icon": "$(sparkle)"
       },
       {
         "command": "systemstudioOs.openAiTutor",
-        "title": "CIS 450 / ECE 478: Choose AI Learning Coach",
+        "title": "CIS 450 / ECE 478: Open U-M Codex Learning Coach",
         "icon": "$(sparkle)"
       },
       {
@@ -188,7 +188,7 @@
     "viewsWelcome": [
       {
         "view": "systemstudioOs.course",
-        "contents": "Orbit first helps you choose and verify optional assistance, then runs one guided course-environment setup. Detailed controls stay under Advanced Setup and Diagnostics.\n[1. Configure or check AI assistance](command:systemstudioOs.configureAiAssistance)\n[2. Set up or repair my course environment](command:systemstudioOs.setupCourseEnvironment)\n[Open Learning Hub](command:systemstudioOs.openLearningHub)\n[Open Canvas](command:systemstudioOs.openCanvas)"
+        "contents": "Orbit first checks the student-owned U-M Codex CLI, then runs one guided course-environment setup. The deterministic offline FAQ remains available if AI is unavailable. Detailed controls stay under Advanced Setup and Diagnostics.\n[1. Configure or check U-M Codex](command:systemstudioOs.configureAiAssistance)\n[2. Set up or repair my course environment](command:systemstudioOs.setupCourseEnvironment)\n[Open Learning Hub](command:systemstudioOs.openLearningHub)\n[Open Canvas](command:systemstudioOs.openCanvas)"
       }
     ],
     "configuration": {
@@ -208,11 +208,6 @@
           "type": "string",
           "default": "",
           "description": "Optional verified Canvas Inbox or course-contact URL for private pre-class questions."
-        },
-        "systemstudioOs.maizeyTutorUrl": {
-          "type": "string",
-          "default": "",
-          "description": "Optional published student-facing U-M Maizey App/share URL for CIS 450 / ECE 478. Project overview, data-source, settings, and billing URLs are rejected."
         }
       }
     }
