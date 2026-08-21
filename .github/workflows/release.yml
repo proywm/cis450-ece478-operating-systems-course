@@ -1,0 +1,45 @@
+name: Publish extension release
+
+on:
+  push:
+    tags:
+      - 'os-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: extension/package-lock.json
+
+      - name: Install dependencies
+        working-directory: extension
+        run: npm ci
+
+      - name: Build, test, and package
+        working-directory: extension
+        run: npm run package:portable
+
+      - name: Audit packaged boundary
+        working-directory: extension
+        run: npm run audit:vsix -- systemstudio-cis450-ece478-${GITHUB_REF_NAME#os-v}.vsix
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#os-v}"
+          gh release create "$GITHUB_REF_NAME" "extension/systemstudio-cis450-ece478-${version}.vsix" \
+            --title "CIS 450 / ECE 478 ${version}" \
+            --generate-notes \
+            --verify-tag
