@@ -1,9 +1,9 @@
 src/**
 test/**
 scripts/**
+integration/**
 node_modules/**
 *.vsix
 tsconfig.json
 esbuild.mjs
 package-lock.json
-

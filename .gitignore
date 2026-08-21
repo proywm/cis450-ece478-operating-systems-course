@@ -2,5 +2,7 @@ extension/node_modules/
 extension/dist/
 extension/course-pack/
 extension/*.vsix
+extension/.vscode-test/
+extension/integration-results/
 *.log
 .DS_Store

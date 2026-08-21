@@ -59,6 +59,14 @@ an already-installed native POSIX toolchain as a transparent convenience route.
 Canvas is authoritative for current assignments, deadlines, submissions,
 exams, feedback, policies, and official grades.
 
+Release automation boundary-audits the VSIX, then installs that artifact into
+isolated real VS Code Extension Hosts on Windows, macOS, and Ubuntu. A separate
+Ubuntu-native job compiles/runs the OS starters and private verification
+fixtures, exercises pinned OSTEP and xv6/QEMU, and builds/runs the generated
+Linux course container. Hosted Windows/macOS jobs do not claim Docker Desktop
+or physical student-device acceptance; see `docs/CONTINUOUS_INTEGRATION.md` in
+the repository.
+
 The default Fall 2026 Canvas course is
 <https://canvas.umd.umich.edu/courses/552201>. See the in-extension FAQ and the
 generated `TROUBLESHOOTING.md` for setup, Apple-silicon/QEMU, archive, evidence,

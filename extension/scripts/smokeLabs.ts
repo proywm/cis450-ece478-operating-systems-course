@@ -18,6 +18,7 @@ function run(command: string, args: string[], cwd: string, label: string, timeou
 }
 
 async function main(): Promise<void> {
+const requireDocker = process.env.SYSTEMSTUDIO_REQUIRE_DOCKER === '1';
 const root = await mkdtemp(join(tmpdir(), 'systemstudio-os-labs-'));
 try {
   for (const lab of GUIDED_LABS) {
@@ -48,9 +49,16 @@ try {
     if (spawnSync('docker', ['info'], { stdio: 'ignore' }).status === 0) {
       run('docker', ['build', '--check', '--file', '.devcontainer/Dockerfile', '.'], workspace, 'portable workspace Dockerfile build check');
       run('docker', ['compose', 'run', '--rm', 'oslab', 'python3', '.systemstudio/coursework.py', 'check', 'all'], workspace, 'containerized HW1/HW2/HW3/PA3 prerequisite runner', 300_000);
+      process.stdout.write('PASS generated Linux container image built and executed the fixed coursework preflight\n');
+    } else if (requireDocker) {
+      throw new Error('Docker daemon is required for this CI job but docker info failed.');
     } else {
       process.stdout.write('SKIP Dockerfile daemon-backed build and container execution (Docker socket unavailable); native execution, static Dockerfile assertions, and Compose validation passed.\n');
     }
+  } else if (requireDocker) {
+    throw new Error('Docker and Compose are required for this CI job but the docker client is unavailable.');
+  } else {
+    process.stdout.write('SKIP Docker/Compose validation (Docker client unavailable); native starter execution passed.\n');
   }
 } finally {
   await rm(root, { recursive: true, force: true });

@@ -57,7 +57,8 @@ test('internal reference fixtures are excluded from student packaging', async ()
   assert.match(ignore, /^test\/\*\*$/m);
   assert.match(ignore, /^scripts\/\*\*$/m);
   const manifest = JSON.parse(await readFile(resolve(process.cwd(), 'package.json'), 'utf8')) as { scripts?: Record<string, string> };
-  assert.match(manifest.scripts?.check ?? '', /test:references/);
-  assert.match(manifest.scripts?.check ?? '', /test:xv6/);
+  assert.match(manifest.scripts?.check ?? '', /check:native/);
+  assert.match(manifest.scripts?.['check:native'] ?? '', /test:references/);
+  assert.match(manifest.scripts?.['check:native'] ?? '', /test:xv6/);
   assert.match(manifest.scripts?.package ?? '', /audit:vsix/);
 });

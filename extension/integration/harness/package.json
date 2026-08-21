@@ -1,0 +1,14 @@
+{
+  "name": "systemstudio-os-packaged-test-harness",
+  "displayName": "SystemStudio OS Packaged Test Harness",
+  "version": "0.0.0",
+  "private": true,
+  "publisher": "systemstudio-tests",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "main": "./extension.js",
+  "activationEvents": [
+    "*"
+  ]
+}

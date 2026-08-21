@@ -51,3 +51,11 @@ test('release does not retain an unverified CIS 450 GSI identity', async () => {
   assert.doesNotMatch(content, /staff are verified|schedule\/staff are verified/i);
   assert.match(content, /No GSI or grader is currently assigned or confirmed; check Canvas and department announcements for updates\./);
 });
+
+test('release scripts separate portable packaging from Linux-native course execution', async () => {
+  const packageJson = JSON.parse(await readFile(resolve(process.cwd(), 'package.json'), 'utf8')) as { scripts?: Record<string, string> };
+  assert.match(packageJson.scripts?.['package:portable'] ?? '', /check:portable[\s\S]*audit:vsix/);
+  assert.doesNotMatch(packageJson.scripts?.['check:portable'] ?? '', /test:starters|test:xv6|test:ostep|test:references/);
+  for (const script of ['test:starters', 'test:references', 'test:ostep', 'test:xv6']) assert.match(packageJson.scripts?.['check:native'] ?? '', new RegExp(script.replace(':', '\\:')));
+  assert.match(packageJson.scripts?.['test:integration'] ?? '', /runPackagedIntegration\.mjs/);
+});

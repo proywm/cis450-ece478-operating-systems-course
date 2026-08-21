@@ -1,5 +1,19 @@
 # Change log
 
+## 0.6.1 CI — 2026-08-20
+
+- Added a packaged-VSIX integration harness that installs the release artifact
+  into an isolated VS Code profile, activates it, verifies accessible resources
+  and registered commands, and opens the Learning Hub webview.
+- Added GitHub Actions Extension Host coverage for Windows, macOS, and Ubuntu,
+  with headless `xvfb` on Linux and audited VSIX/report artifacts.
+- Added a separate Ubuntu-only native-runtime gate for compiled lab starters,
+  private requirement fixtures, official OSTEP simulators, pinned xv6/QEMU,
+  and a required build/run of the generated Linux container route.
+- Made the VSIX audit cross-platform and explicitly excluded the integration
+  harness from student packages. Hosted macOS/Windows checks make no Docker
+  Desktop or physical-device claim.
+
 ## 0.6.1 — 2026-08-20
 
 - Promoted grade planning from a collapsed progress-page utility to a dedicated,

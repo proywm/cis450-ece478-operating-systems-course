@@ -21,6 +21,8 @@ and not a copy of the CIS 310 content.
   completed internal reference execution, including actual xv6/QEMU results
 - [`docs/OSTEP_LECTURE_SIMULATION_AUDIT.md`](docs/OSTEP_LECTURE_SIMULATION_AUDIT.md)
   — individual 29-chapter/nine-deck alignment and official simulator map
+- [`docs/CONTINUOUS_INTEGRATION.md`](docs/CONTINUOUS_INTEGRATION.md) — packaged
+  VSIX Extension Host matrix and Ubuntu-native runtime evidence boundaries
 
 ## Verified Fall 2026 facts
 
@@ -83,3 +85,8 @@ npm run package
 
 The generated `.vsix` is private course software. Do not publish it to a public
 marketplace or repository.
+
+GitHub Actions also installs the packaged artifact in real VS Code Extension
+Hosts on Windows, macOS, and Ubuntu. Compiler, OSTEP, xv6/QEMU, and generated
+container execution are enforced separately on Ubuntu; hosted Windows/macOS
+jobs do not claim Docker Desktop or physical student-device acceptance.
