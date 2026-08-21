@@ -12,7 +12,16 @@ import { OSTEP_HOMEWORK_COMMIT, OSTEP_HOMEWORK_PAGE, OSTEP_HOMEWORK_REMOTE, OSTE
 const execFileAsync = promisify(execFile);
 let hub: LearningHub | undefined;
 
-export function activate(context: vscode.ExtensionContext): void {
+export interface SystemStudioExtensionApi {
+  integrationStatus(): {
+    courseTitle: string;
+    moduleCount: number;
+    courseworkCount: number;
+    learningHubOpen: boolean;
+  };
+}
+
+export function activate(context: vscode.ExtensionContext): SystemStudioExtensionApi {
   const provider = new CourseTreeProvider();
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider('systemstudioOs.course', provider),
@@ -41,6 +50,14 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('systemstudioOs.runOstepSimulator', (id?: string, mode?: string) => runOstepSimulator(context, id, mode)),
     vscode.commands.registerCommand('systemstudioOs.openOstepSimulatorGuide', () => openOstepSimulatorGuide(context))
   );
+  return {
+    integrationStatus: () => ({
+      courseTitle: COURSE.title,
+      moduleCount: MODULES.length,
+      courseworkCount: COURSEWORK.length,
+      learningHubOpen: hub !== undefined
+    })
+  };
 }
 
 export function deactivate(): void {}

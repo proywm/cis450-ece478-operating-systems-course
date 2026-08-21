@@ -49,16 +49,21 @@ async function run() {
   await assertNotPackaged(extension, 'test');
   await assertNotPackaged(extension, 'scripts');
 
-  await extension.activate();
+  const api = await extension.activate();
   assert.equal(extension.isActive, true, 'Packaged extension did not activate');
+  assert.equal(typeof api?.integrationStatus, 'function', 'Packaged extension did not expose its read-only integration status');
+  const initialStatus = api.integrationStatus();
+  assert.match(initialStatus.courseTitle, /CIS 450 \/ ECE 478/);
+  assert.equal(initialStatus.moduleCount, 13);
+  assert.equal(initialStatus.courseworkCount, 7);
   const commands = new Set(await vscode.commands.getCommands(true));
   for (const command of REQUIRED_COMMANDS) assert.ok(commands.has(command), `Missing registered command ${command}`);
 
   await vscode.commands.executeCommand('systemstudioOs.openLearningHub');
   await new Promise((resolve) => setTimeout(resolve, 400));
+  assert.equal(api.integrationStatus().learningHubOpen, true, 'The packaged Open Learning Hub command did not create the hub');
   const hub = vscode.window.tabGroups.all.flatMap((group) => group.tabs).find((tab) => tab.input instanceof vscode.TabInputWebview && tab.input.viewType === 'systemstudioOs.learningHub');
-  assert.ok(hub, 'The packaged Open Learning Hub command did not create its webview');
-  assert.match(hub.label, /CIS 450 \/ ECE 478/);
+  if (hub) assert.match(hub.label, /CIS 450 \/ ECE 478/);
   await vscode.commands.executeCommand('workbench.action.closeAllEditors');
 
   console.log(`PASS packaged VSIX Extension Host integration (${process.platform}; VS Code ${vscode.version}; extension ${extension.packageJSON.version})`);

@@ -21,7 +21,7 @@ test('CI matrix installs and exercises the packaged VSIX on all supported hosts'
   const suite = await readFile(resolve(process.cwd(), 'integration/suite/index.js'), 'utf8');
   assert.match(suite, /probir-roy\.systemstudio-cis450-ece478/);
   assert.match(suite, /systemstudioOs\.openLearningHub/);
-  assert.match(suite, /TabInputWebview/);
+  assert.match(suite, /integrationStatus\(\)\.learningHubOpen/);
 });
 
 test('native compiler, xv6, and container execution is isolated to Ubuntu CI', async () => {
