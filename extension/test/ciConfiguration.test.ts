@@ -9,7 +9,7 @@ test('CI matrix installs and exercises the packaged VSIX on all supported hosts'
   assert.match(workflow, /npm run package:portable/);
   assert.match(workflow, /xvfb-run -a npm run test:integration/);
   assert.match(workflow, /if: runner\.os != 'Linux'[\s\S]*npm run test:integration/);
-  assert.match(workflow, /actions\/upload-artifact@v4/);
+  for (const action of ['checkout', 'setup-node', 'upload-artifact']) assert.match(workflow, new RegExp(`actions/${action}@v7`));
 
   const runner = await readFile(resolve(process.cwd(), 'integration/runPackagedIntegration.mjs'), 'utf8');
   assert.match(runner, /--install-extension/);
