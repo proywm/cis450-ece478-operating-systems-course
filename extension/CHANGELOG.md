@@ -1,5 +1,9 @@
 # Change log
 
+## 0.9.1 — 2026-08-21
+
+- Updated the packaged cross-platform integration test to require the new U-M AI assistance selector instead of the removed Copilot coach command.
+
 ## 0.9.0 — 2026-08-21
 
 - Added a first-run Orbit sequence that establishes optional student assistance before the portable OS environment setup and places those two actions first in the self-paced orientation.
