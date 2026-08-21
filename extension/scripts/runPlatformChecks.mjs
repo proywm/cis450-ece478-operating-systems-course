@@ -1,9 +1,12 @@
 import { spawnSync } from 'node:child_process';
 
-const npmExecutable = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+const npmCli = process.env.npm_execpath;
+if (!npmCli) {
+  throw new Error('npm_execpath is unavailable; run this checker through npm run check.');
+}
 
 function run(script) {
-  const result = spawnSync(npmExecutable, ['run', script], {
+  const result = spawnSync(process.execPath, [npmCli, 'run', script], {
     stdio: 'inherit',
     shell: false,
     env: process.env

@@ -60,7 +60,9 @@ test('release scripts separate portable packaging from Linux-native course execu
   for (const script of ['test:starters', 'test:references', 'test:ostep', 'test:xv6']) assert.match(packageJson.scripts?.['check:native'] ?? '', new RegExp(script.replace(':', '\\:')));
   assert.match(packageJson.scripts?.check ?? '', /runPlatformChecks\.mjs/);
   assert.match(platformChecks, /process\.platform === 'linux'[\s\S]*run\('check:native'\)/);
-  assert.match(platformChecks, /process\.platform === 'win32' \? 'npm\.cmd' : 'npm'/);
+  assert.match(platformChecks, /process\.env\.npm_execpath/);
+  assert.match(platformChecks, /spawnSync\(process\.execPath, \[npmCli, 'run', script\]/);
+  assert.doesNotMatch(platformChecks, /npm\.cmd|shell:\s*true/);
   assert.match(platformChecks, /SKIP check:native/);
   assert.match(packageJson.scripts?.['test:integration'] ?? '', /runPackagedIntegration\.mjs/);
 });
