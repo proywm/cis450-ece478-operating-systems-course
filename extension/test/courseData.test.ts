@@ -26,6 +26,8 @@ test('all 13 modules include eight source-grounded explained questions across Bl
     }
     assert.ok(module.handsOn.length > 40, module.id);
     assert.ok(module.artifact.length > 30, module.id);
+    assert.ok(module.sourceAlignment.length > 60, module.id);
+    assert.doesNotMatch(module.sourceAlignment, /Winter 2026|historical|individually audited|no matching|student-evaluation/i, module.id);
     assert.equal(module.questions.length, 8, module.id);
     assert.ok(new Set(module.questions.map((question) => question.level)).size >= 3, module.id);
     for (const question of module.questions) {

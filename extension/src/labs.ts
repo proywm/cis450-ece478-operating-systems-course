@@ -15,7 +15,7 @@ const commonBoundary = 'This is formative starter work. Read the current Canvas 
 export const GUIDED_LABS: readonly GuidedLab[] = [
   {
     id: 'environment-evidence', moduleNumber: 1, title: 'Reproducible OS environment',
-    purpose: 'Build, run, and document a minimal C program in the same container recipe used by later labs.', source: 'OSTEP Introduction; Winter 2026 setup goals', runCommand: 'make run',
+    purpose: 'Build, run, and document a minimal C program in the same container recipe used by later labs.', source: 'OSTEP Introduction and Chapter 2', runCommand: 'make run',
     steps: [
       { id: 'inspect', instruction: 'Inspect the Dockerfile, compose file, Makefile, and starter source before running anything.', evidence: 'List the compiler, runtime, and mounted workspace assumptions.' },
       { id: 'predict', instruction: 'Predict the program output and identify which value can vary between runs.', evidence: 'A written output prediction with the PID marked variable.' },
@@ -27,7 +27,7 @@ export const GUIDED_LABS: readonly GuidedLab[] = [
   },
   {
     id: 'process-api', moduleNumber: 2, title: 'fork, exec, and wait trace',
-    purpose: 'Predict and observe process creation, replacement, and parent-child ordering.', source: 'OSTEP Chapters 4–5; historical PA1 basis', runCommand: 'make run',
+    purpose: 'Predict and observe process creation, replacement, and parent-child ordering.', source: 'OSTEP Chapters 4–5', runCommand: 'make run',
     steps: [
       { id: 'annotate', instruction: 'Mark which lines can run in parent, child, or both.', evidence: 'Annotated source with fork return-value branches.' },
       { id: 'predict', instruction: 'Predict all possible ordering relationships before running.', evidence: 'A partial-order diagram, not one guessed transcript.' },
@@ -39,7 +39,7 @@ export const GUIDED_LABS: readonly GuidedLab[] = [
   },
   {
     id: 'scheduler-trace', moduleNumber: 3, title: 'Scheduler metric workbench',
-    purpose: 'Create Gantt traces and compute response and turnaround under explicit policy assumptions.', source: 'OSTEP Chapters 7–10; historical HW1/PA2 basis', runCommand: 'python3 scheduler_lab.py',
+    purpose: 'Create Gantt traces and compute response and turnaround under explicit policy assumptions.', source: 'OSTEP Chapters 7–10', runCommand: 'python3 scheduler_lab.py',
     steps: [
       { id: 'define', instruction: 'Read the workload and state the arrival/burst assumptions.', evidence: 'A workload table with units.' },
       { id: 'fcfs', instruction: 'Draw the FCFS Gantt chart by hand.', evidence: 'Start/completion time for every job.' },
@@ -51,7 +51,7 @@ export const GUIDED_LABS: readonly GuidedLab[] = [
   },
   {
     id: 'relocation-segmentation', moduleNumber: 4, title: 'Relocation and segmentation translations',
-    purpose: 'Separate validity checks from translation arithmetic and expose fragmentation tradeoffs.', source: 'OSTEP Chapters 13–16; historical HW2 basis', runCommand: 'python3 translate.py',
+    purpose: 'Separate validity checks from translation arithmetic and expose fragmentation tradeoffs.', source: 'OSTEP Chapters 13–16', runCommand: 'python3 translate.py',
     steps: [
       { id: 'table', instruction: 'Complete three base/bounds cases by hand.', evidence: 'Offset, bound decision, and physical address/fault.' },
       { id: 'run', instruction: 'Run the starter and compare its output.', evidence: 'Observed results with discrepancies marked.' },
@@ -63,7 +63,7 @@ export const GUIDED_LABS: readonly GuidedLab[] = [
   },
   {
     id: 'paging-tlb', moduleNumber: 5, title: 'Paging and TLB worksheet',
-    purpose: 'Decompose addresses and distinguish TLB misses from invalid or nonresident pages.', source: 'OSTEP Chapters 18–20; historical HW2 basis', runCommand: 'python3 paging.py',
+    purpose: 'Decompose addresses and distinguish TLB misses from invalid or nonresident pages.', source: 'OSTEP Chapters 18–20', runCommand: 'python3 paging.py',
     steps: [
       { id: 'split', instruction: 'Compute VPN and offset for the provided addresses by hand.', evidence: 'Binary/hex split with the offset width.' },
       { id: 'pte', instruction: 'Trace each VPN through the small page table.', evidence: 'PTE validity/protection and PFN.' },
@@ -75,7 +75,7 @@ export const GUIDED_LABS: readonly GuidedLab[] = [
   },
   {
     id: 'replacement', moduleNumber: 6, title: 'Page-replacement traces',
-    purpose: 'Compare FIFO and LRU on the same reference string and frame count.', source: 'OSTEP Chapters 21–22; historical HW2 basis', runCommand: 'python3 replacement.py',
+    purpose: 'Compare FIFO and LRU on the same reference string and frame count.', source: 'OSTEP Chapters 21–22', runCommand: 'python3 replacement.py',
     steps: [
       { id: 'manual', instruction: 'Trace FIFO manually before running the script.', evidence: 'Frame contents and hit/fault per reference.' },
       { id: 'verify', instruction: 'Run the starter FIFO implementation.', evidence: 'Fault total reconciled with the manual trace.' },

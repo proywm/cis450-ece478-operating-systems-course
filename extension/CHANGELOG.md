@@ -1,5 +1,11 @@
 # Change log
 
+## 0.9.5 — 2026-08-21
+
+- Replaced internal audit notes, missing-deck commentary, prior-term assignment references, and historical lab/question citations in all 13 generated student modules with concise OSTEP-to-practice alignment.
+- Changed the accessible-module exporter and module map to emit student-facing source alignment so regeneration cannot restore instructor-only provenance.
+- Added release regressions that reject internal provenance from the packaged lessons while preserving all 104 source-grounded readiness questions and 13 hands-on modules.
+
 ## 0.9.4 — 2026-08-21
 
 - Made Codex readiness probes explicitly platform-injectable so the Windows command-shim path and Unix direct-executable path are tested deterministically on every host.

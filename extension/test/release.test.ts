@@ -36,6 +36,9 @@ test('accessible syllabus and lesson export avoid Google Drive and stale course 
     readFile(resolve(process.cwd(), `../course-pack/fall2026/lessons/module-${String(index + 1).padStart(2, '0')}.html`), 'utf8')
   ));
   const lessonModules = modulePages.join('\n');
+  assert.doesNotMatch(lessonModules, /Winter 2026|historical (?:HW|PA)|individually audited|no matching .*lecture deck|student-evaluation/i);
+  assert.doesNotMatch(lessonModules, /Chapter and lecture alignment/);
+  assert.equal((lessonModules.match(/How the sources fit together/g) ?? []).length, 26);
   assert.equal((lessonModules.match(/<details><summary><span class="level">/g) ?? []).length, 104);
   assert.equal((lessons.match(/<tr(?: class="assessment")?><td>/g) ?? []).length, 27);
   assert.match(lessons, /class="assessment"><td>Midterm<\/td><td>2026-10-14/);
