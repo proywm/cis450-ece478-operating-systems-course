@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CIS 450 / ECE 478 Fall 2026 — Ungraded Pre-test</title>
+  <style>
+    :root{color-scheme:light dark;--border:#777;--soft:#eef5ff;--warn:#fff4ce;--ok:#e9f8ee}
+    *{box-sizing:border-box}html{font-size:100%;scroll-behavior:smooth}
+    body{max-width:84ch;margin:0 auto;padding:1rem;font:1rem/1.65 system-ui,-apple-system,"Segoe UI",sans-serif;color:CanvasText;background:Canvas}
+    h1,h2,h3{line-height:1.25}h1{font-size:clamp(1.8rem,5vw,2.7rem)}h2{margin-top:2.2rem;border-bottom:2px solid GrayText;padding-bottom:.3rem}
+    a{color:LinkText;text-decoration-thickness:.12em;text-underline-offset:.16em}a:focus-visible{outline:.2rem solid Highlight;outline-offset:.2rem}
+    nav{display:flex;flex-wrap:wrap;gap:.8rem;padding:1rem 0;border-block:1px solid GrayText}
+    .skip{position:absolute;left:-10000px}.skip:focus{left:1rem;top:1rem;background:Canvas;padding:.5rem;z-index:10}
+    .notice,.info,.success{padding:.8rem 1rem;margin:1rem 0;border-left:.4rem solid}.notice{border-color:#9a6700;background:var(--warn);color:#24292f}.info{border-color:#0969da;background:var(--soft);color:#1f2328}.success{border-color:#1a7f37;background:var(--ok);color:#1f2328}
+    table{border-collapse:collapse;width:100%;margin:1rem 0}caption{font-weight:700;text-align:left;margin-bottom:.4rem}th,td{border:1px solid var(--border);padding:.55rem;text-align:left;vertical-align:top}th{background:var(--soft)}
+    pre{border:1px solid var(--border);padding:.8rem;overflow:auto;background:var(--soft)}code{white-space:pre-wrap;overflow-wrap:anywhere}li+li{margin-top:.5rem}
+    footer{margin-top:3rem;padding-top:1rem;border-top:1px solid GrayText;font-size:.95rem}
+    @media(prefers-color-scheme:dark){:root{--soft:#202d3d;--warn:#3b300c;--ok:#173d25}.notice,.info,.success{color:CanvasText}}
+    @media(max-width:36rem){body{padding:.75rem}nav a{display:block;width:100%}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+    @media print{nav,.skip{display:none}body{max-width:none}a{color:inherit}}
+  </style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+<nav aria-label="Course navigation"><a href="../START_HERE.html">Course landing page</a><a href="../CALENDAR.html">Course calendar</a><a href="../readings/READING_LIST.html">Reading list</a><a href="../syllabus/CIS450_ECE478_Fall2026_Syllabus.html">Syllabus</a></nav>
+<main id="main">
+<p><strong>CIS 450 / ECE 478 · Fall 2026</strong></p>
+<h1 id="beginning-of-course-pre-test-systems-foundations">Beginning-of-course pre-test: systems foundations</h1>
+<div class="success">
+<strong>0 points; not graded.</strong> Your result does not affect your course grade. This diagnostic helps the instructor identify which prerequisite ideas need review before the operating-systems work begins.
+</div>
+<h2 id="before-you-begin">Before you begin</h2>
+<ul>
+<li>Make one honest attempt using only your current knowledge. Do not use an AI assistant, search engine, textbook, notes, or another person’s answers.</li>
+<li>It is fine to write “I do not know yet.” That answer is more useful than a copied answer.</li>
+<li>Canvas records your identity and response. Any class-level summary will be reported in aggregate.</li>
+<li>Show your reasoning where requested. Clear partial reasoning is useful even when the final answer is uncertain.</li>
+</ul>
+<h2 id="questions">Questions</h2>
+<ol type="1">
+<li><p><strong>Core data structures.</strong> Compare a queue, a stack, and a priority queue. For each one, explain where or according to what rule an item is inserted and which item is removed next.</p></li>
+<li><p><strong>Average memory-access time.</strong> A two-level memory system has a faster level with access time 0.1 microseconds and a slower level with access time 1.0 microseconds. The faster level’s hit rate is 95%. Assume a hit costs 0.1 microseconds. Assume a miss costs 1.0 microseconds to access the slower level <strong>plus</strong> 0.1 microseconds for the subsequent faster-level access; ignore all other transfer cost. Calculate the average access time and show the weighted expression you used.</p></li>
+<li><p><strong>Queue trace.</strong> An initially empty FIFO queue <code>Q</code> executes these operations in order: <code>enqueue(a)</code>, <code>enqueue(b)</code>, <code>enqueue(c)</code>, and <code>x = dequeue()</code>. What value is stored in <code>x</code>? Briefly explain.</p></li>
+<li><p><strong>Number representation.</strong> Write decimal 211 in:</p>
+<ol type="a">
+<li>8-bit binary; and</li>
+<li>2-digit hexadecimal.</li>
+</ol>
+<p>Show one conversion step or consistency check.</p></li>
+<li><p><strong>Direct memory access.</strong> In your own words, explain what direct memory access (DMA) allows a device controller to do, identify one benefit, and state whether the CPU must remain idle during the entire transfer.</p></li>
+<li><p><strong>Interrupts and subroutine calls.</strong> Give two differences between an interrupt and an ordinary subroutine call. Then name two events that can cause an interrupt, trap, or exception.</p></li>
+<li><p><strong>Priority-queue reasoning.</strong> A job ready queue is stored as an <strong>unsorted array</strong>. Every job has a distinct numeric priority, and a larger number means higher priority. Write pseudocode for a function that returns the <strong>lowest-priority</strong> job without changing the array. State the time complexity in terms of the number of jobs and justify it in one sentence.</p></li>
+</ol>
+<h2 id="what-to-submit-in-canvas">What to submit in Canvas</h2>
+<p>Enter your responses in the <strong>Pre-test: Systems Foundations</strong> Canvas assignment. If the assignment uses file upload instead of a text-entry box, upload one accessible PDF or DOCX file with numbered responses 1–7.</p>
+<h2 id="accessibility-or-setup-barrier">Accessibility or setup barrier</h2>
+<p>If Canvas or the required format creates an access barrier, contact the instructor promptly. The diagnostic remains ungraded.</p>
+</main>
+<footer><p>Fall 2026 ungraded diagnostic. Canvas displays the authoritative availability window and submission receipt.</p></footer>
+</body>
+</html>

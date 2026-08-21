@@ -2,7 +2,7 @@
   "name": "systemstudio-cis450-ece478",
   "displayName": "SystemStudio CIS 450 / ECE 478",
   "description": "Accessible Fall 2026 Operating Systems learning hub with OSTEP-aligned modules, hands-on labs, local progress, and academic-integrity support.",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "private": true,
   "publisher": "probir-roy",
   "repository": {
@@ -22,6 +22,7 @@
     "onCommand:systemstudioOs.openLearningHub",
     "onCommand:systemstudioOs.openCanvas",
     "onCommand:systemstudioOs.openSyllabus",
+    "onCommand:systemstudioOs.openPretest",
     "onCommand:systemstudioOs.openAccessibleLessons",
     "onCommand:systemstudioOs.setupCourseEnvironment",
     "onCommand:systemstudioOs.configureAiAssistance",
@@ -61,6 +62,11 @@
         "command": "systemstudioOs.openSyllabus",
         "title": "CIS 450 / ECE 478: Open Fall 2026 Syllabus",
         "icon": "$(file-pdf)"
+      },
+      {
+        "command": "systemstudioOs.openPretest",
+        "title": "CIS 450 / ECE 478: Open Ungraded Beginning-of-Course Pre-test",
+        "icon": "$(checklist)"
       },
       {
         "command": "systemstudioOs.openAccessibleLessons",
@@ -188,7 +194,7 @@
     "viewsWelcome": [
       {
         "view": "systemstudioOs.course",
-        "contents": "Orbit first checks the student-owned U-M Codex CLI, then runs one guided course-environment setup. The deterministic offline FAQ remains available if AI is unavailable. Detailed controls stay under Advanced Setup and Diagnostics.\n[1. Configure or check U-M Codex](command:systemstudioOs.configureAiAssistance)\n[2. Set up or repair my course environment](command:systemstudioOs.setupCourseEnvironment)\n[Open Learning Hub](command:systemstudioOs.openLearningHub)\n[Open Canvas](command:systemstudioOs.openCanvas)"
+        "contents": "Orbit first checks the student-owned U-M Codex CLI, then runs one guided course-environment setup. The deterministic offline FAQ remains available if AI is unavailable. The 0-point pre-test is an unaided baseline and must be completed without AI help. Detailed controls stay under Advanced Setup and Diagnostics.\n[1. Configure or check U-M Codex](command:systemstudioOs.configureAiAssistance)\n[2. Set up or repair my course environment](command:systemstudioOs.setupCourseEnvironment)\n[3. Open the ungraded pre-test](command:systemstudioOs.openPretest)\n[Open Learning Hub](command:systemstudioOs.openLearningHub)\n[Open Canvas](command:systemstudioOs.openCanvas)"
       }
     ],
     "configuration": {

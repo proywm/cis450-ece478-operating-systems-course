@@ -8,9 +8,16 @@ test('extension manifest is private and contributes every required command', asy
   assert.equal(packageJson.private, true);
   assert.equal(packageJson.name, 'systemstudio-cis450-ece478');
   const commands = new Set(packageJson.contributes?.commands?.map((item) => item.command));
-  for (const command of ['systemstudioOs.openLearningHub', 'systemstudioOs.openCanvas', 'systemstudioOs.openSyllabus', 'systemstudioOs.openAccessibleLessons', 'systemstudioOs.setupCourseEnvironment', 'systemstudioOs.openAiTutor', 'systemstudioOs.configureAiAssistance', 'systemstudioOs.createLabWorkspace', 'systemstudioOs.runCourseworkPreflight', 'systemstudioOs.openPortableSetup', 'systemstudioOs.reopenInCourseContainer', 'systemstudioOs.checkEnvironment', 'systemstudioOs.runCurrentC', 'systemstudioOs.exportCalendar', 'systemstudioOs.configureCanvas', 'systemstudioOs.importCanvasCalendar', 'systemstudioOs.createModuleLab', 'systemstudioOs.validateEvidence', 'systemstudioOs.prepareXv6', 'systemstudioOs.verifyXv6', 'systemstudioOs.openXv6Guide', 'systemstudioOs.prepareOstepSimulators', 'systemstudioOs.runOstepSimulator', 'systemstudioOs.openOstepSimulatorGuide']) {
+  for (const command of ['systemstudioOs.openLearningHub', 'systemstudioOs.openCanvas', 'systemstudioOs.openSyllabus', 'systemstudioOs.openPretest', 'systemstudioOs.openAccessibleLessons', 'systemstudioOs.setupCourseEnvironment', 'systemstudioOs.openAiTutor', 'systemstudioOs.configureAiAssistance', 'systemstudioOs.createLabWorkspace', 'systemstudioOs.runCourseworkPreflight', 'systemstudioOs.openPortableSetup', 'systemstudioOs.reopenInCourseContainer', 'systemstudioOs.checkEnvironment', 'systemstudioOs.runCurrentC', 'systemstudioOs.exportCalendar', 'systemstudioOs.configureCanvas', 'systemstudioOs.importCanvasCalendar', 'systemstudioOs.createModuleLab', 'systemstudioOs.validateEvidence', 'systemstudioOs.prepareXv6', 'systemstudioOs.verifyXv6', 'systemstudioOs.openXv6Guide', 'systemstudioOs.prepareOstepSimulators', 'systemstudioOs.runOstepSimulator', 'systemstudioOs.openOstepSimulatorGuide']) {
     assert.ok(commands.has(command), command);
   }
+});
+
+test('bundled pre-test is a 0-point unaided diagnostic', async () => {
+  const content = await readFile(resolve(process.cwd(), '../course-pack/fall2026/diagnostics/PRETEST.html'), 'utf8');
+  assert.match(content, /0 points/i);
+  assert.match(content, /Do not use an AI assistant/i);
+  assert.match(content, /does not affect your course grade/i);
 });
 
 test('accessible syllabus and lesson export avoid Google Drive and stale course identity', async () => {
@@ -21,7 +28,7 @@ test('accessible syllabus and lesson export avoid Google Drive and stale course 
   for (const file of files) {
     const content = await readFile(file, 'utf8');
     assert.match(content, /<html lang="en">/);
-    assert.doesNotMatch(content, /drive\.google\.com|CIS 310|Magoosh/i);
+    assert.doesNotMatch(content, /drive\.google\.com|SystemStudio CIS 310|CIS 310 Course Materials|Magoosh/i);
     assert.doesNotMatch(content, /staff are verified|schedule\/staff are verified/i);
   }
   const lessons = await readFile(files[1]!, 'utf8');
@@ -30,7 +37,10 @@ test('accessible syllabus and lesson export avoid Google Drive and stale course 
   ));
   const lessonModules = modulePages.join('\n');
   assert.equal((lessonModules.match(/<details><summary><span class="level">/g) ?? []).length, 104);
-  assert.equal((lessons.match(/<tr><td>/g) ?? []).length, 27);
+  assert.equal((lessons.match(/<tr(?: class="assessment")?><td>/g) ?? []).length, 27);
+  assert.match(lessons, /class="assessment"><td>Midterm<\/td><td>2026-10-14/);
+  assert.match(lessons, /<strong>Final:<\/strong> 2026-12-14, 3:00–6:00 p\.m\., CASL 1048/);
+  assert.doesNotMatch(lessons, /2026-10-14[\s\S]{0,240}Threads, shared state/);
   assert.equal((lessonModules.match(/https:\/\/pages\.cs\.wisc\.edu\/~remzi\/OSTEP\/[a-z0-9-]+\.pdf/g) ?? []).length, 29);
   assert.match(lessonModules, /<strong>Source:<\/strong>/);
   assert.match(lessons, /Dated OSTEP preparation plan/);
@@ -58,7 +68,7 @@ test('release does not retain an unverified CIS 450 GSI identity', async () => {
   ].join('\n');
   assert.doesNotMatch(content, /ssmtariq@umich|planned\/requested GSI/i);
   assert.doesNotMatch(content, /staff are verified|schedule\/staff are verified/i);
-  assert.match(content, /No GSI or grader is currently assigned or confirmed; check Canvas and department announcements for updates\./);
+  assert.match(content, /No GSI or grader is currently assigned or confirmed;\s+check Canvas and\s+department announcements for updates\./);
 });
 
 test('release scripts separate portable packaging from Linux-native course execution', async () => {

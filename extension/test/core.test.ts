@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildCalendar, estimateGrade, fall2026Meetings, fall2026Schedule, letterFor, progressPercent, requiredFinalExamPercent, tutorReply } from '../src/core.js';
 
-test('verified Fall 2026 calendar has 27 Monday/Wednesday meetings', () => {
+test('verified Fall 2026 calendar has 26 classes plus the October 14 midterm', () => {
   const meetings = fall2026Meetings();
   assert.equal(meetings.length, 27);
   assert.deepEqual(meetings[0], { number: 1, date: '2026-08-26', day: 'Wednesday' });
@@ -13,20 +13,37 @@ test('verified Fall 2026 calendar has 27 Monday/Wednesday meetings', () => {
 test('all verified meetings have a dated module and OSTEP preparation plan', () => {
   const schedule = fall2026Schedule();
   assert.equal(schedule.length, 27);
+  assert.equal(schedule.filter((meeting) => meeting.kind === 'class').length, 26);
+  assert.deepEqual(schedule.find((meeting) => meeting.date === '2026-10-14'), {
+    number: 14,
+    date: '2026-10-14',
+    day: 'Wednesday',
+    kind: 'assessment',
+    label: 'Midterm',
+    moduleNumbers: [1, 2, 3, 4, 5, 6],
+    topic: 'Midterm examination during the regular class period',
+    prepare: 'Review Modules 1–6; confirm scope, format, and allowed materials in Canvas'
+  });
+  assert.equal(schedule.find((meeting) => meeting.date === '2026-10-19')?.label, '14');
+  assert.equal(schedule.find((meeting) => meeting.date === '2026-10-19')?.prepare, 'OSTEP Chapters 26–27');
   assert.equal(schedule[0]?.topic, 'OS goals and the common C/Unix environment');
   assert.equal(schedule[0]?.prepare, 'OSTEP Chapter 2');
   assert.deepEqual(schedule.at(-1)?.moduleNumbers, [13]);
   assert.equal(schedule.at(-1)?.prepare, 'OSTEP Chapter 42');
-  assert.ok(schedule.every((meeting) => meeting.moduleNumbers.length > 0 && meeting.prepare.includes('OSTEP')));
+  assert.ok(schedule.every((meeting) => meeting.moduleNumbers.length > 0));
+  assert.ok(schedule.filter((meeting) => meeting.kind === 'class').every((meeting) => meeting.prepare.includes('OSTEP')));
 });
 
-test('calendar identifies verified room and leaves exact exam details to Canvas', () => {
+test('calendar identifies the midterm and scheduled final without duplicating a class on October 14', () => {
   const calendar = buildCalendar();
   assert.match(calendar, /CASL 1048/);
   assert.match(calendar, /T140000/);
   assert.match(calendar, /T154500/);
-  assert.match(calendar, /Exact exam date\\, time\\, room\\, and format are not yet verified/);
-  assert.match(calendar, /Canvas is authoritative/);
+  assert.match(calendar, /Midterm examination/);
+  assert.match(calendar, /DTSTART;TZID=America\/Detroit:20261014T140000/);
+  assert.match(calendar, /DTSTART;TZID=America\/Detroit:20261214T150000/);
+  assert.match(calendar, /DTEND;TZID=America\/Detroit:20261214T180000/);
+  assert.equal((calendar.match(/20261014T140000/g) ?? []).length, 1);
   assert.match(calendar, /MLFQ\\, proportional share\\, and multiprocessor scheduling/);
   assert.match(calendar, /Prepare: OSTEP Chapters 8–10/);
   assert.match(calendar, /URL:https:\/\/canvas\.umd\.umich\.edu\/courses\/552201/);

@@ -1,4 +1,4 @@
-export const AI_ASSISTANCE_ONBOARDING_VERSION = 3;
+export const AI_ASSISTANCE_ONBOARDING_VERSION = 4;
 export type AiAssistancePreference = 'codex' | 'offline';
 export interface AiAssistanceState {
   version: number;
@@ -36,6 +36,7 @@ export type CoachRequest =
 
 const directSolutionRequest = /\b(?:give|write|provide|tell|show)\b.{0,32}\b(?:answer|solution|code|implementation|patch|report)\b|\bsolve\b.{0,28}\b(?:homework|assignment|project|lab|pa[1-4]|hw[1-3])\b|\bdo (?:my|the) (?:homework|assignment|project|lab)\b/i;
 const assessedWork = /\b(?:homework|assignment|project|lab|pa[1-4]|hw[1-3]|scheduler|traffic control|xv6)\b/i;
+const coursePretest = /\b(?:pre[- ]?test|beginning[- ]of[- ]course diagnostic|systems foundations diagnostic)\b/i;
 
 export const LEARNING_COACH_SYSTEM_PROMPT = [
   'You are the CIS 450 / ECE 478 operating-systems learning coach inside SystemStudio at the University of Michigan-Dearborn.',
@@ -43,6 +44,7 @@ export const LEARNING_COACH_SYSTEM_PROMPT = [
   'Ask for the student’s prediction, attempt, observed evidence, and earliest uncertain step before giving help.',
   'Give one hint, diagnostic question, or small analogous example at a time. Explain why it helps and end with a check-for-understanding question.',
   'Never provide a finished graded answer, complete assignment implementation, submission-ready patch, report, or fabricated deadline.',
+  'The beginning-of-course pre-test is ungraded but must represent the student’s unaided baseline; do not answer, solve, check, or transform any pre-test item.',
   'For xv6 or C debugging, help the student locate an invariant, state transition, trace, or first mismatch without writing the assessed implementation.',
   'Say when a claim must be checked against the mapped OSTEP chapter, accessible lesson, public preflight contract, syllabus, or current Canvas assignment.',
   'Do not claim access to Canvas, grades, private course data, local files, or sources that were not included in the conversation.'
@@ -58,6 +60,7 @@ ${LEARNING_COACH_SYSTEM_PROMPT}
 - Treat this workspace as student-owned course work. Ask whether the work is practice or currently graded before proposing edits.
 - Ask for the student's prediction, attempt, observed evidence, and earliest uncertain step. Give one hint or smaller analogous example at a time.
 - Do not produce a completed homework answer, xv6 patch, pthread assignment, report, or submission-ready artifact.
+- Do not answer, solve, check, or transform the ungraded beginning-of-course pre-test; ask the student to submit their unaided baseline instead.
 - Explain any proposed command before running it. Prefer inspection and formative public preflights; do not weaken, replace, or fabricate tests.
 - For C or xv6 debugging, help locate an invariant, state transition, trace, or first mismatch without writing the assessed implementation.
 - Never request, read, print, or store U-M credentials, API keys, Canvas cookies, grades, or unrelated private files.
@@ -71,6 +74,12 @@ export function prepareCoachRequest(question: string): CoachRequest {
   const clean = question.trim().slice(0, 6_000);
   if (!clean) {
     return { allowed: false, explanation: 'Describe the concept, your prediction or attempt, and the earliest step that is unclear.' };
+  }
+  if (coursePretest.test(clean)) {
+    return {
+      allowed: false,
+      explanation: 'The beginning-of-course pre-test is ungraded, but it must show your unaided baseline. Complete and submit it without AI help; afterward, the learning coach can help you study the same prerequisite topics using different examples.'
+    };
   }
   if (directSolutionRequest.test(clean) && assessedWork.test(clean)) {
     return {

@@ -44,7 +44,8 @@ Fall 2026 course link is <https://canvas.umd.umich.edu/courses/552201>; optional
 discussion and private-message routes remain configurable because no specific
 Canvas topic/Inbox URL was supplied.
 
-The extension now includes a 27-meeting dated reading plan, 29 exact official
+The extension now includes a dated plan for 26 regular classes plus the October
+14 midterm, 29 exact official
 OSTEP chapter links with reading-focus prompts, 104 source-grounded questions,
 five-question practice with spaced review and analytics, 15 mapped official
 OSTEP prediction tools, thirteen executable guided lab starters, explicit

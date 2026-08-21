@@ -1,5 +1,12 @@
 # Change log
 
+## 0.9.2 — 2026-08-21
+
+- Corrected the Fall 2026 schedule model and every generated course-plan surface: October 14 is the Modules 1–6 midterm, not a regular threads class; Class 14 now begins Module 7 on October 19.
+- Added the December 14, 3:00–6:00 p.m. final examination to the learning hub, accessible lesson index, syllabus, and exported calendar, with Canvas retaining authority over scope, format, allowed materials, and later changes.
+- Added regression checks that reject an October 14 regular topic, duplicate calendar event, missing midterm row, or missing final-exam details.
+- Added the 0-point beginning-of-course pre-test and strengthened U-M Codex readiness so installation and student-owned login are both verified before AI assistance is reported ready.
+
 ## 0.9.1 — 2026-08-21
 
 - Replaced the multi-provider AI chooser with the student-owned U-M Codex CLI as the single online setup and learning coach; added cross-platform readiness checks, explicit in-terminal prompt consent, and persistent `AGENTS.md` academic-integrity guardrails. Offline Orbit remains available as a non-AI fallback.

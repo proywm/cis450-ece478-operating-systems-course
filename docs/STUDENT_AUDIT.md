@@ -34,7 +34,7 @@
 - Each module exposes reading, novice explanation, eight explained questions,
   source evidence, a five-step guided lab, local reflection status, and an
   exact official simulator where the book supplies one.
-- The dated 27-meeting plan exposes 29 direct official OSTEP chapter links,
+- The dated plan for 26 regular classes plus the October 14 midterm exposes 29 direct official OSTEP chapter links,
   including a focused before-class reading purpose for every assigned chapter.
   The plan covers virtualization, concurrency, and persistence and does not
   copy or redistribute the book.

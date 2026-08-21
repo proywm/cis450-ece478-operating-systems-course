@@ -18,6 +18,13 @@
   companion Fall 2026 course establish August 26 start, September 7 holiday,
   Thanksgiving recess, December 7 end of classes, December 8–9 study days, and
   December 10–16 examination period.
+- The current Fall 2026 course calendar and syllabus place the planned midterm
+  on Wednesday, October 14, 2:00–3:45 p.m., covering Modules 1–6. This exam
+  replaces that day's regular class; the next regular meeting is Monday,
+  October 19 and begins Module 7.
+- The same current materials list the final examination on Monday, December 14,
+  3:00–6:00 p.m., in CASL 1048 unless the Registrar or Canvas announces a
+  change.
 
 ## Verified historical policy/content basis
 
@@ -68,7 +75,8 @@ difficulty translating an in-class scheduler into xv6, and uncertainty about
 required boot evidence. No student names, messages, or identifiers are copied
 into this repository.
 
-The extension responds with a visible 13-module map; a 27-meeting dated plan;
+The extension responds with a visible 13-module map; a dated plan for 26
+regular classes plus the October 14 midterm and December 14 final;
 29 direct links to the current official OSTEP chapter PDFs with focus prompts;
 concise accessible explanations; 104 formative questions with explanations;
 15 official predict-first simulator presets; hands-on artifacts; a portable
@@ -86,7 +94,8 @@ extension capabilities.
 ## Not verified—therefore not claimed
 
 - Fall 2026 assignment release/due dates or exact prompt wording
-- Fall 2026 exam dates and room
+- Fall 2026 exam scope, format, and allowed materials beyond the current
+  planned coverage statements
 - Fall 2026 office hours
 - Any grading-policy change after Winter 2026
 - Any future CIS 450 / ECE 478 GSI or grader assignment

@@ -6,7 +6,7 @@ it does not mean copying circuit, Digital, MASM/NASM, artwork, or course content
 
 | Learning surface | SystemStudio OS implementation | Verification |
 |---|---|---|
-| Visible course map | Thirteen sidebar and in-hub modules grouped by virtualization, concurrency, and persistence, plus a dated 27-meeting preparation plan | `courseData.test.ts`; calendar and webview parity tests |
+| Visible course map | Thirteen sidebar and in-hub modules grouped by virtualization, concurrency, and persistence, plus a dated plan for 26 regular classes, the October 14 midterm, and the December 14 final | `core.test.ts`; calendar and webview parity tests |
 | Accessible lessons | Semantic standalone HTML with objectives, direct explanation, source, hands-on activity, and 104 explained checks | Accessible export test; 104 `<details>` assertions |
 | Short and cumulative practice | Five-question recommended/due/saved/topic sessions, confidence, explanations, saved items, and spaced review | `learning.test.ts` |
 | Textbook simulations | Fifteen exact OSTEP chapter presets, pinned official opt-in checkout, predict/reveal separation, private counts, and native Python/Docker routes | `ostepSimulators.test.ts`; `smokeOstepSimulators.ts` |

@@ -138,7 +138,9 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     lesson: [
       'Paging divides virtual and physical memory into fixed-size pages and frames. The offset is preserved during translation; a page-table entry supplies the physical frame number and protection metadata.',
       'A translation lookaside buffer caches recent translations. A TLB hit avoids a page-table lookup, while a TLB miss invokes hardware or OS-assisted page-table traversal. A TLB miss is not automatically a page fault.',
-      'Linear page tables are simple but can consume substantial memory. Multi-level tables allocate lower levels only for populated virtual regions, trading extra lookup steps for space savings.'
+      'Linear page tables are simple but can consume substantial memory. Multi-level tables allocate lower levels only for populated virtual regions, trading extra lookup steps for space savings.',
+      'Worked translation: with a 16 KiB virtual space and 4 KiB pages, addresses have 14 bits and the low 12 bits are the offset. Virtual address 4100 has VPN 1 and offset 4. If page-table entry 1 is valid with PFN 6, the physical address is 6 × 4096 + 4 = 24580. Division confirms the same split: quotient 1, remainder 4. Translation replaces the page number and preserves the offset.',
+      'Do not collapse four different outcomes into “a miss.” A TLB hit uses a cached translation. A TLB miss with a valid resident PTE walks the in-memory page table, installs the translation, and retries without disk I/O. An invalid PTE means no legal mapping. A valid mapping whose page is not resident is the true page-fault case that may require disk I/O.'
     ],
     handsOn: 'Use the OSTEP paging translation simulator, then write a tiny address-translation worksheet that labels VPN, offset, valid bit, and PFN.',
     artifact: 'Completed translations plus one paragraph distinguishing a TLB miss, invalid PTE, and page fault.',
@@ -388,6 +390,8 @@ export const SOURCE_BOUNDARIES = {
     'Fall 2026, section 001',
     'Instructor: Dr. Probir Roy',
     'Mondays and Wednesdays, 2:00–3:45 p.m., CASL 1048',
+    'October 14 is the planned midterm during the regular class period; it replaces the regular class meeting and covers Modules 1–6',
+    'The final examination is scheduled for December 14, 3:00–6:00 p.m., in CASL 1048 unless the Registrar or Canvas announces a change',
     'Direct Canvas course: https://canvas.umd.umich.edu/courses/552201',
     'No GSI or grader is currently assigned or confirmed; check Canvas and department announcements for updates.'
   ],
@@ -408,6 +412,6 @@ export const SOURCE_BOUNDARIES = {
   canvasOnly: [
     'Fall 2026 assignment wording, release dates, deadlines, submission types, team rules, and late policy',
     'Whether Fall 2026 uses the pinned xv6 reference or a different revision/specification',
-    'Exam dates, office hours, grading-policy changes, official grades, and any future GSI or grader assignment'
+    'Exam scope, format, allowed materials, later schedule changes, office hours, grading-policy changes, official grades, and any future GSI or grader assignment'
   ]
 } as const;

@@ -14,10 +14,17 @@ test('AI coach blocks direct assessed-work solutions before model access', () =>
   if (allowed.allowed) assert.match(allowed.prompt, /one next hint/i);
 });
 
+test('AI coach refuses to compromise the ungraded pre-test baseline', () => {
+  const blocked = prepareCoachRequest('Check my answers to the beginning-of-course pre-test and tell me which ones are wrong.');
+  assert.equal(blocked.allowed, false);
+  if (!blocked.allowed) assert.match(blocked.explanation, /unaided baseline/i);
+});
+
 test('course workspaces carry persistent learning and credential guardrails', () => {
   const agents = courseAgentsMd();
   assert.match(agents, /prediction, attempt, observed evidence/);
   assert.match(agents, /Do not produce a completed homework answer/);
+  assert.match(agents, /beginning-of-course pre-test/);
   assert.match(agents, /Never request, read, print, or store U-M credentials/);
 });
 

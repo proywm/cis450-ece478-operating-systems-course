@@ -83,6 +83,10 @@ staff and must not be confused with instructor or Canvas evaluation.
 
 ## Assessment and grading
 
+The beginning-of-course pre-test is a 0-point, ungraded diagnostic. Complete it
+without notes, AI, or outside help so that it represents your current baseline;
+it does not affect the course grade.
+
 | Category | Recent verified count | Weight carried forward for instructor confirmation |
 |---|---:|---:|
 | Participation / Canvas quizzes | Multiple | 10% |
@@ -212,14 +216,16 @@ sexual violence, bias, and discrimination are available at
 
 - Wednesday, August 26: classes begin and first course meeting
 - Monday, September 7: Labor Day, no class
+- Wednesday, October 14, 2:00–3:45 p.m.: planned midterm examination covering
+  Modules 1–6; confirm scope, format, and allowed materials in Canvas
 - November 21–29: Thanksgiving recess; no November 23/25 meetings
 - Monday, December 7: last regular class meeting
 - December 8–9: study days
-- December 10–16: final examination period; exact CIS 450 / ECE 478 details
-  will be announced in Canvas
+- Monday, December 14, 3:00–6:00 p.m.: final examination in CASL 1048 unless
+  the Registrar or Canvas announces a room change
 
-The extension exports 27 regular class meetings. Topics and assessed-work dates
-may change; Canvas is authoritative.
+The extension exports 26 regular class meetings plus the October 14 midterm and
+the December 14 final. Canvas controls assessment details and later changes.
 
 ## Dated topic and OSTEP reading plan
 
@@ -242,17 +248,18 @@ changes and all assessed-work dates.
 | 11 | Mon Oct 5 | 6 | Demand paging and page-fault mechanism | OSTEP Ch. 21 |
 | 12 | Wed Oct 7 | 6 | Replacement policy, locality, and thrashing | OSTEP Ch. 22 |
 | 13 | Mon Oct 12 | 1–6 | Virtualization integration studio: traces, simulators, and xv6 evidence | Review Ch. 2, 4–10, 13–16, 18–22 as needed |
-| 14 | Wed Oct 14 | 7 | Threads, shared state, and race conditions | OSTEP Ch. 26 |
-| 15 | Mon Oct 19 | 7 | pthread API and observable race lab | OSTEP Ch. 27 |
-| 16 | Wed Oct 21 | 8 | Lock goals, atomic primitives, spinning, and sleeping | OSTEP Ch. 28 |
-| 17 | Mon Oct 26 | 8 | Lock-based data structures and invariant scope | OSTEP Ch. 29 |
-| 18 | Wed Oct 28 | 9 | Condition variables, predicates, and producer/consumer | OSTEP Ch. 30 |
-| 19 | Mon Nov 2 | 9 | Semaphores and resource/order synchronization | OSTEP Ch. 31 |
-| 20 | Wed Nov 4 | 10 | Concurrency bugs and deadlock conditions | OSTEP Ch. 32 |
-| 21 | Mon Nov 9 | 10 | Liveness diagnosis and lock-order studio | Review OSTEP Ch. 32 |
-| 22 | Wed Nov 11 | 11 | I/O devices, polling, interrupts, and DMA | OSTEP Ch. 36 |
-| 23 | Mon Nov 16 | 11 | Device interaction and system-call trace studio | Review OSTEP Ch. 36 |
-| 24 | Wed Nov 18 | 12 | Files, directories, descriptors, and metadata | OSTEP Ch. 39 |
-| 25 | Mon Nov 30 | 12 | Links, open-file state, and persistence evidence lab | Review OSTEP Ch. 39 |
-| 26 | Wed Dec 2 | 13 | File-system implementation and FFS locality | OSTEP Ch. 40–41 |
-| 27 | Mon Dec 7 | 13 | Crash consistency, journaling, and course integration | OSTEP Ch. 42 |
+| Midterm | Wed Oct 14 | 1–6 | **Planned midterm examination, 2:00–3:45 p.m.; confirm details in Canvas** | Review Modules 1–6 |
+| 14 | Mon Oct 19 | 7 | Threads, shared state, race conditions, and the pthread API | OSTEP Ch. 26–27 |
+| 15 | Wed Oct 21 | 8 | Lock goals, atomic primitives, spinning, and sleeping | OSTEP Ch. 28 |
+| 16 | Mon Oct 26 | 8 | Lock-based data structures and invariant scope | OSTEP Ch. 29 |
+| 17 | Wed Oct 28 | 9 | Condition variables, predicates, and producer/consumer | OSTEP Ch. 30 |
+| 18 | Mon Nov 2 | 9 | Semaphores and resource/order synchronization | OSTEP Ch. 31 |
+| 19 | Wed Nov 4 | 10 | Concurrency bugs and deadlock conditions | OSTEP Ch. 32 |
+| 20 | Mon Nov 9 | 10 | Liveness diagnosis and lock-order studio | Review OSTEP Ch. 32 |
+| 21 | Wed Nov 11 | 11 | I/O devices, polling, interrupts, and DMA | OSTEP Ch. 36 |
+| 22 | Mon Nov 16 | 11 | Device interaction and system-call trace studio | Review OSTEP Ch. 36 |
+| 23 | Wed Nov 18 | 12 | Files, directories, descriptors, and metadata | OSTEP Ch. 39 |
+| 24 | Mon Nov 30 | 12 | Links, open-file state, and persistence evidence lab | Review OSTEP Ch. 39 |
+| 25 | Wed Dec 2 | 13 | File-system implementation and FFS locality | OSTEP Ch. 40–41 |
+| 26 | Mon Dec 7 | 13 | Crash consistency, journaling, and course integration | OSTEP Ch. 42 |
+| Final | Mon Dec 14 | 1–13 | **Final examination, 3:00–6:00 p.m., CASL 1048 unless the Registrar or Canvas announces a room change** | Review final-exam guide in Canvas |

@@ -145,12 +145,31 @@ function bestModule(question: string) {
 export interface Meeting { number: number; date: string; day: 'Monday' | 'Wednesday' }
 
 export interface PlannedMeeting extends Meeting {
+  kind: 'class' | 'assessment';
+  label: string;
   moduleNumbers: readonly number[];
   topic: string;
   prepare: string;
 }
 
-const TOPIC_PLAN: readonly Omit<PlannedMeeting, keyof Meeting>[] = [
+export const FALL_2026_EXAMS = {
+  midterm: {
+    date: '2026-10-14',
+    time: '2:00–3:45 p.m.',
+    room: 'CASL 1048',
+    coverage: 'Modules 1–6',
+    status: 'Planned; confirm scope, format, and allowed materials in Canvas.'
+  },
+  final: {
+    date: '2026-12-14',
+    time: '3:00–6:00 p.m.',
+    room: 'CASL 1048',
+    coverage: 'Modules 1–13',
+    status: 'Registrar-scheduled final-examination block; Canvas controls scope, format, and allowed materials.'
+  }
+} as const;
+
+const TOPIC_PLAN: readonly Omit<PlannedMeeting, keyof Meeting | 'kind' | 'label'>[] = [
   { moduleNumbers: [1], topic: 'OS goals and the common C/Unix environment', prepare: 'OSTEP Chapter 2' },
   { moduleNumbers: [2], topic: 'Process abstraction and state', prepare: 'OSTEP Chapter 4' },
   { moduleNumbers: [2], topic: 'fork, exec, wait, shells, and process evidence lab', prepare: 'OSTEP Chapter 5' },
@@ -164,8 +183,8 @@ const TOPIC_PLAN: readonly Omit<PlannedMeeting, keyof Meeting>[] = [
   { moduleNumbers: [6], topic: 'Demand paging and page-fault mechanism', prepare: 'OSTEP Chapter 21' },
   { moduleNumbers: [6], topic: 'Replacement policy, locality, and thrashing', prepare: 'OSTEP Chapter 22' },
   { moduleNumbers: [1, 2, 3, 4, 5, 6], topic: 'Virtualization integration studio: traces, simulators, and xv6 evidence', prepare: 'Review OSTEP Chapters 2, 4–10, 13–16, and 18–22 as needed' },
-  { moduleNumbers: [7], topic: 'Threads, shared state, and race conditions', prepare: 'OSTEP Chapter 26' },
-  { moduleNumbers: [7], topic: 'pthread API and observable race lab', prepare: 'OSTEP Chapter 27' },
+  { moduleNumbers: [1, 2, 3, 4, 5, 6], topic: 'Midterm examination during the regular class period', prepare: 'Review Modules 1–6; confirm scope, format, and allowed materials in Canvas' },
+  { moduleNumbers: [7], topic: 'Threads, shared state, race conditions, and the pthread API', prepare: 'OSTEP Chapters 26–27' },
   { moduleNumbers: [8], topic: 'Lock goals, atomic primitives, spinning, and sleeping', prepare: 'OSTEP Chapter 28' },
   { moduleNumbers: [8], topic: 'Lock-based data structures and invariant scope', prepare: 'OSTEP Chapter 29' },
   { moduleNumbers: [9], topic: 'Condition variables, predicates, and producer/consumer', prepare: 'OSTEP Chapter 30' },
@@ -197,14 +216,26 @@ export function fall2026Meetings(): Meeting[] {
 export function fall2026Schedule(): PlannedMeeting[] {
   const meetings = fall2026Meetings();
   if (meetings.length !== TOPIC_PLAN.length) throw new Error('Fall 2026 topic plan no longer matches the verified meeting calendar.');
-  return meetings.map((meeting, index) => ({ ...meeting, ...TOPIC_PLAN[index]! }));
+  let classNumber = 0;
+  return meetings.map((meeting, index) => {
+    const assessment = meeting.date === FALL_2026_EXAMS.midterm.date;
+    if (!assessment) classNumber += 1;
+    return {
+      ...meeting,
+      ...TOPIC_PLAN[index]!,
+      kind: assessment ? 'assessment' : 'class',
+      label: assessment ? 'Midterm' : String(classNumber)
+    };
+  });
 }
 
 export function buildCalendar(): string {
   const meetingEvents = fall2026Schedule().map((meeting) => event(
     `meeting-${meeting.number}`,
-    `CIS 450 / ECE 478 · ${meeting.topic}`,
-    `Planned meeting ${meeting.number} of 27. Prepare: ${meeting.prepare}. Module${meeting.moduleNumbers.length === 1 ? '' : 's'} ${meeting.moduleNumbers.join(', ')}. This is a learning plan; Canvas announcements control topic changes and all assessed-work dates.`,
+    meeting.kind === 'assessment' ? 'CIS 450 / ECE 478 · Midterm examination' : `CIS 450 / ECE 478 · ${meeting.topic}`,
+    meeting.kind === 'assessment'
+      ? `Planned midterm examination covering Modules 1–6. Confirm scope, format, and allowed materials in Canvas.`
+      : `Planned class meeting ${meeting.label} of 26. Prepare: ${meeting.prepare}. Module${meeting.moduleNumbers.length === 1 ? '' : 's'} ${meeting.moduleNumbers.join(', ')}. Canvas announcements control topic changes.`,
     `DTSTART;TZID=America/Detroit:${compact(meeting.date)}T140000\r\nDTEND;TZID=America/Detroit:${compact(meeting.date)}T154500`,
     COURSE.room
   ));
@@ -214,7 +245,7 @@ export function buildCalendar(): string {
     event('thanksgiving', 'Thanksgiving recess — no class', 'No Monday/Wednesday course meetings; classes resume November 30.', 'DTSTART;VALUE=DATE:20261121\r\nDTEND;VALUE=DATE:20261130'),
     event('classes-end', 'Fall 2026 classes end', 'Final regular Monday course meeting.', 'DTSTART;VALUE=DATE:20261207\r\nDTEND;VALUE=DATE:20261208'),
     event('study-days', 'Study days', 'No regular class. Verify exam information in Canvas.', 'DTSTART;VALUE=DATE:20261208\r\nDTEND;VALUE=DATE:20261210'),
-    event('exam-window', 'CIS 450 / ECE 478 final-exam window', 'Exact exam date, time, room, and format are not yet verified; Canvas is authoritative.', 'DTSTART;VALUE=DATE:20261210\r\nDTEND;VALUE=DATE:20261217')
+    event('final-exam', 'CIS 450 / ECE 478 · Final examination', 'Registrar-scheduled final-examination block. Confirm scope, format, and allowed materials in Canvas.', 'DTSTART;TZID=America/Detroit:20261214T150000\r\nDTEND;TZID=America/Detroit:20261214T180000', COURSE.room)
   ];
   return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//SystemStudio OS//Fall 2026//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:CIS 450 ECE 478 Fall 2026', ...meetingEvents, ...allDay, 'END:VCALENDAR', ''].join('\r\n');
 }
