@@ -8,7 +8,7 @@ test('extension manifest is private and contributes every required command', asy
   assert.equal(packageJson.private, true);
   assert.equal(packageJson.name, 'systemstudio-cis450-ece478');
   const commands = new Set(packageJson.contributes?.commands?.map((item) => item.command));
-  for (const command of ['systemstudioOs.openLearningHub', 'systemstudioOs.openCanvas', 'systemstudioOs.openSyllabus', 'systemstudioOs.openAccessibleLessons', 'systemstudioOs.createLabWorkspace', 'systemstudioOs.runCourseworkPreflight', 'systemstudioOs.openPortableSetup', 'systemstudioOs.reopenInCourseContainer', 'systemstudioOs.checkEnvironment', 'systemstudioOs.runCurrentC', 'systemstudioOs.exportCalendar', 'systemstudioOs.configureCanvas', 'systemstudioOs.importCanvasCalendar', 'systemstudioOs.createModuleLab', 'systemstudioOs.validateEvidence', 'systemstudioOs.prepareXv6', 'systemstudioOs.verifyXv6', 'systemstudioOs.openXv6Guide']) {
+  for (const command of ['systemstudioOs.openLearningHub', 'systemstudioOs.openCanvas', 'systemstudioOs.openSyllabus', 'systemstudioOs.openAccessibleLessons', 'systemstudioOs.createLabWorkspace', 'systemstudioOs.runCourseworkPreflight', 'systemstudioOs.openPortableSetup', 'systemstudioOs.reopenInCourseContainer', 'systemstudioOs.checkEnvironment', 'systemstudioOs.runCurrentC', 'systemstudioOs.exportCalendar', 'systemstudioOs.configureCanvas', 'systemstudioOs.importCanvasCalendar', 'systemstudioOs.createModuleLab', 'systemstudioOs.validateEvidence', 'systemstudioOs.prepareXv6', 'systemstudioOs.verifyXv6', 'systemstudioOs.openXv6Guide', 'systemstudioOs.prepareOstepSimulators', 'systemstudioOs.runOstepSimulator', 'systemstudioOs.openOstepSimulatorGuide']) {
     assert.ok(commands.has(command), command);
   }
 });
@@ -25,11 +25,13 @@ test('accessible syllabus and lesson export avoid Google Drive and stale course 
     assert.doesNotMatch(content, /staff are verified|schedule\/staff are verified/i);
   }
   const lessons = await readFile(files[1]!, 'utf8');
-  assert.equal((lessons.match(/<details>/g) ?? []).length, 104);
+  assert.equal((lessons.match(/<details><summary><span class="level">/g) ?? []).length, 104);
   assert.equal((lessons.match(/<tr><td>/g) ?? []).length, 27);
   assert.equal((lessons.match(/https:\/\/pages\.cs\.wisc\.edu\/~remzi\/OSTEP\/[a-z0-9-]+\.pdf/g) ?? []).length, 29);
   assert.match(lessons, /<strong>Source:<\/strong>/);
   assert.match(lessons, /Dated OSTEP preparation plan/);
+  assert.equal((lessons.match(/<h4>Chapter \d+: /g) ?? []).length, 15);
+  assert.match(lessons, /afb36ca8ddbf81d847d18f6bd18a87f0a18667f2/);
   assert.match(lessons, /https:\/\/canvas\.umd\.umich\.edu\/courses\/552201/);
 });
 

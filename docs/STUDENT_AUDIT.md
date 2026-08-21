@@ -11,6 +11,9 @@
 - All 13 completed internal references ran successfully, and seven coursework
   suites reran 15 mapped executable checks. C references compiled with strict
   warnings as errors. Package auditing excludes every internal reference.
+- All 15 selected official OSTEP simulator presets ran from the exact pinned
+  upstream commit in both prediction mode (without `-c`) and computed-feedback
+  mode (with `-c`). The upstream source is not bundled in the VSIX.
 - The release cloned the exact official MIT x86 xv6 commit, clean-built and
   booted it in QEMU, executed the private known-good PA1B reference, executed
   the private known-good PA2 FQ/AQ/EQ scheduler, and completed full upstream
@@ -29,7 +32,8 @@
   labs, coursework mission control, progress, and help directly from the main
   navigation. The first-run walkthrough is self-paced, skippable, and rerunnable.
 - Each module exposes reading, novice explanation, eight explained questions,
-  source evidence, a five-step guided lab, and local reflection status.
+  source evidence, a five-step guided lab, local reflection status, and an
+  exact official simulator where the book supplies one.
 - The dated 27-meeting plan exposes 29 direct official OSTEP chapter links,
   including a focused before-class reading purpose for every assigned chapter.
   The plan covers virtualization, concurrency, and persistence and does not
@@ -46,6 +50,10 @@
 - The environment checker is non-mutating. Workspace creation is explicit,
   refuses to overwrite an existing destination, and exposes the Docker recipe
   for review.
+- Official OSTEP simulator setup is also explicit and non-overwriting. It
+  verifies one pinned upstream commit, leaves the checkout unmodified, and
+  runs fixed shell-free Python argument arrays either natively or through a
+  visible container recipe. Computed output requires a prediction confirmation.
 - HW1, HW2, HW3, and PA3 each have a per-card prerequisite-preflight action.
   A manifest prevents the extension from running these commands in an
   unrelated workspace. Docker is the common Windows/macOS/Linux route; native
@@ -90,7 +98,8 @@
 - Practice attempts, confidence, and status are local self-evaluation—not a
   Canvas grade or instructor evaluation.
 - Saved questions, review dates, per-topic analytics, guided-lab checkmarks,
-  coursework status, and reviewed calendar reminders also stay local.
+  simulator practice/reveal counts, coursework status, and reviewed calendar
+  reminders also stay local.
 - The grade calculator is a planning estimate based on verified historical
   weights. It does not read Canvas, apply an unverified drop rule, or claim an
   official result.

@@ -2,7 +2,7 @@
   "name": "systemstudio-cis450-ece478",
   "displayName": "SystemStudio CIS 450 / ECE 478",
   "description": "Accessible Fall 2026 Operating Systems learning hub with OSTEP-aligned modules, hands-on labs, local progress, and academic-integrity support.",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "publisher": "probir-roy",
   "repository": {
@@ -31,7 +31,10 @@
     "onCommand:systemstudioOs.validateEvidence",
     "onCommand:systemstudioOs.prepareXv6",
     "onCommand:systemstudioOs.verifyXv6",
-    "onCommand:systemstudioOs.openXv6Guide"
+    "onCommand:systemstudioOs.openXv6Guide",
+    "onCommand:systemstudioOs.prepareOstepSimulators",
+    "onCommand:systemstudioOs.runOstepSimulator",
+    "onCommand:systemstudioOs.openOstepSimulatorGuide"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -53,7 +56,10 @@
       { "command": "systemstudioOs.validateEvidence", "title": "CIS 450 / ECE 478: Validate Coursework Evidence Files", "icon": "$(verified)" },
       { "command": "systemstudioOs.prepareXv6", "title": "CIS 450 / ECE 478: Prepare Pinned xv6 Reference Workspace", "icon": "$(repo-clone)" },
       { "command": "systemstudioOs.verifyXv6", "title": "CIS 450 / ECE 478: Run xv6 Assignment Preflight", "icon": "$(beaker)" },
-      { "command": "systemstudioOs.openXv6Guide", "title": "CIS 450 / ECE 478: Open xv6 Workspace Guide", "icon": "$(book)" }
+      { "command": "systemstudioOs.openXv6Guide", "title": "CIS 450 / ECE 478: Open xv6 Workspace Guide", "icon": "$(book)" },
+      { "command": "systemstudioOs.prepareOstepSimulators", "title": "CIS 450 / ECE 478: Prepare Official OSTEP Simulators", "icon": "$(repo-clone)" },
+      { "command": "systemstudioOs.runOstepSimulator", "title": "CIS 450 / ECE 478: Run an Official OSTEP Simulator", "icon": "$(run-all)" },
+      { "command": "systemstudioOs.openOstepSimulatorGuide", "title": "CIS 450 / ECE 478: Open OSTEP Simulator Guide", "icon": "$(book)" }
     ],
     "viewsContainers": {
       "activitybar": [
@@ -99,11 +105,12 @@
     "test:webview": "node scripts/checkWebviewSyntax.mjs",
     "test:starters": "tsx scripts/smokeLabs.ts",
     "test:references": "tsx scripts/smokeReferences.ts",
+    "test:ostep": "tsx scripts/smokeOstepSimulators.ts",
     "test:xv6": "tsx scripts/smokeXv6.ts",
     "audit:vsix": "node scripts/auditVsix.mjs",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test test/*.test.ts",
-    "check": "npm run export:lessons && npm run stage:course-pack && npm run typecheck && npm test && npm run test:starters && npm run test:references && npm run test:xv6 && npm run compile && npm run test:webview",
+    "check": "npm run export:lessons && npm run stage:course-pack && npm run typecheck && npm test && npm run test:starters && npm run test:references && npm run test:ostep && npm run test:xv6 && npm run compile && npm run test:webview",
     "package": "npm run check && npx @vscode/vsce package --no-dependencies && npm run audit:vsix"
   },
   "devDependencies": {

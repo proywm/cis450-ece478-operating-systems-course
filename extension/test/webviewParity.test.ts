@@ -11,7 +11,8 @@ test('learning hub exposes the pedagogically relevant parity surfaces', async ()
     'Optional historical-weight grade planning estimate', 'Frequently asked questions',
     'Ask before class through Canvas', 'Self-paced orientation',
     'Self-reported coursework planning progression', 'Open dated OSTEP course plan',
-    '29 exact official OSTEP chapter links', 'Start here when blocked'
+    '29 exact official OSTEP chapter links', '15 chapter-mapped simulators',
+    'Chapter-mapped simulations', 'Start here when blocked'
   ]) assert.ok(html.includes(marker), marker);
 });
 

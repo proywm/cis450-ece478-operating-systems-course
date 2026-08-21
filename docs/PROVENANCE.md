@@ -41,10 +41,20 @@ observed; full upstream `usertests` passed on clean one- and two-CPU images.
 This is explicitly labeled a historical reference, not an inferred Fall 2026
 assignment source.
 
-Nine locally available instructor PowerPoint sources ground concurrency and
-persistence modules. Virtualization modules are grounded in the recent
-homework/programming prompts and explicitly mapped OSTEP chapters. The project
-links to OSTEP rather than redistributing the book.
+All 29 assigned OSTEP chapters and all nine locally available instructor
+PowerPoint sources received an individual structural/content audit documented
+in `docs/OSTEP_LECTURE_SIMULATION_AUDIT.md`. The decks ground concurrency and
+persistence modules. No virtualization deck was found locally, so those
+modules are explicitly grounded in the recent homework/programming prompts,
+syllabus, and mapped OSTEP chapters without claiming a deck comparison. The
+project links to OSTEP rather than redistributing the book.
+
+The official OSTEP homework repository was inspected and pinned at commit
+`afb36ca8ddbf81d847d18f6bd18a87f0a18667f2`. Fifteen chapter-mapped presets
+were executed both in prediction mode and computed-feedback mode. Because no
+top-level license file was present in that checkout, the extension does not
+redistribute or modify the simulator source; it fetches the pinned official
+repository only after explicit student consent.
 
 ## Student-evaluation design response
 
@@ -61,7 +71,8 @@ into this repository.
 The extension responds with a visible 13-module map; a 27-meeting dated plan;
 29 direct links to the current official OSTEP chapter PDFs with focus prompts;
 concise accessible explanations; 104 formative questions with explanations;
-hands-on artifacts; a portable lab; a headless two-CPU PA1A baseline that
+15 official predict-first simulator presets; hands-on artifacts; a portable
+lab; a headless two-CPU PA1A baseline that
 checks CPU and shell boot markers; evidence checklists; early project routes;
 and a focused FAQ/help clinic.
 

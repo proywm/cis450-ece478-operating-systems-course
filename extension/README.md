@@ -8,6 +8,9 @@ The Fall 2026 Operating Systems learning hub for section 001.
   source grounding, and justifications
 - five-question practice, saved/due/spaced review, confidence checks, and
   private per-topic analytics
+- fifteen official OSTEP simulator presets mapped to exact chapters, with a
+  pinned opt-in checkout, predict-before-`-c` workflow, native Python/Docker
+  routes, explanations, and private run counts
 - thirteen guided C, Python, pthread, scheduler, memory, I/O, and file-system
   starters with evidence walkthroughs
 - portable Docker/Dev Containers workspace generator with C/pthreads, Python,
@@ -39,6 +42,11 @@ coursework guides. It also builds and boots pinned real xv6, validates the PA1B
 runtime evidence, validates the historical PA2 queue/quanta behavior, and runs
 full upstream `usertests` in QEMU. The package audit proves that private
 known-good implementations are not in the VSIX.
+
+It also fetches the official OSTEP homework repository at exact commit
+`afb36ca8ddbf81d847d18f6bd18a87f0a18667f2` and runs every one of the 15
+mapped presets both without `-c` and with `-c`. Upstream source is never
+bundled into the VSIX.
 
 Docker itself is an explicit host prerequisite for the identical cross-platform
 route; the extension does not silently install system software, enable

@@ -4,7 +4,8 @@ The active Canvas course is
 <https://canvas.umd.umich.edu/courses/552201>. The bundled dated plan maps the
 27 Monday/Wednesday meetings to 29 official OSTEP chapter links. Each learning
 module combines those readings with accessible explanations, eight explained
-questions, private self-evaluation, and a tested hands-on route.
+questions, private self-evaluation, a tested hands-on route, and an official
+OSTEP prediction tool where the book provides one.
 
 This pack supports the active course while preserving a clear authority line:
 
@@ -28,3 +29,7 @@ This pack supports the active course while preserving a clear authority line:
    `eeb7b415dbcb12cc362d0783e41c3d1f44066b17`, executed in QEMU against the
    historical Winter 2026 behavior. Canvas must confirm whether it applies to
    active Fall 2026 assessed work.
+8. Fifteen official OSTEP simulator presets are mapped to exact chapters and
+   executed in both prediction and reveal modes at pinned commit
+   `afb36ca8ddbf81d847d18f6bd18a87f0a18667f2`. The upstream code is fetched
+   after consent and is not included in this course pack.

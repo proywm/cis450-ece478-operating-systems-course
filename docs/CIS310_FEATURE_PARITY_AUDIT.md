@@ -9,10 +9,11 @@ it does not mean copying circuit, Digital, MASM/NASM, artwork, or course content
 | Visible course map | Thirteen sidebar and in-hub modules grouped by virtualization, concurrency, and persistence, plus a dated 27-meeting preparation plan | `courseData.test.ts`; calendar and webview parity tests |
 | Accessible lessons | Semantic standalone HTML with objectives, direct explanation, source, hands-on activity, and 104 explained checks | Accessible export test; 104 `<details>` assertions |
 | Short and cumulative practice | Five-question recommended/due/saved/topic sessions, confidence, explanations, saved items, and spaced review | `learning.test.ts` |
+| Textbook simulations | Fifteen exact OSTEP chapter presets, pinned official opt-in checkout, predict/reveal separation, private counts, and native Python/Docker routes | `ostepSimulators.test.ts`; `smokeOstepSimulators.ts` |
 | Guided building | Thirteen non-overwriting C/Python/shell starters mapped one-to-one to modules | `labs.test.ts`; `smokeLabs.ts` |
 | Completed reference behavior | Thirteen internal-only known-good formative references, mapped to every lab step | `referenceSolutions.test.ts`; `smokeReferences.ts` |
 | Coursework progression | Seven ordered planning cards, self-reported progression bar, evidence checklist, local file validation, and release-tested formative routes | webview parity and course-data tests |
-| Orientation | Eight-step first-run, skippable, resumable, and rerunnable walkthrough | `learning.test.ts`; webview syntax test |
+| Orientation | First-run, skippable, resumable, and rerunnable walkthrough covering reading, questions, OSTEP simulations, labs, portable tools, xv6, Canvas, and help | `learning.test.ts`; webview syntax test |
 | Progress boundary | Local status, confidence, practice, lab, and coursework indicators repeatedly distinguished from Canvas grades/evaluation | webview parity and release tests |
 | Grade planning | Optional historical Winter 2026 estimator only; no Canvas access and no invented drop rule | `core.test.ts`; syllabus/provenance notices |
 | FAQ/helper | Structured evaluation/email-informed FAQ and deterministic offline helper with assessed-work refusal and attempt-first prompts | `core.test.ts`; `learning.test.ts`; student audit |

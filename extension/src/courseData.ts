@@ -70,7 +70,7 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     ],
     handsOn: 'Create the portable OS lab workspace, inspect its container recipe, compile the starter C program, and record the compiler/runtime versions.',
     artifact: 'A short environment report containing the commands used, versions, output, and one troubleshooting note.',
-    sourceBasis: 'Winter 2026 syllabus program goals; OSTEP introduction; recent evaluation request for explicit Docker, Makefile, and C setup demonstrations.',
+    sourceBasis: 'Individually audited OSTEP Chapter 2 plus the Winter 2026 syllabus and student-evaluation setup concerns. No matching virtualization lecture deck was found in the local source set, so no lecture-to-chapter match is claimed.',
     questions: [
       { id: 'm01q1', level: 'Understand', prompt: 'Which example is a policy rather than a mechanism?', choices: ['Saving CPU registers during a context switch', 'Choosing the next ready process', 'Entering kernel mode on a trap', 'Translating a virtual address'], answer: 1, explanation: 'Choosing among runnable processes is a scheduling policy. Saving/restoring state and entering the kernel are mechanisms.' },
       { id: 'm01q2', level: 'Apply', prompt: 'A program builds on one laptop but not another. What is the best first reproducibility step?', choices: ['Rewrite the program', 'Record tool versions and build commands', 'Increase CPU priority', 'Disable compiler warnings'], answer: 1, explanation: 'A versioned environment and repeatable command are needed before diagnosing code differences.' },
@@ -88,7 +88,7 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     ],
     handsOn: 'Write a small C program that forks, prints parent/child PIDs, waits, and then add an exec call. Predict the output before running it.',
     artifact: 'Annotated process tree plus predicted and observed output; explain every difference without copying assignment answers.',
-    sourceBasis: 'Winter 2026 HW1 and PA1 process exercises; OSTEP process/API chapters.',
+    sourceBasis: 'Individually audited OSTEP Chapters 4–5 plus Winter 2026 HW1/PA1 process exercises. No matching process lecture deck was found in the local source set, so no lecture-to-chapter match is claimed.',
     questions: [
       { id: 'm02q1', level: 'Remember', prompt: 'What does fork return in the newly created child?', choices: ['The parent PID', 'Zero', 'Negative one', 'The child PID'], answer: 1, explanation: 'A successful fork returns zero in the child and the child PID in the parent.' },
       { id: 'm02q2', level: 'Understand', prompt: 'What does exec do to the calling process?', choices: ['Creates a second process', 'Replaces its program image', 'Blocks until a child exits', 'Duplicates every open file'], answer: 1, explanation: 'exec loads a new program into the current process; it does not create another process.' },
@@ -106,7 +106,7 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     ],
     handsOn: 'Run OSTEP scheduling simulators with at least three seeds. Draw one Gantt chart manually, then reconcile it with simulator output.',
     artifact: 'Gantt chart, metric calculations, simulator command, and a short policy tradeoff paragraph.',
-    sourceBasis: 'Winter 2026 HW1 scheduling questions and PA2 scheduler goals; OSTEP scheduling chapters.',
+    sourceBasis: 'Individually audited OSTEP Chapters 6–10 plus Winter 2026 HW1 scheduling questions and PA2 scheduler goals. No matching scheduling lecture deck was found in the local source set, so no lecture-to-chapter match is claimed.',
     questions: [
       { id: 'm03q1', level: 'Understand', prompt: 'Why does an OS need a timer interrupt?', choices: ['To allocate disk blocks', 'To regain CPU control from a running process', 'To translate addresses', 'To create a file descriptor'], answer: 1, explanation: 'The timer provides a non-cooperative path back into the kernel so the scheduler can preempt.', source: 'OSTEP Chapter 6: Limited Direct Execution' },
       { id: 'm03q2', level: 'Apply', prompt: 'Jobs A(3) and B(1) arrive together. Under non-preemptive SJF, which order minimizes average turnaround?', choices: ['A then B', 'B then A', 'Either is identical', 'They must alternate'], answer: 1, explanation: 'Running the shortest job first completes B at 1 and A at 4, reducing average completion time.', source: 'OSTEP Chapter 7: Scheduling Introduction' },
@@ -124,7 +124,7 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     ],
     handsOn: 'Use the OSTEP relocation and segmentation simulators. For three addresses, compute the result by hand before revealing the simulator answer.',
     artifact: 'Translation table with validity decision, arithmetic, and physical address or protection fault.',
-    sourceBasis: 'Winter 2026 HW2 address-space, base/bounds, and segmentation items; OSTEP VM chapters.',
+    sourceBasis: 'Individually audited OSTEP Chapters 13–16 plus Winter 2026 HW2 address-space, memory-API, base/bounds, and segmentation items. No matching memory lecture deck was found locally.',
     questions: [
       { id: 'm04q1', level: 'Remember', prompt: 'Which region normally grows as dynamic allocation occurs?', choices: ['Code', 'Heap', 'Program counter', 'Page table register'], answer: 1, explanation: 'malloc-family allocation typically expands or maps heap storage.', source: 'OSTEP Chapter 13: Address Spaces' },
       { id: 'm04q2', level: 'Apply', prompt: 'With base 4000 and bound 500, what happens to virtual address 300?', choices: ['Fault', 'Physical 3700', 'Physical 4300', 'Physical 4500'], answer: 2, explanation: '300 is within the 500-byte bound, so translation is base + offset = 4300.', source: 'OSTEP Chapter 15: Address Translation' },
@@ -142,7 +142,7 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     ],
     handsOn: 'Use the OSTEP paging translation simulator, then write a tiny address-translation worksheet that labels VPN, offset, valid bit, and PFN.',
     artifact: 'Completed translations plus one paragraph distinguishing a TLB miss, invalid PTE, and page fault.',
-    sourceBasis: 'Winter 2026 HW2 paging/TLB questions; OSTEP paging chapters.',
+    sourceBasis: 'Individually audited OSTEP Chapters 18–20 plus Winter 2026 HW2 paging/TLB questions. No matching paging lecture deck was found locally.',
     questions: [
       { id: 'm05q1', level: 'Apply', prompt: 'With 4 KiB pages, how many offset bits are in a byte address?', choices: ['4', '10', '12', '16'], answer: 2, explanation: '4 KiB is 4096 = 2^12 bytes, so the offset uses 12 bits.' },
       { id: 'm05q2', level: 'Understand', prompt: 'Which statement is correct?', choices: ['Every TLB miss is a page fault', 'A TLB caches virtual-to-physical translations', 'The page offset changes during translation', 'Paging creates external fragmentation between frames'], answer: 1, explanation: 'A TLB is a translation cache. Missing there may still find a valid in-memory page-table entry.' },
@@ -160,7 +160,7 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     ],
     handsOn: 'Run page-replacement traces under FIFO, LRU, and Clock; explain one point where policies diverge.',
     artifact: 'Frame-by-frame table, page-fault counts, and a locality-based explanation.',
-    sourceBasis: 'Winter 2026 HW2 effective access time and replacement questions; OSTEP replacement chapters.',
+    sourceBasis: 'Individually audited OSTEP Chapters 21–22 plus Winter 2026 HW2 effective-access-time and replacement questions. No matching swapping/replacement lecture deck was found locally.',
     questions: [
       { id: 'm06q1', level: 'Understand', prompt: 'What distinguishes a page fault from a TLB miss?', choices: ['A page fault means the referenced page is not currently resident or access is invalid', 'A TLB miss always terminates the process', 'A page fault never enters the kernel', 'They are identical'], answer: 0, explanation: 'A TLB miss concerns the translation cache; a page fault concerns page-table validity/residency or protection.', source: 'OSTEP Chapter 21: Swapping Mechanisms' },
       { id: 'm06q2', level: 'Remember', prompt: 'Why is OPT mainly a benchmark?', choices: ['It requires future references', 'It cannot count faults', 'It uses no memory', 'It is identical to FIFO'], answer: 0, explanation: 'OPT evicts the page whose next use is farthest in the future, information a real system does not possess.', source: 'OSTEP Chapter 22: Swapping Policies' },
@@ -178,7 +178,7 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     ],
     handsOn: 'Compile a pthread counter program with and without `-fsanitize=thread`, reproduce a race, then protect the critical section.',
     artifact: 'Before/after output, sanitizer excerpt, and a statement of the protected invariant.',
-    sourceBasis: 'Packaged lecture source 2-1; Winter 2026 HW3; recent evaluation request for concrete race-condition demonstrations.',
+    sourceBasis: 'Individually audited lecture 2-1 against OSTEP Chapters 26–27. The deck covers thread abstraction, shared/private state, context switching, pthread creation/join, races, and interleavings; the reading supplies fuller API guidance and atomicity reasoning. Also grounded in Winter 2026 HW3 and student requests for concrete demonstrations.',
     questions: [
       { id: 'm07q1', level: 'Understand', prompt: 'What do threads in one process normally share?', choices: ['Every stack frame', 'Address space and open files', 'Program counters', 'CPU registers'], answer: 1, explanation: 'Threads share process resources but need independent registers and stacks for independent execution.' },
       { id: 'm07q2', level: 'Apply', prompt: 'Why can two counter++ operations lose an increment?', choices: ['The compiler deletes both', 'Their load/modify/store sequences can overlap', 'The OS resets the counter', 'Threads cannot read memory'], answer: 1, explanation: 'Both threads may load the same value and then store the same incremented result.' },
@@ -196,7 +196,7 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     ],
     handsOn: 'Implement a mutex-protected counter, then deliberately move one access outside the critical section and explain the broken invariant.',
     artifact: 'Code diff plus an invariant-based explanation of why the protected version is correct.',
-    sourceBasis: 'Packaged lecture source 2-2; Winter 2026 HW3 lock questions; OSTEP lock chapters.',
+    sourceBasis: 'Individually audited lecture 2-2 against OSTEP Chapter 28. The deck covers critical sections, pthread mutexes, ownership, and lock implementation; Chapter 29 concurrent counters/lists/queues/hash tables is explicitly book-only preparation. Also grounded in Winter 2026 HW3.',
     questions: [
       { id: 'm08q1', level: 'Remember', prompt: 'What property does a lock primarily provide?', choices: ['Persistence', 'Mutual exclusion', 'Address translation', 'Disk scheduling'], answer: 1, explanation: 'A correctly used lock prevents simultaneous entry into a protected critical section.' },
       { id: 'm08q2', level: 'Understand', prompt: 'Why is an atomic instruction needed to build a basic spin lock?', choices: ['To update and test lock state indivisibly', 'To allocate a page', 'To create a thread', 'To flush a file'], answer: 0, explanation: 'Without an indivisible state transition, two contenders could both believe they acquired the lock.' },
@@ -214,7 +214,7 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     ],
     handsOn: 'Build a bounded-buffer or ordered-print exercise with pthread mutexes and condition variables; add a log that makes waiting and wakeup visible.',
     artifact: 'State diagram, predicate, code, and trace explaining each wait/signal.',
-    sourceBasis: 'Packaged lecture sources 2-3 and 2-4; Winter 2026 HW3; OSTEP condition/semaphore chapters.',
+    sourceBasis: 'Individually audited lectures 2-3 and 2-4 against OSTEP Chapters 30–31. The decks cover condition-variable wait/signal with a mutex, producer/consumer, semaphore counters, ordering, bounded buffers, and dining philosophers. Also grounded in Winter 2026 HW3.',
     questions: [
       { id: 'm09q1', level: 'Apply', prompt: 'How should a condition-variable wait normally be guarded?', choices: ['By an if with no lock', 'By a while loop checking the predicate under the mutex', 'By sleeping for a fixed time', 'By a page fault'], answer: 1, explanation: 'The predicate must be rechecked after wakeup while the mutex protects the shared state.' },
       { id: 'm09q2', level: 'Understand', prompt: 'What can a counting semaphore represent?', choices: ['Only a Boolean', 'The number of available identical resources', 'A virtual address', 'A process identifier'], answer: 1, explanation: 'Its count can track multiple available units; wait consumes one and post returns one.' },
@@ -232,7 +232,7 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     ],
     handsOn: 'Create a two-lock deadlock under controlled conditions, capture thread stacks, then repair it with a documented lock order.',
     artifact: 'Wait-for graph, stack evidence, fixed code, and a deadlock/starvation/livelock comparison.',
-    sourceBasis: 'Packaged lecture source 2-5; OSTEP concurrency-bugs chapter.',
+    sourceBasis: 'Individually audited lecture 2-5 against OSTEP Chapter 32. The deck covers resource graphs, deadlock conditions, priority inversion, and prevention/avoidance/detection; Chapter 32 remains required for non-deadlock atomicity/order violations and the broader bug taxonomy.',
     questions: [
       { id: 'm10q1', level: 'Remember', prompt: 'Which is one Coffman condition?', choices: ['Circular wait', 'Demand paging', 'Spatial locality', 'Write buffering'], answer: 0, explanation: 'Circular wait is one of the four necessary conditions for deadlock.' },
       { id: 'm10q2', level: 'Apply', prompt: 'Threads acquire locks only in increasing numeric order. Which condition is targeted?', choices: ['Mutual exclusion', 'Circular wait', 'No preemption', 'Persistence'], answer: 1, explanation: 'A total order prevents a cycle in resource acquisition.' },
@@ -250,7 +250,7 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     ],
     handsOn: 'Use `strace` in the container to observe open/read/write calls from a small C program; annotate which operations cross into the kernel.',
     artifact: 'Filtered trace, annotated request path, and one performance hypothesis.',
-    sourceBasis: 'Packaged lecture source 3-1; Winter 2026 syllabus persistence goal; OSTEP device chapter.',
+    sourceBasis: 'Individually audited lecture 3-1 against OSTEP Chapter 36. Both cover device interfaces/registers, polling, interrupts, DMA, drivers, and the I/O path; the chapter provides the fuller driver case study. Also grounded in the Winter 2026 persistence goal.',
     questions: [
       { id: 'm11q1', level: 'Understand', prompt: 'What is a principal benefit of DMA?', choices: ['It removes files', 'It transfers bulk data without CPU copying every word', 'It prevents all interrupts', 'It replaces virtual memory'], answer: 1, explanation: 'The CPU programs the transfer, and the DMA engine handles much of the data movement.' },
       { id: 'm11q2', level: 'Analyze', prompt: 'When can polling be reasonable?', choices: ['A device is expected to complete almost immediately', 'A device takes minutes and CPU work is plentiful', 'There is no status register', 'The process has exited'], answer: 0, explanation: 'For very short waits, polling can cost less than sleeping and handling an interrupt.' },
@@ -268,7 +268,7 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     ],
     handsOn: 'Create a file, hard link, and symbolic link inside the lab workspace; compare `ls -li`, `stat`, and behavior after removing the original name.',
     artifact: 'Command transcript and an inode/name diagram explaining every observation.',
-    sourceBasis: 'Packaged lecture source 3-3; OSTEP files/directories chapter.',
+    sourceBasis: 'Individually audited lecture 3-3 against OSTEP Chapter 39. The deck covers files/directories, descriptors, open/read/write, offsets, fsync, links, metadata, and mounting; the chapter supplies the full API treatment and code homework.',
     questions: [
       { id: 'm12q1', level: 'Understand', prompt: 'What is a file descriptor?', choices: ['A pathname stored on disk only', 'A process-local handle to kernel-managed open-file state', 'A physical disk sector', 'A scheduler queue'], answer: 1, explanation: 'The integer descriptor indexes per-process state that refers to an open file or I/O object.' },
       { id: 'm12q2', level: 'Apply', prompt: 'Two hard-link names usually refer to what?', choices: ['Different inodes with copied data', 'The same underlying inode', 'Two processes', 'A TLB entry'], answer: 1, explanation: 'A hard link adds another directory entry referring to the same inode.' },
@@ -286,7 +286,7 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     ],
     handsOn: 'Walk a simplified VSFS image or diagram: resolve a pathname, identify inode/data bitmap changes for file creation, then mark crash points in an update sequence.',
     artifact: 'Block-access trace and crash-consistency table showing states before commit, after commit, and after checkpoint.',
-    sourceBasis: 'Packaged lecture sources 3-4 and 3-5; OSTEP file-system implementation and journaling chapters.',
+    sourceBasis: 'Individually audited lectures 3-4 and 3-5 against OSTEP Chapters 40–42. The decks cover VSFS structures/access, FFS groups/placement, fsck, journaling, and ordering; the readings supply complete access-path, crash-state, and recovery detail.',
     questions: [
       { id: 'm13q1', level: 'Apply', prompt: 'Creating a new regular file typically changes which structures?', choices: ['Only the CPU scheduler', 'A directory, an inode allocation structure, and inode metadata', 'Only the TLB', 'Only the process stack'], answer: 1, explanation: 'Creation allocates/initializes metadata and connects a directory name to it; data blocks may be allocated when content is written.', source: 'OSTEP Chapter 40: File System Implementation' },
       { id: 'm13q2', level: 'Understand', prompt: 'What problem does journaling primarily address?', choices: ['CPU fairness', 'Consistency after interrupted multi-step updates', 'Virtual-address size', 'Thread creation speed'], answer: 1, explanation: 'A crash can interrupt related writes; the journal provides a recoverable transaction boundary.', source: 'OSTEP Chapter 42: Crash Consistency' },
@@ -397,7 +397,8 @@ export const SOURCE_BOUNDARIES = {
     'Official MIT x86 xv6-public pinned at commit eeb7b415dbcb12cc362d0783e41c3d1f44066b17',
     'Historical Winter 2026 PA1A/PA1B and simplified FQ/AQ/EQ PA2 behavior executed in QEMU',
     'Known-good PA2 reference passed deterministic one-CPU assertions and full upstream usertests on one and two CPUs',
-    'Private known-good patches are retained for instructor audit and excluded from the student VSIX'
+    'Private known-good patches are retained for instructor audit and excluded from the student VSIX',
+    'Official OSTEP homework simulators pinned at commit afb36ca8ddbf81d847d18f6bd18a87f0a18667f2; all 15 mapped prediction/reveal presets executed'
   ],
   historicalPolicy: [
     'Winter 2026 syllabus: participation 10%, homework 15%, programming 40%, exams 35% (midterm 15%, final 20%)',

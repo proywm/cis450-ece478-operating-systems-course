@@ -1,5 +1,24 @@
 # Change log
 
+## 0.6.0 — 2026-08-20
+
+- Individually audited all 29 assigned OSTEP chapter structures and all nine
+  locally available instructor lecture decks; disclosed that the local source
+  set has no virtualization decks rather than inferring a lecture match.
+- Documented exact chapter/deck coverage and retained gaps, including Chapter
+  29 concurrent data structures and Chapter 32 non-deadlock bugs that are not
+  fully covered by the corresponding decks.
+- Added 15 official OSTEP prediction tools mapped to Chapters 4, 7–10, 15–16,
+  18, 20, 22, 26, 28, and 40–42.
+- Added explicit opt-in preparation of the pinned official repository, native
+  Python and portable Docker execution, fixed shell-free presets, local
+  practice/reveal tracking, and accessible standalone instructions.
+- Enforced a predict-first workflow: the first run omits `-c`; computed output
+  is revealed only after the student confirms that a prediction is recorded.
+- Executed all 15 presets in both prediction and reveal modes against the
+  exact pinned upstream commit. No upstream simulator source is bundled in the
+  VSIX.
+
 ## 0.5.0 — 2026-08-20
 
 - Added a dated 27-meeting Fall 2026 plan that maps every class meeting to the
