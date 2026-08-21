@@ -25,14 +25,23 @@ test('accessible syllabus and lesson export avoid Google Drive and stale course 
     assert.doesNotMatch(content, /staff are verified|schedule\/staff are verified/i);
   }
   const lessons = await readFile(files[1]!, 'utf8');
-  assert.equal((lessons.match(/<details><summary><span class="level">/g) ?? []).length, 104);
+  const modulePages = await Promise.all(Array.from({ length: 13 }, (_, index) =>
+    readFile(resolve(process.cwd(), `../course-pack/fall2026/lessons/module-${String(index + 1).padStart(2, '0')}.html`), 'utf8')
+  ));
+  const lessonModules = modulePages.join('\n');
+  assert.equal((lessonModules.match(/<details><summary><span class="level">/g) ?? []).length, 104);
   assert.equal((lessons.match(/<tr><td>/g) ?? []).length, 27);
-  assert.equal((lessons.match(/https:\/\/pages\.cs\.wisc\.edu\/~remzi\/OSTEP\/[a-z0-9-]+\.pdf/g) ?? []).length, 29);
-  assert.match(lessons, /<strong>Source:<\/strong>/);
+  assert.equal((lessonModules.match(/https:\/\/pages\.cs\.wisc\.edu\/~remzi\/OSTEP\/[a-z0-9-]+\.pdf/g) ?? []).length, 29);
+  assert.match(lessonModules, /<strong>Source:<\/strong>/);
   assert.match(lessons, /Dated OSTEP preparation plan/);
-  assert.equal((lessons.match(/<h4>Chapter \d+: /g) ?? []).length, 15);
+  assert.equal((lessonModules.match(/<h4>Chapter \d+: /g) ?? []).length, 15);
   assert.match(lessons, /afb36ca8ddbf81d847d18f6bd18a87f0a18667f2/);
   assert.match(lessons, /https:\/\/canvas\.umd\.umich\.edu\/courses\/552201/);
+  assert.ok((lessons.match(/href="module-\d\d\.html"/g) ?? []).length >= 13 + 27);
+  for (const [index, page] of modulePages.entries()) {
+    assert.match(page, new RegExp(`<section id="module-${index + 1}"`));
+    assert.match(page, /Course plan and all modules/);
+  }
 });
 
 test('bundled course pack does not contain exams or student submissions', async () => {

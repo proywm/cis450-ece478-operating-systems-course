@@ -1,32 +1,21 @@
 # Professional learning-experience audit
 
-Reviewed 2026-08-21 against the publicly advertised capabilities common to mature self-paced learning platforms. This is an evidence audit, not a marketing claim. Canvas remains the course system of record.
+Reviewed 2026-08-21 using the two-axis method in `FEATURE_CONFIDENCE_SCORECARD.md`. Repository evidence and learner-effect evidence are reported separately; feature counts are not treated as proof of usability or learning.
 
-## Feature review
-
-| Professional capability | CIS 450 / ECE 478 implementation | Status and evidence |
-|---|---|---|
-| Clear first action | **Start Here** leads with one setup/repair workflow, course home, Orbit, and Canvas; manual controls are collapsed under Advanced Diagnostics | Complete; `extension/src/extension.ts` |
-| Low-friction setup | One workflow checks Docker/Compose/engine, starts Docker Desktop where possible, creates or safely reuses a manifest-verified workspace, builds the pinned Ubuntu environment, and runs all prerequisite checks before reporting ready | Complete inside the extension's authority. Docker Desktop/Engine, virtualization, licensing, and administrator approval remain an explicit host handoff |
-| Setup coaching | Failures offer a bounded Orbit prompt that distinguishes host requirements from container-provided GCC, Make, Python, GDB, and QEMU and gives one verifiable next step | Complete; `aiCoach.ts`, `extension.ts` |
-| Modular learning path | Thirteen modules join objectives, exact OSTEP readings, accessible explanations, eight explained questions, simulations, and guided labs | Complete; course-data, reading-map, and webview tests |
-| Text and video instruction | Accessible text and exact open-book chapters are mapped per topic | Strong for the available sources. No complete verified author-video collection or bespoke video explanation for each question is claimed |
-| Retrieval practice | 104 explained questions, five-question recommended/due/saved/topic sessions, confidence, spaced review, and per-topic analytics | Complete; `learning.test.ts` |
-| Personalized continuation | Recommended/due practice, saved review, local confidence/misses, module stage, and coursework progression guide the next action | Complete locally; no opaque mastery claim |
-| Hands-on application | Thirteen module starters, fifteen pinned official prediction simulators, portable C/pthreads/Python tooling, and a solution-free pinned xv6/QEMU pathway | Complete for formative preparation; Fall 2026 Canvas specifications remain authoritative |
-| Learning coach | Student-account Copilot coach, optional published/indexed U-M tutor route, deterministic offline FAQ, and attempt-first assessed-work guardrails | Complete with an availability boundary: no instructor API key is bundled and no U-M course tutor is claimed ready until published/indexed |
-| Human help | FAQ, structured pre-class Canvas draft, private-message route, and instructor/course contacts | Complete as a handoff; no response-time promise |
-| Study schedule | Dated 27-meeting preparation plan, exact reading focus, calendar export, and reviewed Canvas calendar import | Complete |
-| Progress and confidence | Local module, practice, simulation, lab, coursework, and confidence indicators explicitly separated from Canvas evaluation | Complete and privacy-preserving |
-| Grade planning | Manual category entry with weighted contribution, current standing, target-final calculation, and explicit historical-policy warning | Complete as what-if planning; Fall 2026 policy must be confirmed in Canvas |
-| Accessibility | Semantic/reflowable HTML, keyboard operation, focus management, reduced motion, native controls, high-contrast/theme support, and standalone lesson export | Strong; physical assistive-technology and Canvas-theme review remains an instructor launch check |
-| Cross-platform confidence | Deterministic and packaged Extension Host checks on Windows, macOS, and Ubuntu; actual containers, C, simulations, and xv6/QEMU exercised on Ubuntu CI | Strong. Hosted runners cannot prove an individual student's Docker Desktop, Apple-silicon emulation, firmware virtualization, assistive technology, or campus-device policy |
-| Mobile/offline learning | Accessible HTML and local progress/practice run in desktop VS Code | Partial: there is no mobile app; Canvas and the linked open book are the mobile routes |
-| Instructor analytics | Official grades, submissions, and instructor evaluation stay in Canvas; private practice state is not uploaded | Intentionally not duplicated, preserving privacy and avoiding a shadow gradebook |
+| Capability | Implementation confidence | Learner evidence | Important remaining gate |
+|---|---|---|---|
+| First action and navigation | Moderate–strong: four-task home, one setup action, section navigator, unit tabs, and task tabs inside modules | Unverified | Observe first-time students finding setup, next reading, practice, lab, and Canvas |
+| Setup and recovery | Moderate–strong: Docker/client/engine distinction, attempted Desktop start, manifest-safe workspace, pinned environment, verified preflights, deterministic help, and optional Orbit escalation | Unverified | Physical Windows/macOS/Apple-silicon and managed-device trials |
+| Source-mapped instruction | Moderate–strong: 13 modules, exact OSTEP links, accessible explanations, focus prompts, source trails, and automated coverage checks | Unverified | Instructor content validation and observed reading-to-class preparation |
+| Practice and continuation | Moderate: 104 mapped questions, hints, explanations, intentional confidence in short sessions, saved/due review, and transparent analytics | Unverified | Choice-specific misconception feedback, transfer cases, and observed usefulness |
+| Hands-on systems work | Strong for tested public contracts: 13 starters, 15 pinned OSTEP presets, portable prerequisites, and pinned xv6/QEMU preflights | Unverified | Representative student task completion and physical host validation |
+| AI/offline coaching | Moderate: student-account Copilot, optional published/indexed U-M route, deterministic helper/FAQ, attempt-first guardrails, and no instructor key | Unverified | Published student-facing U-M app, copied-question evaluation, and observed escalation behavior |
+| Progress and grade planning | Moderate–strong: deterministic local indicators, transparent historical-policy calculation, privacy boundary, and Canvas separation | Unverified | Student interpretation study and confirmed Fall 2026 Canvas policy |
+| Accessibility | Moderate: semantic HTML, wrapping keyboard tabs, focus routing, reduced-motion-aware deep links, theme support, and standalone accessible content | Unverified | Keyboard/200%/400%/screen-reader checks on representative devices and Canvas theme |
+| Release and cross-platform packaging | Strong for automated scope: package, Extension Host, integrity, Linux containers, C, OSTEP, and xv6/QEMU checks | Not applicable as learner-effect evidence | Hosted CI does not reproduce physical Docker Desktop, firmware, campus policy, or every assistive-technology path |
 
 ## Release judgment
 
-The extension now meets the professional bar for a desktop, course-specific learning environment: coherent onboarding, source-mapped preparation, retrieval practice, authentic systems work, guarded help, local analytics, accessibility controls, and reproducible release tests operate as one workflow.
+The repository supports a release-quality, course-specific desktop workflow with substantial automated implementation evidence. It does **not** yet establish that the interface improves learning, confidence, setup time, accessibility, or course outcomes. Those learner-effect claims remain pending observed task studies and accessibility checks.
 
-It must not be described as a universal commercial learning platform or guaranteed zero-install product. The remaining launch gates are operational: validate the packaged VSIX on representative Intel and Apple-silicon macOS plus Windows devices with Docker Desktop running, confirm the Fall 2026 grading/assignment/xv6 facts in Canvas, publish/index the optional U-M tutor before advertising it, and complete assistive-technology checks in the actual Canvas theme.
-
+The next evidence step is a representative task walkthrough: install the VSIX, recover one setup failure, find the next module, complete one practice sequence, run one OSTEP or xv6 task, and locate the authoritative Canvas submission route. Further source-only review cannot move learner evidence above “unverified.”

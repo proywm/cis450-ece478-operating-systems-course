@@ -2,7 +2,7 @@
   "name": "systemstudio-cis450-ece478",
   "displayName": "SystemStudio CIS 450 / ECE 478",
   "description": "Accessible Fall 2026 Operating Systems learning hub with OSTEP-aligned modules, hands-on labs, local progress, and academic-integrity support.",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "publisher": "probir-roy",
   "repository": {

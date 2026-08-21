@@ -41,3 +41,24 @@ test('beginner navigation leads with one setup workflow and hides detailed tools
   assert.match(source, /NOT REQUIRED ON WINDOWS: host GCC, Make, Python, and QEMU/);
   assert.match(source, /docker-desktop:\/\/dashboard/);
 });
+
+test('dense learning views use remembered accessible tabs without breaking deep links', async () => {
+  const source = await readFile(resolve(process.cwd(), 'src/extension.ts'), 'utf8');
+  assert.match(source, /setAttribute\('role','tablist'\)/);
+  assert.match(source, /setAttribute\('role','tab'\)/);
+  assert.match(source, /setAttribute\('role','tabpanel'\)/);
+  assert.match(source, /\['ArrowLeft','ArrowRight','Home','End'\]/);
+  assert.match(source, /state\.subTabs\[id\]=selected/);
+  assert.match(source, /\.subtabs\{[^}]*flex-wrap:wrap/);
+  for (const call of ['enhanceModules()', 'enhancePractice()', 'enhanceLabs()', 'enhanceSimulations()', 'enhanceCoursework()', 'enhanceHelp()']) {
+    assert.ok(source.split(call).length >= 3, `${call} must be defined and invoked after rendering`);
+  }
+  assert.match(source, /subtabActivators\.modules\?\.\(unitKey\(n\)\)/);
+  assert.match(source, /subtabActivators\.labs\?\.\(unitKey\(lab\.moduleNumber\)\)/);
+  assert.match(source, /Reading-aligned formative readiness and practice/);
+  assert.match(source, /Choose your confidence before requesting feedback/);
+  assert.match(source, /prefers-reduced-motion: reduce.*'auto':'smooth'/);
+  assert.match(source, /table:not\(\[data-reflow-ready\]\)/);
+  assert.match(source, /className='table-scroll'/);
+	  assert.ok((source.match(/First error: \$\{actionable\}/g) ?? []).length >= 5, 'guided setup, simulator setup/run, and xv6 setup/run failures must surface their first error');
+});

@@ -1,5 +1,14 @@
 # Change log
 
+## 0.8.0 — 2026-08-21
+
+- Replaced dense module, lab, simulator, coursework, practice, and help pages with remembered, wrapping, keyboard-operable unit and task tabs while preserving deterministic deep links.
+- Split the former all-module accessible lesson document into a concise index and thirteen focused, linked standalone module pages.
+- Added intentional practice-confidence selection, visible-section focus routing, reduced-motion deep links, modal notice semantics, focus restoration, and keyboard-focusable table reflow regions.
+- Made guided setup, OSTEP setup/run, and xv6 setup/run failures display their first diagnostic and next action without requiring students to discover an Output channel.
+- Removed mastery implications, added a generated-webview syntax gate, and retained explicit formative/local/Canvas-authority boundaries.
+- Added a two-axis feature-confidence scorecard and six-persona iterative usability evaluation that keep implementation evidence separate from observed learner evidence.
+
 ## 0.7.0 — 2026-08-21
 
 - Added one verified **Set up or repair my course environment** workflow that checks Docker, starts Docker Desktop where supported, safely creates or reuses a manifest-validated workspace, builds the pinned course container, and runs prerequisite checks before reporting ready.

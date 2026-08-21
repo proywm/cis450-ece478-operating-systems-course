@@ -19,6 +19,10 @@ and not a copy of the CIS 310 content.
   — equivalent learning surfaces and intentional OS-specific differences
 - [`docs/PROFESSIONAL_LEARNING_PLATFORM_AUDIT.md`](docs/PROFESSIONAL_LEARNING_PLATFORM_AUDIT.md)
   — feature-by-feature professional learning experience and release boundaries
+- [`docs/USABILITY_EVALUATION.md`](docs/USABILITY_EVALUATION.md) — reconstructed
+  three-student/three-educator usability, readability, and cognitive-load review
+- [`docs/FEATURE_CONFIDENCE_SCORECARD.md`](docs/FEATURE_CONFIDENCE_SCORECARD.md)
+  — implementation-confidence and learner-evidence gates kept separate
 - [`docs/REFERENCE_EXECUTION_AUDIT.md`](docs/REFERENCE_EXECUTION_AUDIT.md) —
   completed internal reference execution, including actual xv6/QEMU results
 - [`docs/OSTEP_LECTURE_SIMULATION_AUDIT.md`](docs/OSTEP_LECTURE_SIMULATION_AUDIT.md)
