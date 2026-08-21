@@ -56,14 +56,14 @@ workspace supplies one visible Linux container recipe and fixed HW1/HW2/HW3/PA3
 preflights on Windows, macOS, and Linux. All learning indicators are private
 self-evaluation and remain separate from Canvas grades.
 
-The beginner-facing tree now starts with one **Set up or repair my course
-environment** workflow and keeps manual commands under **Advanced Setup and
-Diagnostics**. An original animated Orbit companion opens a deterministic
-offline helper, short practice, or an optional actual AI learning coach. The
-AI chooser supports GitHub Copilot through the student's signed-in VS Code
-account and a published U-M Maizey student App when one is configured. No
-instructor LLM key is included, no file or Canvas data is attached, and direct
-requests for graded answers are blocked before model access.
+The beginner-facing tree starts by choosing optional assistance and then runs
+one **Set up or repair my course environment** workflow; manual commands remain
+under **Advanced Setup and Diagnostics**. An original animated Orbit companion
+opens a deterministic offline helper, short practice, or an actual U-M learning
+coach. The AI chooser uses a published U-M Maizey student App for course-grounded
+help or no-cost U-M GPT for broader troubleshooting. No instructor LLM key,
+private instructor-hosted model, file, or Canvas data is attached, and prompts
+remain student-reviewed and attempt-first.
 
 The release suite compiles/runs all 13 public starters and 13 completed
 internal-only references, then executes seven coursework reference suites.

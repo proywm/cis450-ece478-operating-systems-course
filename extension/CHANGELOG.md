@@ -1,5 +1,12 @@
 # Change log
 
+## 0.9.0 — 2026-08-21
+
+- Added a first-run Orbit sequence that establishes optional student assistance before the portable OS environment setup and places those two actions first in the self-paced orientation.
+- Made the published U-M Maizey App the recommended course-grounded learning and installation coach, with packaged Docker/xv6/platform setup knowledge, one-step recovery, success evidence, privacy limits, and assessed-work guardrails.
+- Added no-cost U-M GPT as the university-supported general troubleshooting fallback and retained private offline Orbit; removed GitHub Copilot from student setup and learning paths.
+- Added reviewed setup-prompt handoffs and working offline diagnostic prefill without sending files, credentials, grades, Canvas records, full logs, or an instructor-owned key/model endpoint.
+
 ## 0.8.0 — 2026-08-21
 
 - Replaced dense module, lab, simulator, coursework, practice, and help pages with remembered, wrapping, keyboard-operable unit and task tabs while preserving deterministic deep links.

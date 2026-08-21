@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { classifyTutorDestination, moduleCoachPrompt, prepareCoachRequest, setupCoachPrompt } from '../src/aiCoach.js';
+import { AI_ASSISTANCE_ONBOARDING_VERSION, aiAssistanceLabel, aiAssistanceState, classifyTutorDestination, moduleCoachPrompt, normalizeAiAssistanceState, prepareCoachRequest, setupCoachPrompt } from '../src/aiCoach.js';
 import { MODULES } from '../src/courseData.js';
 
 test('AI coach blocks direct assessed-work solutions before model access', () => {
@@ -35,9 +35,13 @@ test('setup coach prompt is bounded, actionable, and privacy-safe', () => {
   assert.doesNotMatch(prompt, /\nsecret-looking detail/);
 });
 
-test('Copilot coach uses the student account and never embeds an instructor key', async () => {
-  const source = await readFile(resolve(process.cwd(), 'src/copilotCoachPanel.ts'), 'utf8');
-  assert.match(source, /vscode\.lm\.selectChatModels\(\{ vendor: 'copilot' \}\)/);
-  assert.match(source, /student’s signed-in VS Code account/i);
-  assert.doesNotMatch(source, /api[_-]?key|Authorization:\s*Bearer/i);
+test('first-run assistance uses U-M services and rejects stale provider state', async () => {
+  const state = aiAssistanceState('umgpt', 'student-confirmed', new Date('2026-08-21T12:00:00Z'));
+  assert.deepEqual(normalizeAiAssistanceState(state), state);
+  assert.equal(normalizeAiAssistanceState({ ...state, version: AI_ASSISTANCE_ONBOARDING_VERSION - 1 }), undefined);
+  assert.match(aiAssistanceLabel('maizey'), /course and setup coach/i);
+  assert.match(aiAssistanceLabel('umgpt'), /general learning and setup coach/i);
+  const source = await readFile(resolve(process.cwd(), 'src/extension.ts'), 'utf8');
+  assert.match(source, /Yes, U-M GPT opens/);
+  assert.doesNotMatch(source, /selectChatModels|COPILOT_SETUP_URL/);
 });

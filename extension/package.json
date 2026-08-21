@@ -2,7 +2,7 @@
   "name": "systemstudio-cis450-ece478",
   "displayName": "SystemStudio CIS 450 / ECE 478",
   "description": "Accessible Fall 2026 Operating Systems learning hub with OSTEP-aligned modules, hands-on labs, local progress, and academic-integrity support.",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "private": true,
   "publisher": "probir-roy",
   "repository": {
@@ -24,8 +24,8 @@
     "onCommand:systemstudioOs.openSyllabus",
     "onCommand:systemstudioOs.openAccessibleLessons",
     "onCommand:systemstudioOs.setupCourseEnvironment",
+    "onCommand:systemstudioOs.configureAiAssistance",
     "onCommand:systemstudioOs.openAiTutor",
-    "onCommand:systemstudioOs.openCopilotCoach",
     "onCommand:systemstudioOs.createLabWorkspace",
     "onCommand:systemstudioOs.runCourseworkPreflight",
     "onCommand:systemstudioOs.openPortableSetup",
@@ -73,14 +73,14 @@
         "icon": "$(tools)"
       },
       {
-        "command": "systemstudioOs.openAiTutor",
-        "title": "CIS 450 / ECE 478: Choose AI Learning Coach",
+        "command": "systemstudioOs.configureAiAssistance",
+        "title": "CIS 450 / ECE 478: Configure or Check AI Assistance",
         "icon": "$(sparkle)"
       },
       {
-        "command": "systemstudioOs.openCopilotCoach",
-        "title": "CIS 450 / ECE 478: Open Optional GitHub Copilot Coach",
-        "icon": "$(github)"
+        "command": "systemstudioOs.openAiTutor",
+        "title": "CIS 450 / ECE 478: Choose AI Learning Coach",
+        "icon": "$(sparkle)"
       },
       {
         "command": "systemstudioOs.createLabWorkspace",
@@ -188,7 +188,7 @@
     "viewsWelcome": [
       {
         "view": "systemstudioOs.course",
-        "contents": "Start with one guided setup, then use the course hub for modules, practice, hands-on work, local progress, and Canvas. Detailed controls stay under Advanced Setup and Diagnostics.\n[Set up or repair my course environment](command:systemstudioOs.setupCourseEnvironment)\n[Open Learning Hub](command:systemstudioOs.openLearningHub)\n[Ask Orbit AI learning coach](command:systemstudioOs.openAiTutor)\n[Open Canvas](command:systemstudioOs.openCanvas)"
+        "contents": "Orbit first helps you choose and verify optional assistance, then runs one guided course-environment setup. Detailed controls stay under Advanced Setup and Diagnostics.\n[1. Configure or check AI assistance](command:systemstudioOs.configureAiAssistance)\n[2. Set up or repair my course environment](command:systemstudioOs.setupCourseEnvironment)\n[Open Learning Hub](command:systemstudioOs.openLearningHub)\n[Open Canvas](command:systemstudioOs.openCanvas)"
       }
     ],
     "configuration": {

@@ -1,5 +1,38 @@
 const UM_TUTOR_HOSTS = new Set(['maizey.umich.edu', 'umgpt.umich.edu']);
 
+export const AI_ASSISTANCE_ONBOARDING_VERSION = 2;
+export type AiAssistancePreference = 'maizey' | 'umgpt' | 'offline';
+export interface AiAssistanceState {
+  version: number;
+  preference: AiAssistancePreference;
+  verifiedAt: string;
+  verification: 'student-confirmed' | 'local-ready';
+}
+
+export function normalizeAiAssistanceState(value: unknown): AiAssistanceState | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const candidate = value as Partial<AiAssistanceState>;
+  if (candidate.version !== AI_ASSISTANCE_ONBOARDING_VERSION) return undefined;
+  if (!['maizey', 'umgpt', 'offline'].includes(String(candidate.preference))) return undefined;
+  if (!['student-confirmed', 'local-ready'].includes(String(candidate.verification))) return undefined;
+  if (typeof candidate.verifiedAt !== 'string' || !Number.isFinite(Date.parse(candidate.verifiedAt))) return undefined;
+  return candidate as AiAssistanceState;
+}
+
+export function aiAssistanceState(
+  preference: AiAssistancePreference,
+  verification: AiAssistanceState['verification'],
+  now = new Date()
+): AiAssistanceState {
+  return { version: AI_ASSISTANCE_ONBOARDING_VERSION, preference, verifiedAt: now.toISOString(), verification };
+}
+
+export function aiAssistanceLabel(preference: AiAssistancePreference): string {
+  if (preference === 'maizey') return 'U-M Maizey course and setup coach';
+  if (preference === 'umgpt') return 'U-M GPT general learning and setup coach';
+  return 'private offline Orbit helper';
+}
+
 export type TutorDestination =
   | { kind: 'canvas'; url: string }
   | { kind: 'maizey-app'; url: string }
@@ -13,7 +46,7 @@ export type CoachRequest =
 const directSolutionRequest = /\b(?:give|write|provide|tell|show)\b.{0,32}\b(?:answer|solution|code|implementation|patch|report)\b|\bsolve\b.{0,28}\b(?:homework|assignment|project|lab|pa[1-4]|hw[1-3])\b|\bdo (?:my|the) (?:homework|assignment|project|lab)\b/i;
 const assessedWork = /\b(?:homework|assignment|project|lab|pa[1-4]|hw[1-3]|scheduler|traffic control|xv6)\b/i;
 
-export const COPILOT_COACH_SYSTEM_PROMPT = [
+export const LEARNING_COACH_SYSTEM_PROMPT = [
   'You are the CIS 450 / ECE 478 operating-systems learning coach inside SystemStudio at the University of Michigan-Dearborn.',
   'Coach concepts from the course map: virtualization, processes, scheduling, address translation, paging, concurrency, synchronization, I/O, file systems, persistence, the mapped OSTEP readings, and solution-free xv6 debugging.',
   'Ask for the student’s prediction, attempt, observed evidence, and earliest uncertain step before giving help.',
