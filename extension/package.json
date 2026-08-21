@@ -2,7 +2,7 @@
   "name": "systemstudio-cis450-ece478",
   "displayName": "SystemStudio CIS 450 / ECE 478",
   "description": "Accessible Fall 2026 Operating Systems learning hub with OSTEP-aligned modules, hands-on labs, local progress, and academic-integrity support.",
-  "version": "0.6.3",
+  "version": "0.7.0",
   "private": true,
   "publisher": "probir-roy",
   "repository": {
@@ -23,6 +23,9 @@
     "onCommand:systemstudioOs.openCanvas",
     "onCommand:systemstudioOs.openSyllabus",
     "onCommand:systemstudioOs.openAccessibleLessons",
+    "onCommand:systemstudioOs.setupCourseEnvironment",
+    "onCommand:systemstudioOs.openAiTutor",
+    "onCommand:systemstudioOs.openCopilotCoach",
     "onCommand:systemstudioOs.createLabWorkspace",
     "onCommand:systemstudioOs.runCourseworkPreflight",
     "onCommand:systemstudioOs.openPortableSetup",
@@ -63,6 +66,21 @@
         "command": "systemstudioOs.openAccessibleLessons",
         "title": "CIS 450 / ECE 478: Open Accessible Lesson Collection",
         "icon": "$(book)"
+      },
+      {
+        "command": "systemstudioOs.setupCourseEnvironment",
+        "title": "CIS 450 / ECE 478: Set Up or Repair Course Environment",
+        "icon": "$(tools)"
+      },
+      {
+        "command": "systemstudioOs.openAiTutor",
+        "title": "CIS 450 / ECE 478: Choose AI Learning Coach",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "systemstudioOs.openCopilotCoach",
+        "title": "CIS 450 / ECE 478: Open Optional GitHub Copilot Coach",
+        "icon": "$(github)"
       },
       {
         "command": "systemstudioOs.createLabWorkspace",
@@ -170,7 +188,7 @@
     "viewsWelcome": [
       {
         "view": "systemstudioOs.course",
-        "contents": "Open the active Fall 2026 course hub.\n[Open Learning Hub](command:systemstudioOs.openLearningHub)"
+        "contents": "Start with one guided setup, then use the course hub for modules, practice, hands-on work, local progress, and Canvas. Detailed controls stay under Advanced Setup and Diagnostics.\n[Set up or repair my course environment](command:systemstudioOs.setupCourseEnvironment)\n[Open Learning Hub](command:systemstudioOs.openLearningHub)\n[Ask Orbit AI learning coach](command:systemstudioOs.openAiTutor)\n[Open Canvas](command:systemstudioOs.openCanvas)"
       }
     ],
     "configuration": {
@@ -190,6 +208,11 @@
           "type": "string",
           "default": "",
           "description": "Optional verified Canvas Inbox or course-contact URL for private pre-class questions."
+        },
+        "systemstudioOs.maizeyTutorUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Optional published student-facing U-M Maizey App/share URL for CIS 450 / ECE 478. Project overview, data-source, settings, and billing URLs are rejected."
         }
       }
     }

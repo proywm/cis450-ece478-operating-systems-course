@@ -17,14 +17,27 @@ test('learning hub exposes the pedagogically relevant parity surfaces', async ()
   ]) assert.ok(html.includes(marker), marker);
 });
 
-test('optional companion is original, keyboard-addressable, private, and motion-aware', async () => {
+test('optional anime companion is packaged, keyboard-addressable, private, and motion-aware', async () => {
   const html = await readFile(resolve(process.cwd(), 'src/extension.ts'), 'utf8');
-  assert.match(html, /aria-label="Optional OS learning companion"/);
+  assert.match(html, /aria-label="Optional animated OS learning companion"/);
   assert.match(html, /aria-expanded="false" aria-controls="companion-panel"/);
+  assert.match(html, /orbit-os-anime\.svg/);
+  assert.match(html, /Ask AI coach/);
   assert.match(html, /prefers-reduced-motion:reduce/);
-  assert.match(html, /sends no data|do not send data/i);
-  assert.match(html, /uses no external artwork/i);
+  assert.match(html, /does not attach files|sends no question off/i);
   assert.match(html, /event\.key==='Escape'.*companionOpen/);
   assert.doesNotMatch(html, /vscode-pets|pet sprite/i);
-  assert.doesNotMatch(html, /<img\b/i);
+  const artwork = await readFile(resolve(process.cwd(), 'media/orbit-os-anime.svg'), 'utf8');
+  assert.match(artwork, /anime-inspired owl robot/i);
+  assert.match(artwork, /aria-labelledby="title description"/);
+});
+
+test('beginner navigation leads with one setup workflow and hides detailed tools under advanced', async () => {
+  const source = await readFile(resolve(process.cwd(), 'src/extension.ts'), 'utf8');
+  assert.match(source, /Start Here/);
+  assert.match(source, /Set up or repair my course environment/);
+  assert.match(source, /Hands-on Learning/);
+  assert.match(source, /Advanced Setup and Diagnostics/);
+  assert.match(source, /NOT REQUIRED ON WINDOWS: host GCC, Make, Python, and QEMU/);
+  assert.match(source, /docker-desktop:\/\/dashboard/);
 });

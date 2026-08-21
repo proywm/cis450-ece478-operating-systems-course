@@ -8,6 +8,8 @@ import { GUIDED_LABS, guidedLab } from './labs.js';
 import { PORTABLE_COURSEWORK_IDS, PORTABLE_COURSEWORK_LABELS, labFiles, parseCourseworkWorkspaceManifest, workspaceFiles, type PortableCourseworkId } from './workspace.js';
 import { XV6_BASELINE_TAG, XV6_COMMIT, XV6_REMOTE, applyXv6Compatibility, parseXv6Manifest, xv6WorkspaceFiles } from './xv6.js';
 import { OSTEP_HOMEWORK_COMMIT, OSTEP_HOMEWORK_PAGE, OSTEP_HOMEWORK_REMOTE, OSTEP_SIMULATORS, ostepSimulator, ostepSimulatorWorkspaceFiles, parseOstepSimulatorManifest, simulatorArguments, type OstepSimulatorMode } from './ostepSimulators.js';
+import { classifyTutorDestination, moduleCoachPrompt, setupCoachPrompt } from './aiCoach.js';
+import { CopilotCoachPanel } from './copilotCoachPanel.js';
 
 const execFileAsync = promisify(execFile);
 const DOCKER_SERVER_VERSION_ARGS = ['version', '--format', '{{.Server.Version}}'];
@@ -26,13 +28,16 @@ export function activate(context: vscode.ExtensionContext): SystemStudioExtensio
   const provider = new CourseTreeProvider();
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider('systemstudioOs.course', provider),
-    vscode.commands.registerCommand('systemstudioOs.openLearningHub', (moduleNumber?: number) => {
+    vscode.commands.registerCommand('systemstudioOs.openLearningHub', (target?: number | string) => {
       hub = hub ?? new LearningHub(context);
-      hub.show(moduleNumber);
+      hub.show(target);
     }),
     vscode.commands.registerCommand('systemstudioOs.openCanvas', () => vscode.env.openExternal(vscode.Uri.parse(configuredCanvasUrl('canvasCourseUrl')))),
     vscode.commands.registerCommand('systemstudioOs.openSyllabus', () => openBundledHtml(context, 'syllabus', 'CIS450_ECE478_Fall2026_Syllabus.html')),
     vscode.commands.registerCommand('systemstudioOs.openAccessibleLessons', () => openBundledHtml(context, 'lessons', 'CIS450_ECE478_Fall2026_Accessible_Lessons.html')),
+    vscode.commands.registerCommand('systemstudioOs.setupCourseEnvironment', () => setupCourseEnvironment(context)),
+    vscode.commands.registerCommand('systemstudioOs.openAiTutor', (starterPrompt?: unknown) => openAiTutor(context, typeof starterPrompt === 'string' ? starterPrompt : undefined)),
+    vscode.commands.registerCommand('systemstudioOs.openCopilotCoach', (starterPrompt?: unknown) => CopilotCoachPanel.show(context, typeof starterPrompt === 'string' ? starterPrompt : undefined)),
     vscode.commands.registerCommand('systemstudioOs.checkEnvironment', checkEnvironment),
     vscode.commands.registerCommand('systemstudioOs.createLabWorkspace', createLabWorkspace),
     vscode.commands.registerCommand('systemstudioOs.runCourseworkPreflight', (itemId?: string) => runCourseworkPreflight(itemId)),
@@ -69,11 +74,20 @@ class CourseTreeProvider implements vscode.TreeDataProvider<TreeNode> {
   getChildren(element?: TreeNode): TreeNode[] {
     if (!element) {
       return [
-        action('Open course home', 'systemstudioOs.openLearningHub', 'home', 'Fall 2026 active learning hub'),
+        new TreeNode('Start Here', vscode.TreeItemCollapsibleState.Expanded, 'start'),
         new TreeNode('Modules (13)', vscode.TreeItemCollapsibleState.Expanded, 'modules'),
         new TreeNode('Coursework (3 homework · 4 programming)', vscode.TreeItemCollapsibleState.Collapsed, 'coursework'),
-        new TreeNode('Environment and hands-on labs', vscode.TreeItemCollapsibleState.Collapsed, 'tools'),
-        new TreeNode('Staff, calendar, and Canvas', vscode.TreeItemCollapsibleState.Collapsed, 'support')
+        new TreeNode('Hands-on Learning', vscode.TreeItemCollapsibleState.Collapsed, 'hands-on'),
+        new TreeNode('Help, Staff, and Canvas', vscode.TreeItemCollapsibleState.Collapsed, 'support'),
+        new TreeNode('Advanced Setup and Diagnostics', vscode.TreeItemCollapsibleState.Collapsed, 'advanced')
+      ];
+    }
+    if (element.kind === 'start') {
+      return [
+        action('Set up or repair my course environment', 'systemstudioOs.setupCourseEnvironment', 'setup', 'one guided Docker + course-container workflow'),
+        action('Open course home', 'systemstudioOs.openLearningHub', 'home', 'modules · practice · progress · coursework'),
+        action('Ask Orbit AI learning coach', 'systemstudioOs.openAiTutor', 'ai', 'student-account Copilot · optional U-M Maizey'),
+        action('Open Canvas', 'systemstudioOs.openCanvas', 'canvas', 'deadlines · submissions · official grades')
       ];
     }
     if (element.kind === 'modules') {
@@ -84,15 +98,26 @@ class CourseTreeProvider implements vscode.TreeDataProvider<TreeNode> {
       });
     }
     if (element.kind === 'coursework') {
-      return COURSEWORK.map((item) => action(item.title, 'systemstudioOs.openLearningHub', 'coursework-item', item.focus));
-    }
-    if (element.kind === 'tools') {
       return [
-        action('Check cross-platform course environment', 'systemstudioOs.checkEnvironment', 'action', 'Windows · macOS · Linux diagnostics'),
+        action('Open coursework center', 'systemstudioOs.openLearningHub', 'coursework-item', 'requirements · planning · evidence checks', ['coursework']),
+        action('Run prerequisite preflight', 'systemstudioOs.runCourseworkPreflight', 'action', 'HW1 · HW2 · HW3 · PA3'),
+        action('Open Canvas for official assignments', 'systemstudioOs.openCanvas', 'canvas', 'Canvas remains authoritative')
+      ];
+    }
+    if (element.kind === 'hands-on') {
+      return [
+        action('Guided OS labs', 'systemstudioOs.openLearningHub', 'lab', '13 module-mapped starters', ['labs']),
+        action('OSTEP prediction simulations', 'systemstudioOs.openLearningHub', 'simulation', '15 chapter-mapped tools', ['simulations']),
+        action('xv6 programming pathway', 'systemstudioOs.openLearningHub', 'lab', 'pinned reference · headless preflights', ['labs'])
+      ];
+    }
+    if (element.kind === 'advanced') {
+      return [
+        action('Check detailed environment status', 'systemstudioOs.checkEnvironment', 'action', 'required Docker route · optional native tools'),
         action('Create portable OS coursework workspace', 'systemstudioOs.createLabWorkspace', 'action', 'Docker · C/pthreads · Python · GDB · QEMU'),
         action('Run portable coursework preflight', 'systemstudioOs.runCourseworkPreflight', 'action', 'HW1 · HW2 · HW3 · PA3 · all'),
         action('Reopen in course Dev Container', 'systemstudioOs.reopenInCourseContainer', 'action', 'optional integrated compiler/debugger'),
-        action('Open cross-platform setup guide', 'systemstudioOs.openPortableSetup', 'action', 'official install routes · honest prerequisites'),
+        action('Open environment setup guide', 'systemstudioOs.openPortableSetup', 'action', 'Docker recovery · managed-computer fallback'),
         action('Create a guided module lab', 'systemstudioOs.createModuleLab', 'action', '13 source-mapped starters'),
         action('Prepare official OSTEP simulators', 'systemstudioOs.prepareOstepSimulators', 'action', '15 chapter-mapped prediction tools · pinned source'),
         action('Run an official OSTEP simulator', 'systemstudioOs.runOstepSimulator', 'action', 'predict first · reveal after recording work'),
@@ -105,6 +130,8 @@ class CourseTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     }
     if (element.kind === 'support') {
       return [
+        action('Ask Orbit AI learning coach', 'systemstudioOs.openAiTutor', 'ai', 'attempt-first hints · student account'),
+        action('Open FAQ and offline helper', 'systemstudioOs.openLearningHub', 'help', 'private deterministic support', ['help']),
         action(`${COURSE.meeting} · ${COURSE.room}`, 'systemstudioOs.openLearningHub', 'info', 'verified Fall 2026 schedule'),
         action(`Instructor: ${COURSE.instructor}`, 'systemstudioOs.openLearningHub', 'info', COURSE.instructorOffice),
         action(COURSE.gsiStatus, 'systemstudioOs.openLearningHub', 'info', 'current course staffing status'),
@@ -112,6 +139,7 @@ class CourseTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         action('Export Fall 2026 calendar', 'systemstudioOs.exportCalendar', 'action', '27 meetings · planned topics and readings'),
         action('Open Fall 2026 syllabus', 'systemstudioOs.openSyllabus', 'action', 'accessible HTML · instructor review required'),
         action('Open accessible lesson collection', 'systemstudioOs.openAccessibleLessons', 'action', '13 standalone HTML modules'),
+        action('Choose an AI learning coach', 'systemstudioOs.openAiTutor', 'action', 'student-account Copilot · optional published U-M Maizey App'),
         action('Configure direct Canvas links', 'systemstudioOs.configureCanvas', 'action', 'HTTPS UM-Dearborn Canvas host only'),
         action('Import Canvas calendar', 'systemstudioOs.importCanvasCalendar', 'action', 'local .ics · no upload'),
         action('Open Canvas', 'systemstudioOs.openCanvas', 'action', 'deadlines · submissions · official grades')
@@ -132,7 +160,8 @@ function action(label: string, command: string, kind: string, description?: stri
   item.command = { command, title: label, arguments: args };
   item.description = description;
   item.tooltip = `${label}${description ? ` — ${description}` : ''}`;
-  item.iconPath = new vscode.ThemeIcon(kind === 'home' ? 'home' : kind === 'action' ? 'play' : 'book');
+  const icons: Record<string, string> = { home: 'home', setup: 'tools', action: 'play', ai: 'sparkle', canvas: 'cloud', lab: 'beaker', simulation: 'graph', help: 'comment-discussion', info: 'info' };
+  item.iconPath = new vscode.ThemeIcon(icons[kind] ?? 'book');
   return item;
 }
 
@@ -141,17 +170,30 @@ class LearningHub {
 
   constructor(private readonly context: vscode.ExtensionContext) {}
 
-  show(moduleNumber?: number): void {
+  show(target?: number | string): void {
     if (!this.panel) {
-      this.panel = vscode.window.createWebviewPanel('systemstudioOs.learningHub', COURSE.title, vscode.ViewColumn.One, { enableScripts: true, retainContextWhenHidden: true });
+      this.panel = vscode.window.createWebviewPanel('systemstudioOs.learningHub', COURSE.title, vscode.ViewColumn.One, {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+        localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'media')]
+      });
       const firstRun = this.context.globalState.get<number>('walkthroughVersion') !== 1;
-      this.panel.webview.html = buildHubHtmlForTesting({ firstRun, canvasCourseUrl: configuredCanvasUrl('canvasCourseUrl') });
+      const companionImage = this.panel.webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'orbit-os-anime.svg'));
+      this.panel.webview.html = buildHubHtmlForTesting({
+        firstRun,
+        canvasCourseUrl: configuredCanvasUrl('canvasCourseUrl'),
+        companionImageUri: companionImage.toString(),
+        webviewCspSource: this.panel.webview.cspSource
+      });
       this.panel.onDidDispose(() => { this.panel = undefined; hub = undefined; }, undefined, this.context.subscriptions);
       this.panel.webview.onDidReceiveMessage(async (message: Record<string, unknown>) => {
         if (message.type === 'tutor') {
           this.panel?.webview.postMessage({ type: 'tutorReply', reply: tutorReply(typeof message.question === 'string' ? message.question : '') });
+        } else if (message.type === 'openAiTutor') {
+          const module = MODULES.find((candidate) => candidate.number === Number(message.moduleNumber));
+          await openAiTutor(this.context, module ? moduleCoachPrompt(module) : undefined);
         } else if (message.type === 'command' && typeof message.command === 'string') {
-          const allowed = new Set(['systemstudioOs.openCanvas', 'systemstudioOs.openSyllabus', 'systemstudioOs.openAccessibleLessons', 'systemstudioOs.checkEnvironment', 'systemstudioOs.createLabWorkspace', 'systemstudioOs.runCourseworkPreflight', 'systemstudioOs.openPortableSetup', 'systemstudioOs.reopenInCourseContainer', 'systemstudioOs.runCurrentC', 'systemstudioOs.exportCalendar', 'systemstudioOs.configureCanvas', 'systemstudioOs.importCanvasCalendar', 'systemstudioOs.prepareXv6', 'systemstudioOs.verifyXv6', 'systemstudioOs.openXv6Guide', 'systemstudioOs.prepareOstepSimulators', 'systemstudioOs.openOstepSimulatorGuide']);
+          const allowed = new Set(['systemstudioOs.openCanvas', 'systemstudioOs.openSyllabus', 'systemstudioOs.openAccessibleLessons', 'systemstudioOs.setupCourseEnvironment', 'systemstudioOs.openAiTutor', 'systemstudioOs.checkEnvironment', 'systemstudioOs.createLabWorkspace', 'systemstudioOs.runCourseworkPreflight', 'systemstudioOs.openPortableSetup', 'systemstudioOs.reopenInCourseContainer', 'systemstudioOs.runCurrentC', 'systemstudioOs.exportCalendar', 'systemstudioOs.configureCanvas', 'systemstudioOs.importCanvasCalendar', 'systemstudioOs.prepareXv6', 'systemstudioOs.verifyXv6', 'systemstudioOs.openXv6Guide', 'systemstudioOs.prepareOstepSimulators', 'systemstudioOs.openOstepSimulatorGuide']);
           if (allowed.has(message.command)) await vscode.commands.executeCommand(message.command);
         } else if (message.type === 'openExternal' && typeof message.command === 'string') {
           const uri = vscode.Uri.parse(message.command);
@@ -211,7 +253,8 @@ class LearningHub {
       }, undefined, this.context.subscriptions);
     }
     this.panel.reveal(vscode.ViewColumn.One);
-    if (moduleNumber) this.panel.webview.postMessage({ type: 'selectModule', number: moduleNumber });
+    if (typeof target === 'number') this.panel.webview.postMessage({ type: 'selectModule', number: target });
+    if (typeof target === 'string') this.panel.webview.postMessage({ type: 'selectSection', section: target });
   }
 }
 
@@ -230,6 +273,86 @@ type CanvasSetting = 'canvasCourseUrl' | 'canvasDiscussionUrl' | 'canvasPrivateM
 function configuredCanvasUrl(setting: CanvasSetting): string {
   const configured = vscode.workspace.getConfiguration('systemstudioOs').get<string>(setting, '').trim();
   return safeCanvasUrl(configured)?.toString() ?? COURSE.canvasUrl;
+}
+
+async function openAiTutor(context: vscode.ExtensionContext, starterPrompt?: string): Promise<void> {
+  const continueLabel = 'Choose learning coach';
+  const decision = await vscode.window.showInformationMessage(
+    starterPrompt ? 'Use this module-grounded prompt with an OS learning coach?' : 'Open an optional CIS 450 / ECE 478 AI learning coach?',
+    {
+      modal: true,
+      detail: 'Attempt first. Ask for a hint, diagnostic question, analogous example, or feedback on your reasoning—not a graded answer. Copilot uses the student’s signed-in VS Code account. Maizey is available only after the instructor publishes and indexes a student-facing App. Neither route receives files, grades, Canvas data, or course records automatically.'
+    },
+    continueLabel,
+    'Review syllabus'
+  );
+  if (decision === 'Review syllabus') {
+    await vscode.commands.executeCommand('systemstudioOs.openSyllabus');
+    return;
+  }
+  if (decision !== continueLabel) return;
+
+  const selection = await vscode.window.showQuickPick([
+    {
+      label: '$(github) GitHub Copilot in VS Code (Recommended now)',
+      description: 'uses a model available to the student’s signed-in account; sends only the reviewed prompt',
+      provider: 'copilot' as const
+    },
+    {
+      label: '$(mortar-board) U-M Maizey course tutor',
+      description: 'course-grounded only after a student-facing OS App is published and indexed',
+      provider: 'maizey' as const
+    },
+    {
+      label: '$(info) How the choices differ',
+      description: 'compare grounding, accounts, privacy, and availability',
+      provider: 'explain' as const
+    }
+  ], { placeHolder: 'Choose the learning coach for this question' });
+  if (!selection) return;
+  if (selection.provider === 'explain') {
+    await vscode.window.showInformationMessage('The optional Copilot coach uses the student’s own VS Code model access and receives only text the student submits. A published Maizey App can use instructor-indexed course sources. The deterministic offline helper uses no AI service and can still route common questions to modules and tools.');
+    return;
+  }
+  if (selection.provider === 'copilot') {
+    await CopilotCoachPanel.show(context, starterPrompt);
+    return;
+  }
+
+  if (starterPrompt) await vscode.env.clipboard.writeText(starterPrompt);
+  const configured = vscode.workspace.getConfiguration('systemstudioOs').get<string>('maizeyTutorUrl', '').trim();
+  const destination = classifyTutorDestination(configured);
+  if (destination.kind === 'maizey-management') {
+    const action = await vscode.window.showWarningMessage(
+      'That URL is a Maizey project-management page, not a student chat App. It will not be opened. Publish and index an App, then configure its student-facing share URL.',
+      'Open Canvas Course',
+      'Configure Student App URL'
+    );
+    if (action === 'Configure Student App URL') {
+      await vscode.commands.executeCommand('workbench.action.openSettings', 'systemstudioOs.maizeyTutorUrl');
+      return;
+    }
+    if (action !== 'Open Canvas Course') return;
+    await vscode.env.openExternal(vscode.Uri.parse(COURSE.canvasUrl));
+  } else if (destination.kind === 'maizey-app') {
+    await vscode.env.openExternal(vscode.Uri.parse(destination.url));
+  } else {
+    const action = await vscode.window.showInformationMessage(
+      'A published student-facing Maizey App is not configured for CIS 450 / ECE 478 yet. Use the Copilot coach now, open Canvas to look for a course tutor, or configure a verified App URL.',
+      'Use Copilot Coach',
+      'Open Canvas Course',
+      'Configure App URL'
+    );
+    if (action === 'Use Copilot Coach') {
+      await CopilotCoachPanel.show(context, starterPrompt);
+      return;
+    }
+    if (action === 'Open Canvas Course') await vscode.env.openExternal(vscode.Uri.parse(COURSE.canvasUrl));
+    if (action === 'Configure App URL') await vscode.commands.executeCommand('workbench.action.openSettings', 'systemstudioOs.maizeyTutorUrl');
+  }
+  if (starterPrompt && destination.kind === 'maizey-app') {
+    await vscode.window.showInformationMessage('The module-grounded prompt is on your clipboard. Paste it into the U-M tutor, describe your attempt, and ask for one hint at a time.');
+  }
 }
 
 async function configureCanvasLinks(): Promise<void> {
@@ -655,28 +778,183 @@ async function verifyXv6Workspace(requestedMode?: string): Promise<void> {
   }
 }
 
-async function checkEnvironment(): Promise<void> {
-  const checks = await Promise.all([
+async function dockerPrerequisites(): Promise<readonly { name: string; ok: boolean; detail: string }[]> {
+  return Promise.all([
     commandVersion('Docker client', 'docker', ['--version']),
     commandVersion('Docker Compose', 'docker', ['compose', 'version']),
-    commandVersion('Docker engine', 'docker', DOCKER_SERVER_VERSION_ARGS),
+    commandVersion('Docker engine', 'docker', DOCKER_SERVER_VERSION_ARGS)
+  ]);
+}
+
+async function waitForDockerEngine(): Promise<boolean> {
+  return vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: 'Waiting for Docker Desktop', cancellable: true }, async (progress, token) => {
+    const started = Date.now();
+    while (!token.isCancellationRequested && Date.now() - started < 45_000) {
+      const engine = await commandVersion('Docker engine', 'docker', DOCKER_SERVER_VERSION_ARGS);
+      if (engine.ok) return true;
+      const elapsed = Math.round((Date.now() - started) / 1_000);
+      progress.report({ message: `Engine is starting… ${elapsed}s` });
+      await new Promise((resolve) => setTimeout(resolve, 2_000));
+    }
+    return false;
+  });
+}
+
+async function recoverDockerEngine(): Promise<boolean> {
+  if (process.platform !== 'win32' && process.platform !== 'darwin') return false;
+  const action = await vscode.window.showWarningMessage(
+    'Docker Desktop is installed, but its Linux-container engine is not running. Native GCC, Make, Python, and QEMU are not required on Windows; the course container supplies them.',
+    { modal: true },
+    'Start Docker Desktop and wait',
+    'Open setup guide'
+  );
+  if (action === 'Open setup guide') {
+    await openPortableSetup();
+    return false;
+  }
+  if (action !== 'Start Docker Desktop and wait') return false;
+  const opened = await vscode.env.openExternal(vscode.Uri.parse('docker-desktop://dashboard'));
+  if (!opened) {
+    const choice = await vscode.window.showErrorMessage(
+      'Docker Desktop could not be opened through its system link. Open it from the Start menu or Applications folder, then rerun setup.',
+      'Ask Orbit for guidance',
+      'Open setup guide'
+    );
+    if (choice === 'Ask Orbit for guidance') {
+      await vscode.commands.executeCommand('systemstudioOs.openAiTutor', setupCoachPrompt('Docker Desktop startup', 'The docker-desktop system link could not be opened.'));
+    }
+    if (choice === 'Open setup guide') await openPortableSetup();
+    return false;
+  }
+  const ready = await waitForDockerEngine();
+  if (!ready) {
+    const choice = await vscode.window.showWarningMessage(
+      'Docker Desktop did not report a ready engine within 45 seconds. Keep Docker Desktop open and retry when its dashboard says the engine is running.',
+      'Ask Orbit for guidance',
+      'Retry environment check',
+      'Open setup guide'
+    );
+    if (choice === 'Ask Orbit for guidance') {
+      await vscode.commands.executeCommand('systemstudioOs.openAiTutor', setupCoachPrompt('Docker Desktop startup', 'The Docker client and Compose were found, but the Linux-container engine did not become ready within 45 seconds.'));
+    }
+    if (choice === 'Retry environment check') await checkEnvironment();
+    if (choice === 'Open setup guide') await openPortableSetup();
+  }
+  return ready;
+}
+
+async function setupCourseEnvironment(context: vscode.ExtensionContext): Promise<void> {
+  let docker = await dockerPrerequisites();
+  if (!docker[0]?.ok || !docker[1]?.ok) {
+    const choice = await vscode.window.showErrorMessage(
+      'The portable OS environment requires Docker Desktop (Windows/macOS) or Docker Engine with Compose (Linux). A VS Code extension cannot safely install or authorize this system runtime for you.',
+      { modal: true },
+      'Ask Orbit for guidance',
+      'Open installation guide',
+      'Check again'
+    );
+    if (choice === 'Ask Orbit for guidance') {
+      await openAiTutor(
+        context,
+        setupCoachPrompt('portable OS course environment', docker.filter((check) => !check.ok).map((check) => `${check.name}: ${check.detail}`).join('; '))
+      );
+    }
+    if (choice === 'Open installation guide') await openPortableSetup();
+    if (choice === 'Check again') await setupCourseEnvironment(context);
+    return;
+  }
+  if (!docker[2]?.ok) {
+    const recovered = await recoverDockerEngine();
+    if (!recovered) return;
+    docker = await dockerPrerequisites();
+  }
+  if (!docker.every((check) => check.ok)) return;
+
+  const root = await createLabWorkspace({ promptToOpen: false });
+  if (!root) return;
+  const output = vscode.window.createOutputChannel('CIS 450 / ECE 478 Guided Setup');
+  output.clear();
+  output.appendLine(`Course workspace: ${root.fsPath}`);
+  output.appendLine('Building the visible pinned Ubuntu course environment. No host compiler, Make, Python, or QEMU installation is required.');
+  output.show(true);
+  try {
+    await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: 'Preparing the CIS 450 / ECE 478 course environment', cancellable: false }, async (progress) => {
+      progress.report({ message: 'Building course container…' });
+      const build = await execFileAsync('docker', ['compose', 'build'], { cwd: root.fsPath, timeout: 12 * 60_000, maxBuffer: 16 * 1024 * 1024 });
+      output.append(build.stdout);
+      output.append(build.stderr);
+      progress.report({ message: 'Running solution-free prerequisite checks…' });
+      const verify = await execFileAsync('docker', ['compose', 'run', '--rm', 'oslab', 'python3', '.systemstudio/coursework.py', 'check', 'all'], { cwd: root.fsPath, timeout: 8 * 60_000, maxBuffer: 16 * 1024 * 1024 });
+      output.append(verify.stdout);
+      output.append(verify.stderr);
+    });
+    output.appendLine('\nREADY: Docker, the course container, and all portable prerequisite checks passed.');
+    const choice = await vscode.window.showInformationMessage('The portable CIS 450 / ECE 478 environment is ready. Open the prepared course workspace to begin.', 'Open course workspace');
+    if (choice === 'Open course workspace') await vscode.commands.executeCommand('vscode.openFolder', root, { forceNewWindow: true });
+  } catch (error) {
+    const details = error as Error & { stdout?: string; stderr?: string };
+    if (details.stdout) output.append(details.stdout);
+    if (details.stderr) output.append(details.stderr);
+    output.appendLine(`\nFAILED: ${details.message ?? String(error)}`);
+    const diagnostic = details.message ?? String(error);
+    const choice = await vscode.window.showErrorMessage(
+      'Guided setup did not complete. The first actionable error is preserved in the Guided Setup output.',
+      'Ask Orbit about this error',
+      'Open setup guide',
+      'Retry'
+    );
+    if (choice === 'Ask Orbit about this error') {
+      await openAiTutor(context, setupCoachPrompt('portable OS course environment', diagnostic));
+    }
+    if (choice === 'Open setup guide') await openPortableSetup();
+    if (choice === 'Retry') await setupCourseEnvironment(context);
+  }
+}
+
+async function checkEnvironment(): Promise<void> {
+  const dockerChecks = await dockerPrerequisites();
+  const optionalChecks = process.platform === 'win32' ? [] : await Promise.all([
     commandVersion('Git', 'git', ['--version']),
-    commandVersion('C compiler', process.platform === 'win32' ? 'where' : 'sh', process.platform === 'win32' ? ['gcc'] : ['-lc', 'command -v gcc || command -v clang']),
-    commandVersion('Make', process.platform === 'win32' ? 'where' : 'make', process.platform === 'win32' ? ['make'] : ['--version']),
-    commandVersion('Python 3', process.platform === 'win32' ? 'where' : 'python3', process.platform === 'win32' ? ['python3'] : ['--version']),
-    commandVersion('QEMU x86', process.platform === 'win32' ? 'where' : 'qemu-system-i386', process.platform === 'win32' ? ['qemu-system-i386'] : ['--version']),
+    commandVersion('C compiler', 'sh', ['-lc', 'command -v gcc || command -v clang']),
+    commandVersion('Make', 'make', ['--version']),
+    commandVersion('Python 3', 'python3', ['--version']),
+    commandVersion('QEMU x86', 'qemu-system-i386', ['--version']),
     ...(process.platform === 'linux' ? [commandVersion('32-bit GCC frontend', 'gcc', ['-m32', '-E', '-x', 'c', '/dev/null'])] : [])
   ]);
   const output = vscode.window.createOutputChannel('CIS 450 / ECE 478 Environment');
   output.clear();
   output.appendLine(`SystemStudio OS environment check (${process.platform}/${process.arch})`);
   output.appendLine('This diagnostic changes nothing and installs nothing.');
-  for (const check of checks) output.appendLine(`${check.ok ? 'READY' : 'NEEDS ATTENTION'}  ${check.name}: ${check.detail}`);
-  output.appendLine('\nCOMMON ROUTE: the portable coursework workspace needs Docker client, Compose, and a running Linux-container engine. The same visible Ubuntu recipe is used on Windows, macOS, and Linux.');
-  output.appendLine('NATIVE CONVENIENCE: non-Windows hosts may run HW1/HW2/HW3/PA3 prerequisites with Python 3, Make, and a POSIX C compiler; this can differ from the release container.');
-  output.appendLine('XV6: native Linux also needs QEMU x86 and a working 32-bit GCC frontend. The extension installs nothing and never changes administrator or virtualization settings.');
-  output.appendLine('Use “Open Cross-platform Setup Guide” for official Docker/Dev Containers routes and the managed-computer fallback.');
+  output.appendLine('\nREQUIRED PORTABLE ROUTE');
+  for (const check of dockerChecks) output.appendLine(`${check.ok ? 'READY' : 'BLOCKING'}  ${check.name}: ${check.detail}`);
+  if (process.platform === 'win32') {
+    output.appendLine('\nNOT REQUIRED ON WINDOWS: host GCC, Make, Python, and QEMU. The pinned Linux course container supplies these tools after Docker Desktop starts.');
+  } else {
+    output.appendLine('\nOPTIONAL NATIVE CONVENIENCE ROUTE');
+    for (const check of optionalChecks) output.appendLine(`${check.ok ? 'READY' : 'OPTIONAL — NOT FOUND'}  ${check.name}: ${check.detail}`);
+  }
+  const portableReady = dockerChecks.every((check) => check.ok);
+  output.appendLine(portableReady
+    ? '\nREADY: the common portable route is available. Use “Set Up or Repair Course Environment” to create and verify the course workspace.'
+    : '\nBLOCKED: fix the first required Docker line above. Installing host GCC, Make, Python, or QEMU will not repair the portable route.');
+  output.appendLine('The extension installs course dependencies inside the visible container; it never changes administrator or virtualization settings.');
   output.show(true);
+  if (portableReady) {
+    const choice = await vscode.window.showInformationMessage('The Docker environment is ready.', 'Prepare course workspace');
+    if (choice === 'Prepare course workspace') await vscode.commands.executeCommand('systemstudioOs.setupCourseEnvironment');
+  } else if (dockerChecks[0]?.ok && dockerChecks[1]?.ok && !dockerChecks[2]?.ok) {
+    await recoverDockerEngine();
+  } else {
+    const choice = await vscode.window.showWarningMessage(
+      'Docker Desktop/Engine and Compose are required for the common course route.',
+      'Ask Orbit for guidance',
+      'Open installation guide'
+    );
+    if (choice === 'Ask Orbit for guidance') {
+      await vscode.commands.executeCommand('systemstudioOs.openAiTutor', setupCoachPrompt('portable OS course environment', dockerChecks.filter((check) => !check.ok).map((check) => `${check.name}: ${check.detail}`).join('; ')));
+    }
+    if (choice === 'Open installation guide') await openPortableSetup();
+  }
 }
 
 async function commandVersion(name: string, executable: string, args: string[]): Promise<{ name: string; ok: boolean; detail: string }> {
@@ -713,14 +991,17 @@ async function findPortableWorkspace(): Promise<vscode.Uri | undefined> {
 }
 
 async function openPortableSetup(): Promise<void> {
-  const root = await findPortableWorkspace();
-  if (!root) return;
-  const guide = vscode.Uri.joinPath(root, 'SETUP.md');
+  const extension = vscode.extensions.getExtension('probir-roy.systemstudio-cis450-ece478');
+  if (!extension) {
+    void vscode.window.showErrorMessage('The SystemStudio OS extension location could not be resolved. Reinstall the verified VSIX.');
+    return;
+  }
+  const guide = vscode.Uri.joinPath(extension.extensionUri, 'media', 'OS_ENVIRONMENT_GUIDE.md');
   try {
     await vscode.workspace.fs.stat(guide);
     await vscode.commands.executeCommand('markdown.showPreview', guide);
   } catch {
-    void vscode.window.showErrorMessage('The cross-platform setup guide is missing. Create a new portable workspace with this extension release.');
+    void vscode.window.showErrorMessage('The packaged cross-platform setup guide is missing. Reinstall the verified VSIX.');
   }
 }
 
@@ -847,14 +1128,28 @@ async function runCourseworkPreflight(requestedItem?: string): Promise<void> {
   }
 }
 
-async function createLabWorkspace(): Promise<void> {
+async function createLabWorkspace(options: { promptToOpen?: boolean } = {}): Promise<vscode.Uri | undefined> {
   const selection = await vscode.window.showOpenDialog({ canSelectFolders: true, canSelectFiles: false, canSelectMany: false, openLabel: 'Choose parent folder' });
-  if (!selection?.[0]) return;
+  if (!selection?.[0]) return undefined;
   const root = vscode.Uri.joinPath(selection[0], 'cis450-os-lab');
   try {
     await vscode.workspace.fs.stat(root);
-    void vscode.window.showWarningMessage(`Nothing was changed: ${root.fsPath} already exists. Choose a different parent or rename the existing folder.`);
-    return;
+    try {
+      const manifestBytes = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(root, '.systemstudio', 'coursework-manifest.json'));
+      const manifest = parseCourseworkWorkspaceManifest(JSON.parse(Buffer.from(manifestBytes).toString('utf8')));
+      if (!manifest) throw new Error('invalid course workspace manifest');
+      const choice = options.promptToOpen === false
+        ? 'Use existing workspace'
+        : await vscode.window.showInformationMessage(
+          `A verified SystemStudio OS workspace already exists at ${root.fsPath}. Existing coursework will not be overwritten.`,
+          'Use existing workspace',
+          'Cancel'
+        );
+      return choice === 'Use existing workspace' ? root : undefined;
+    } catch {
+      void vscode.window.showWarningMessage(`Nothing was changed: ${root.fsPath} already exists but is not a verified SystemStudio OS workspace. Choose a different parent or rename the existing folder.`);
+      return undefined;
+    }
   } catch {}
   const files: Record<string, string> = workspaceFiles();
   await vscode.workspace.fs.createDirectory(root);
@@ -864,8 +1159,11 @@ async function createLabWorkspace(): Promise<void> {
     if (parts.length > 1) await vscode.workspace.fs.createDirectory(vscode.Uri.joinPath(root, ...parts.slice(0, -1)));
     await vscode.workspace.fs.writeFile(target, Buffer.from(contents, 'utf8'));
   }
-  const choice = await vscode.window.showInformationMessage(`Created the portable OS coursework workspace at ${root.fsPath}. It includes one fixed Windows/macOS/Linux container route plus HW1, HW2, HW3, and PA3 prerequisite preflights. Review SETUP.md before running it.`, 'Open workspace');
-  if (choice === 'Open workspace') await vscode.commands.executeCommand('vscode.openFolder', root, { forceNewWindow: true });
+  if (options.promptToOpen !== false) {
+    const choice = await vscode.window.showInformationMessage(`Created the portable OS coursework workspace at ${root.fsPath}. It includes one fixed Windows/macOS/Linux container route plus HW1, HW2, HW3, and PA3 prerequisite preflights. Review SETUP.md before running it.`, 'Open workspace');
+    if (choice === 'Open workspace') await vscode.commands.executeCommand('vscode.openFolder', root, { forceNewWindow: true });
+  }
+  return root;
 }
 
 async function runCurrentC(): Promise<void> {
@@ -925,17 +1223,19 @@ async function exportCalendar(): Promise<void> {
   void vscode.window.showInformationMessage('Exported 27 verified class meetings plus academic-calendar boundaries. Assignment and exam details remain Canvas-authoritative.');
 }
 
-export function buildHubHtmlForTesting(options: { firstRun?: boolean; canvasCourseUrl?: string } = {}): string {
+export function buildHubHtmlForTesting(options: { firstRun?: boolean; canvasCourseUrl?: string; companionImageUri?: string; webviewCspSource?: string } = {}): string {
   const data = JSON.stringify({ course: COURSE, modules: MODULES, schedule: fall2026Schedule(), coursework: COURSEWORK, boundaries: SOURCE_BOUNDARIES, labs: GUIDED_LABS, simulations: OSTEP_SIMULATORS, simulatorSource: { page: OSTEP_HOMEWORK_PAGE, commit: OSTEP_HOMEWORK_COMMIT }, faqs: FAQS, walkthrough: WALKTHROUGH_STEPS, firstRun: options.firstRun === true, canvasCourseUrl: options.canvasCourseUrl ?? COURSE.canvasUrl }).replaceAll('<', '\\u003c');
   const nonce = Math.random().toString(36).slice(2);
+  const companionImageUri = (options.companionImageUri ?? 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22/%3E').replaceAll('&', '&amp;').replaceAll('"', '&quot;');
+  const webviewCspSource = options.webviewCspSource ?? '';
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webviewCspSource} data:; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';">
 <title>${COURSE.title}</title><style nonce="${nonce}">
-:root{color-scheme:light dark}*{box-sizing:border-box}body{margin:0;color:var(--vscode-foreground);background:var(--vscode-editor-background);font:15px/1.55 var(--vscode-font-family);display:grid;grid-template-columns:minmax(220px,280px) 1fr;min-height:100vh}a{color:var(--vscode-textLink-foreground)}button,input,select,textarea{font:inherit}button{border:1px solid var(--vscode-button-border,transparent);border-radius:5px;background:var(--vscode-button-background);color:var(--vscode-button-foreground);padding:.48rem .72rem;cursor:pointer}button.secondary{background:var(--vscode-button-secondaryBackground);color:var(--vscode-button-secondaryForeground)}button.quiet{background:transparent;color:var(--vscode-textLink-foreground);border-color:var(--vscode-panel-border)}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--vscode-focusBorder);outline-offset:2px}.skip{position:fixed;left:-10000px}.skip:focus{left:1rem;top:1rem;z-index:20;background:var(--vscode-editor-background);padding:.5rem}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.nav{border-right:1px solid var(--vscode-panel-border);padding:1rem;position:sticky;top:0;height:100vh;overflow:auto}.nav h1{font-size:1.1rem}.nav button{width:100%;text-align:left;margin:.2rem 0;background:transparent;color:var(--vscode-foreground);border-color:transparent}.nav button[aria-current="page"]{background:var(--vscode-list-activeSelectionBackground);color:var(--vscode-list-activeSelectionForeground)}main{padding:clamp(1rem,3vw,2.5rem);max-width:1180px;width:100%}.panel[hidden],.module-content[hidden],[hidden]{display:none!important}.eyebrow{text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--vscode-descriptionForeground)}.notice{border-left:5px solid var(--vscode-textLink-foreground);padding:.8rem 1rem;background:var(--vscode-textBlockQuote-background);margin:1rem 0}.warning{border-left-color:var(--vscode-editorWarning-foreground)}.success{border-left-color:var(--vscode-testing-iconPassed)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:1rem}.card,.module{border:1px solid var(--vscode-panel-border);border-radius:8px;padding:1rem;background:var(--vscode-sideBar-background)}.module{padding:0}.module>button{width:100%;display:flex;justify-content:space-between;text-align:left;background:transparent;color:inherit;border:0;padding:1rem}.module-content{padding:0 1rem 1rem}.module-list{display:grid;gap:.75rem}.pill{display:inline-block;border:1px solid var(--vscode-panel-border);border-radius:999px;padding:.1rem .5rem;color:var(--vscode-descriptionForeground);font-size:.84rem}.question{border-top:1px solid var(--vscode-panel-border);padding-top:.8rem;margin-top:.8rem}.choice{display:block;margin:.45rem 0}.explanation{padding:.7rem;background:var(--vscode-textCodeBlock-background);border-radius:5px;margin-top:.5rem}.source{font-size:.9rem;color:var(--vscode-descriptionForeground)}.status-row,.actions,.practice-controls{display:flex;gap:.55rem;align-items:center;flex-wrap:wrap}.status-row select{min-width:150px}progress{width:100%;height:1rem}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:.5rem;border-bottom:1px solid var(--vscode-panel-border);vertical-align:top}.grade-grid{display:grid;grid-template-columns:minmax(220px,1fr) minmax(105px,170px);gap:.7rem;max-width:680px}.grade-grid label{align-self:center}.grade-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.8rem;margin-top:1rem}.grade-number{font-size:1.65rem;font-weight:750}.contribution{font-variant-numeric:tabular-nums}input,select,textarea{padding:.45rem;background:var(--vscode-input-background);color:var(--vscode-input-foreground);border:1px solid var(--vscode-input-border)}textarea{width:100%;min-height:105px}.result{font-size:1.2rem;font-weight:700}.source-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}.muted{color:var(--vscode-descriptionForeground)}.checklist label{display:grid;grid-template-columns:auto 1fr;gap:.55rem;margin:.6rem 0}.analytics{font-variant-numeric:tabular-nums}.overlay{position:fixed;inset:0;background:color-mix(in srgb,var(--vscode-editor-background) 86%,transparent);z-index:15;display:grid;place-items:center;padding:1rem}.dialog{width:min(720px,100%);max-height:90vh;overflow:auto;border:2px solid var(--vscode-focusBorder);box-shadow:0 12px 40px #0008}.step-dots{display:flex;gap:.4rem}.dot{width:.8rem;height:.8rem;border-radius:50%;padding:0;background:var(--vscode-panel-border)}.dot.current{background:var(--vscode-textLink-foreground)}.companion{position:fixed;right:1rem;bottom:1rem;z-index:10;display:grid;justify-items:end;gap:.55rem}.companion-launch{width:3.7rem;height:3.7rem;border-radius:50%;display:grid;place-items:center;box-shadow:0 5px 18px #0006}.companion-launch svg{width:2.25rem;height:2.25rem;animation:companion-breathe 2.8s ease-in-out infinite;transform-origin:center}.companion-panel{width:min(330px,calc(100vw - 2rem));box-shadow:0 8px 28px #0007}.companion-panel h2{margin-top:0}.companion-panel .actions{align-items:stretch}.companion-panel .actions button{flex:1 1 120px}@keyframes companion-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.04)}}code{overflow-wrap:anywhere}@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important}.companion-launch svg{animation:none}}@media(max-width:760px){body{display:block}.nav{position:static;height:auto;border-right:0;border-bottom:1px solid var(--vscode-panel-border)}.source-grid{grid-template-columns:1fr}.grade-grid{grid-template-columns:1fr}main{padding:1rem}.companion{right:.6rem;bottom:.6rem}}
+:root{color-scheme:light dark}*{box-sizing:border-box}body{margin:0;color:var(--vscode-foreground);background:var(--vscode-editor-background);font:15px/1.55 var(--vscode-font-family);display:grid;grid-template-columns:minmax(220px,280px) 1fr;min-height:100vh}a{color:var(--vscode-textLink-foreground)}button,input,select,textarea{font:inherit}button{border:1px solid var(--vscode-button-border,transparent);border-radius:5px;background:var(--vscode-button-background);color:var(--vscode-button-foreground);padding:.48rem .72rem;cursor:pointer}button.secondary{background:var(--vscode-button-secondaryBackground);color:var(--vscode-button-secondaryForeground)}button.quiet{background:transparent;color:var(--vscode-textLink-foreground);border-color:var(--vscode-panel-border)}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--vscode-focusBorder);outline-offset:2px}.skip{position:fixed;left:-10000px}.skip:focus{left:1rem;top:1rem;z-index:20;background:var(--vscode-editor-background);padding:.5rem}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.nav{border-right:1px solid var(--vscode-panel-border);padding:1rem;position:sticky;top:0;height:100vh;overflow:auto}.nav h1{font-size:1.1rem}.nav button{width:100%;text-align:left;margin:.2rem 0;background:transparent;color:var(--vscode-foreground);border-color:transparent}.nav button[aria-current="page"]{background:var(--vscode-list-activeSelectionBackground);color:var(--vscode-list-activeSelectionForeground)}main{padding:clamp(1rem,3vw,2.5rem);max-width:1180px;width:100%}.panel[hidden],.module-content[hidden],[hidden]{display:none!important}.eyebrow{text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--vscode-descriptionForeground)}.notice{border-left:5px solid var(--vscode-textLink-foreground);padding:.8rem 1rem;background:var(--vscode-textBlockQuote-background);margin:1rem 0}.warning{border-left-color:var(--vscode-editorWarning-foreground)}.success{border-left-color:var(--vscode-testing-iconPassed)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:1rem}.card,.module{border:1px solid var(--vscode-panel-border);border-radius:8px;padding:1rem;background:var(--vscode-sideBar-background)}.module{padding:0}.module>button{width:100%;display:flex;justify-content:space-between;text-align:left;background:transparent;color:inherit;border:0;padding:1rem}.module-content{padding:0 1rem 1rem}.module-list{display:grid;gap:.75rem}.pill{display:inline-block;border:1px solid var(--vscode-panel-border);border-radius:999px;padding:.1rem .5rem;color:var(--vscode-descriptionForeground);font-size:.84rem}.question{border-top:1px solid var(--vscode-panel-border);padding-top:.8rem;margin-top:.8rem}.choice{display:block;margin:.45rem 0}.explanation{padding:.7rem;background:var(--vscode-textCodeBlock-background);border-radius:5px;margin-top:.5rem}.source{font-size:.9rem;color:var(--vscode-descriptionForeground)}.status-row,.actions,.practice-controls{display:flex;gap:.55rem;align-items:center;flex-wrap:wrap}.status-row select{min-width:150px}progress{width:100%;height:1rem}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:.5rem;border-bottom:1px solid var(--vscode-panel-border);vertical-align:top}.grade-grid{display:grid;grid-template-columns:minmax(220px,1fr) minmax(105px,170px);gap:.7rem;max-width:680px}.grade-grid label{align-self:center}.grade-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.8rem;margin-top:1rem}.grade-number{font-size:1.65rem;font-weight:750}.contribution{font-variant-numeric:tabular-nums}input,select,textarea{padding:.45rem;background:var(--vscode-input-background);color:var(--vscode-input-foreground);border:1px solid var(--vscode-input-border)}textarea{width:100%;min-height:105px}.result{font-size:1.2rem;font-weight:700}.source-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}.muted{color:var(--vscode-descriptionForeground)}.checklist label{display:grid;grid-template-columns:auto 1fr;gap:.55rem;margin:.6rem 0}.analytics{font-variant-numeric:tabular-nums}.overlay{position:fixed;inset:0;background:color-mix(in srgb,var(--vscode-editor-background) 86%,transparent);z-index:15;display:grid;place-items:center;padding:1rem}.dialog{width:min(720px,100%);max-height:90vh;overflow:auto;border:2px solid var(--vscode-focusBorder);box-shadow:0 12px 40px #0008}.step-dots{display:flex;gap:.4rem}.dot{width:.8rem;height:.8rem;border-radius:50%;padding:0;background:var(--vscode-panel-border)}.dot.current{background:var(--vscode-textLink-foreground)}.companion{position:fixed;right:1rem;bottom:1rem;z-index:10;display:grid;justify-items:end;gap:.55rem}.companion-launch{width:5rem;height:5rem;border-radius:50%;display:grid;place-items:center;overflow:hidden;padding:.15rem;background:radial-gradient(circle at 50% 35%,#6ddfff 0 18%,var(--vscode-button-background) 72%);box-shadow:0 5px 18px #0006}.companion-launch img{width:4.7rem;height:4.7rem;object-fit:contain;animation:companion-breathe 2.8s ease-in-out infinite;transform-origin:50% 85%}.companion-panel{width:min(380px,calc(100vw - 2rem));box-shadow:0 8px 28px #0007}.companion-head{display:grid;grid-template-columns:78px 1fr;gap:.7rem;align-items:center}.companion-head img{width:78px;height:78px;object-fit:contain;filter:drop-shadow(0 4px 8px #0007);animation:companion-breathe 2.8s ease-in-out infinite}.companion-panel h2{margin:0}.companion-panel .actions{align-items:stretch}.companion-panel .actions button{flex:1 1 120px}@keyframes companion-breathe{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-5px) rotate(1deg)}}code{overflow-wrap:anywhere}@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important}.companion-launch img,.companion-head img{animation:none}}@media(max-width:760px){body{display:block}.nav{position:static;height:auto;border-right:0;border-bottom:1px solid var(--vscode-panel-border)}.source-grid{grid-template-columns:1fr}.grade-grid{grid-template-columns:1fr}main{padding:1rem}.companion{right:.6rem;bottom:.6rem}}
 </style></head><body><a class="skip" href="#main">Skip to content</a>
 <nav class="nav" aria-label="Course sections"><h1>SystemStudio OS</h1><p class="muted">CIS 450 / ECE 478</p><div id="nav"></div><hr><p><strong>Canvas is authoritative</strong><br><span class="muted">Deadlines · submissions · official grades</span></p></nav>
-<main id="main" tabindex="-1"><section id="home" class="panel"></section><section id="schedule" class="panel" hidden></section><section id="modules" class="panel" hidden></section><section id="practice" class="panel" hidden></section><section id="labs" class="panel" hidden></section><section id="simulations" class="panel" hidden></section><section id="coursework" class="panel" hidden></section><section id="grades" class="panel" hidden></section><section id="progress" class="panel" hidden></section><section id="help" class="panel" hidden></section></main><aside id="walkthrough" class="overlay" role="dialog" aria-modal="true" aria-labelledby="walk-title" hidden><div class="dialog card"><p class="eyebrow">Self-paced orientation</p><h2 id="walk-title"></h2><p id="walk-detail"></p><div id="walk-dots" class="step-dots" aria-label="Walkthrough progress"></div><p id="walk-count" class="muted"></p><div class="actions"><button id="walk-prev" class="secondary">Previous</button><button id="walk-next">Next</button><button id="walk-skip" class="quiet">Skip for now</button></div></div></aside><div id="global-notice" class="overlay" hidden><div class="dialog card" role="status" aria-live="polite"><p id="global-notice-text"></p><button id="global-notice-close">Close</button></div></div><aside id="companion" class="companion" aria-label="Optional OS learning companion"><section id="companion-panel" class="companion-panel card" aria-labelledby="companion-title" hidden><h2 id="companion-title" tabindex="-1">Need a next step?</h2><p>I can open the offline helper or a five-question practice set. I do not send data or provide assignment answers.</p><div class="actions"><button id="companion-help">Ask the offline helper</button><button id="companion-practice" class="secondary">Practice five</button><button id="companion-hide" class="quiet">Hide companion</button></div></section><button id="companion-launch" class="companion-launch" aria-expanded="false" aria-controls="companion-panel"><svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="3"/><rect x="12" y="15" width="24" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><path d="M17 22l4 3-4 3M24 29h7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Open OS learning companion</span></button></aside>
+<main id="main" tabindex="-1"><section id="home" class="panel"></section><section id="schedule" class="panel" hidden></section><section id="modules" class="panel" hidden></section><section id="practice" class="panel" hidden></section><section id="labs" class="panel" hidden></section><section id="simulations" class="panel" hidden></section><section id="coursework" class="panel" hidden></section><section id="grades" class="panel" hidden></section><section id="progress" class="panel" hidden></section><section id="help" class="panel" hidden></section></main><aside id="walkthrough" class="overlay" role="dialog" aria-modal="true" aria-labelledby="walk-title" hidden><div class="dialog card"><p class="eyebrow">Self-paced orientation</p><h2 id="walk-title"></h2><p id="walk-detail"></p><div id="walk-dots" class="step-dots" aria-label="Walkthrough progress"></div><p id="walk-count" class="muted"></p><div class="actions"><button id="walk-prev" class="secondary">Previous</button><button id="walk-next">Next</button><button id="walk-skip" class="quiet">Skip for now</button></div></div></aside><div id="global-notice" class="overlay" hidden><div class="dialog card" role="status" aria-live="polite"><p id="global-notice-text"></p><button id="global-notice-close">Close</button></div></div><aside id="companion" class="companion" aria-label="Optional animated OS learning companion"><section id="companion-panel" class="companion-panel card" aria-labelledby="companion-title" hidden><div class="companion-head"><img src="${companionImageUri}" alt="" aria-hidden="true"><div><h2 id="companion-title" tabindex="-1">Orbit can help with the next confusing step</h2><p>Choose actual AI coaching, the private offline helper, or a short practice set.</p></div></div><div class="actions"><button id="companion-ai">Ask AI coach</button><button id="companion-help" class="secondary">Ask offline helper</button><button id="companion-practice" class="secondary">Practice five</button><button id="companion-hide" class="quiet">Hide companion</button></div></section><button id="companion-launch" class="companion-launch" aria-expanded="false" aria-controls="companion-panel"><img src="${companionImageUri}" alt="" aria-hidden="true"><span class="sr-only">Open Orbit, the optional OS learning companion</span></button></aside>
 <script nonce="${nonce}">
 const vscode=acquireVsCodeApi(), DATA=${data};
 const emptyLearning=()=>({version:1,questions:{},attempts:[]});
@@ -950,12 +1250,12 @@ function persist(){vscode.setState(state);}
 function show(id){state.section=id;persist();document.querySelectorAll('.panel').forEach(x=>x.hidden=x.id!==id);document.querySelectorAll('#nav button').forEach(x=>x.setAttribute('aria-current',x.dataset.id===id?'page':'false'));document.getElementById(id).focus?.();}
 document.getElementById('nav').innerHTML=tabs.map(t=>'<button data-id="'+t[0]+'">'+t[1]+'</button>').join('');document.getElementById('nav').onclick=e=>{const b=e.target.closest('button');if(b)show(b.dataset.id)};
 function bindCommands(root){root.querySelectorAll('[data-command]').forEach(button=>{button.onclick=()=>command(button.dataset.command)});}
-function renderHome(){const el=document.getElementById('home');el.innerHTML='<p class="eyebrow">Active student course material · Fall 2026</p><h1>'+esc(DATA.course.title)+'</h1><div class="notice"><strong>Verified meeting:</strong> '+esc(DATA.course.meeting)+', '+esc(DATA.course.room)+'.<br><strong>Instructor:</strong> '+esc(DATA.course.instructor)+' · '+esc(DATA.course.instructorOffice)+'<br><strong>Course staffing:</strong> '+esc(DATA.course.gsiStatus)+'</div><div class="grid"><article class="card"><h2>Prepare for the next class</h2><ol><li>Open the dated course plan.</li><li>Read each mapped OSTEP chapter using its focus prompt.</li><li>Read the accessible explanation.</li><li>Try the eight-question module check and record confidence.</li><li>Predict, run, and explain the mapped simulator or guided lab.</li></ol><div class="actions"><button id="home-schedule">Open course plan</button><button id="home-modules" class="secondary">Open modules</button><button id="home-practice" class="quiet">Practice five</button></div></article><article class="card"><h2>Build observable behavior</h2><p>Fifteen official OSTEP simulator presets and thirteen guided starters cover processes, scheduling, memory, concurrency, I/O, files, and recovery. The official simulator source is fetched at a pinned revision only after consent; it is not copied into this extension. A separate pinned MIT x86 xv6 path runs the historical PA1/PA2 behaviors in headless QEMU.</p><div class="actions"><button id="home-simulations">Open OSTEP simulations</button><button id="home-labs" class="secondary">Open guided labs</button><button data-command="systemstudioOs.createLabWorkspace" class="secondary">Create portable coursework workspace</button><button data-command="systemstudioOs.runCourseworkPreflight" class="secondary">Run coursework preflight</button><button data-command="systemstudioOs.openPortableSetup" class="quiet">Cross-platform setup</button><button data-command="systemstudioOs.prepareXv6" class="secondary">Prepare verified xv6 reference</button><button data-command="systemstudioOs.verifyXv6" class="secondary">Run xv6 preflight</button><button data-command="systemstudioOs.checkEnvironment" class="quiet">Check environment</button></div></article><article class="card"><h2>Canvas authority and planning</h2><p>Verified destination: <code>'+esc(DATA.canvasCourseUrl)+'</code></p><div class="actions"><button data-command="systemstudioOs.openCanvas">Open Canvas course 552201</button><button id="home-grades" class="secondary">Open grade predictor</button><button data-command="systemstudioOs.configureCanvas" class="secondary">Configure discussion/private routes</button><button data-command="systemstudioOs.exportCalendar" class="quiet">Export chapter-mapped calendar</button></div></article></div><div class="actions"><button id="rerun-walk" class="secondary">Rerun orientation</button><button data-command="systemstudioOs.openAccessibleLessons" class="secondary">Accessible lesson collection</button><button data-command="systemstudioOs.openSyllabus" class="secondary">Accessible syllabus</button></div><h2>Evidence boundaries</h2><div class="source-grid"><div class="card"><h3>Verified Fall 2026</h3><ul>'+DATA.boundaries.verifiedCurrent.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div><div class="card"><h3>Verified reference implementations</h3><ul>'+DATA.boundaries.verifiedReference.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div><div class="card"><h3>Historical planning basis</h3><ul>'+DATA.boundaries.historicalPolicy.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div><div class="card"><h3>Confirm in Canvas</h3><ul>'+DATA.boundaries.canvasOnly.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div></div>';el.querySelector('#home-schedule').onclick=()=>show('schedule');el.querySelector('#home-modules').onclick=()=>show('modules');el.querySelector('#home-practice').onclick=()=>show('practice');el.querySelector('#home-labs').onclick=()=>show('labs');el.querySelector('#home-simulations').onclick=()=>show('simulations');el.querySelector('#home-grades').onclick=()=>show('grades');el.querySelector('#rerun-walk').onclick=()=>{state.walkthroughOpen=true;state.walkthroughStep=0;persist();renderWalkthrough()};bindCommands(el);}
+function renderHome(){const el=document.getElementById('home');el.innerHTML='<p class="eyebrow">Active student course material · Fall 2026</p><h1>'+esc(DATA.course.title)+'</h1><div class="notice"><strong>Verified meeting:</strong> '+esc(DATA.course.meeting)+', '+esc(DATA.course.room)+'.<br><strong>Instructor:</strong> '+esc(DATA.course.instructor)+' · '+esc(DATA.course.instructorOffice)+'<br><strong>Course staffing:</strong> '+esc(DATA.course.gsiStatus)+'</div><div class="grid"><article class="card"><h2>Prepare for the next class</h2><ol><li>Open the dated course plan.</li><li>Read each mapped OSTEP chapter using its focus prompt.</li><li>Read the accessible explanation.</li><li>Try the eight-question module check and record confidence.</li><li>Predict, run, and explain the mapped simulator or guided lab.</li></ol><div class="actions"><button id="home-schedule">Open course plan</button><button id="home-modules" class="secondary">Open modules</button><button id="home-practice" class="quiet">Practice five</button></div></article><article class="card"><h2>Build observable behavior</h2><p>Fifteen official OSTEP simulator presets and thirteen guided starters cover processes, scheduling, memory, concurrency, I/O, files, and recovery. The official simulator source is fetched at a pinned revision only after consent; it is not copied into this extension. A separate pinned MIT x86 xv6 path runs the historical PA1/PA2 behaviors in headless QEMU.</p><div class="actions"><button id="home-simulations">Open OSTEP simulations</button><button id="home-labs" class="secondary">Open guided labs</button><button data-command="systemstudioOs.createLabWorkspace" class="secondary">Create portable coursework workspace</button><button data-command="systemstudioOs.runCourseworkPreflight" class="secondary">Run coursework preflight</button><button data-command="systemstudioOs.openPortableSetup" class="quiet">Cross-platform setup</button><button data-command="systemstudioOs.prepareXv6" class="secondary">Prepare verified xv6 reference</button><button data-command="systemstudioOs.verifyXv6" class="secondary">Run xv6 preflight</button><button data-command="systemstudioOs.checkEnvironment" class="quiet">Check environment</button></div></article><article class="card"><h2>Ask when a concept is unclear</h2><p>Orbit can open an actual AI coach through the student’s own GitHub Copilot account, route to a published U-M Maizey App when one is configured, or keep a question entirely local with the offline helper. AI coaching is attempt-first and will not produce graded work.</p><div class="actions"><button data-command="systemstudioOs.openAiTutor">Choose AI learning coach</button><button id="home-help" class="secondary">Open offline help and FAQ</button></div></article><article class="card"><h2>Canvas authority and planning</h2><p>Verified destination: <code>'+esc(DATA.canvasCourseUrl)+'</code></p><div class="actions"><button data-command="systemstudioOs.openCanvas">Open Canvas course 552201</button><button id="home-grades" class="secondary">Open grade predictor</button><button data-command="systemstudioOs.configureCanvas" class="secondary">Configure discussion/private routes</button><button data-command="systemstudioOs.exportCalendar" class="quiet">Export chapter-mapped calendar</button></div></article></div><div class="actions"><button id="rerun-walk" class="secondary">Rerun orientation</button><button data-command="systemstudioOs.openAccessibleLessons" class="secondary">Accessible lesson collection</button><button data-command="systemstudioOs.openSyllabus" class="secondary">Accessible syllabus</button></div><h2>Evidence boundaries</h2><div class="source-grid"><div class="card"><h3>Verified Fall 2026</h3><ul>'+DATA.boundaries.verifiedCurrent.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div><div class="card"><h3>Verified reference implementations</h3><ul>'+DATA.boundaries.verifiedReference.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div><div class="card"><h3>Historical planning basis</h3><ul>'+DATA.boundaries.historicalPolicy.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div><div class="card"><h3>Confirm in Canvas</h3><ul>'+DATA.boundaries.canvasOnly.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div></div>';el.querySelector('#home-schedule').onclick=()=>show('schedule');el.querySelector('#home-modules').onclick=()=>show('modules');el.querySelector('#home-practice').onclick=()=>show('practice');el.querySelector('#home-labs').onclick=()=>show('labs');el.querySelector('#home-simulations').onclick=()=>show('simulations');el.querySelector('#home-help').onclick=()=>show('help');el.querySelector('#home-grades').onclick=()=>show('grades');el.querySelector('#rerun-walk').onclick=()=>{state.walkthroughOpen=true;state.walkthroughStep=0;persist();renderWalkthrough()};bindCommands(el);}
 function renderSchedule(){const el=document.getElementById('schedule');const rows=DATA.schedule.map(m=>'<tr><td>'+m.number+'</td><td>'+esc(new Date(m.date+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}))+'</td><td><button class="quiet schedule-module" data-module-number="'+m.moduleNumbers[0]+'">'+m.moduleNumbers.map(n=>'M'+n).join(', ')+'</button></td><td>'+esc(m.topic)+'</td><td>'+esc(m.prepare)+'</td></tr>').join('');el.innerHTML='<p class="eyebrow">27 verified meetings · planned topic and reading sequence</p><h1>Fall 2026 course plan</h1><div class="notice warning"><strong>Preparation plan, not an assessment calendar.</strong> Meeting dates, time, and room are verified. Topic order and readings are the instructor’s current learning plan; Canvas announcements control changes, assignments, deadlines, and exams.</div><div class="actions"><button data-command="systemstudioOs.exportCalendar">Export this plan (.ics)</button><button data-command="systemstudioOs.openCanvas" class="secondary">Open Canvas course</button></div><table><caption>Monday/Wednesday preparation map</caption><thead><tr><th>Meeting</th><th>Date</th><th>Module</th><th>Planned class focus</th><th>Read before class</th></tr></thead><tbody>'+rows+'</tbody></table>';el.onclick=e=>{const b=e.target.closest('.schedule-module');if(b)openModule(Number(b.dataset.moduleNumber))};bindCommands(el);}
 function questionHtml(q,prefix){return '<div class="question" data-q="'+q.id+'"><p><span class="pill">'+esc(q.level)+'</span> <strong>'+esc(q.prompt)+'</strong></p>'+q.choices.map((c,i)=>'<label class="choice"><input type="radio" name="'+prefix+q.id+'" value="'+i+'"> '+esc(c)+'</label>').join('')+(q.hint?'<details><summary>Hint</summary><p>'+esc(q.hint)+'</p></details>':'')+'<div class="actions"><button class="check" data-q="'+q.id+'" data-prefix="'+prefix+'">Check reasoning</button><button class="quiet save" data-q="'+q.id+'">'+(state.learning.questions[q.id]?.saved?'Unsave':'Save for review')+'</button></div><div class="explanation" id="'+prefix+'ex-'+q.id+'" hidden aria-live="polite"></div><p class="source"><strong>Grounding:</strong> '+esc(q.source)+'</p></div>';}
 function simulatorButtons(simulator){return '<div class="actions"><button class="run-sim secondary" data-sim-id="'+simulator.id+'" data-sim-mode="practice" aria-label="Run a new prediction problem for '+esc(simulator.title)+'">New prediction problem</button><button class="run-sim quiet" data-sim-id="'+simulator.id+'" data-sim-mode="reveal" aria-label="Reveal '+esc(simulator.title)+' only after recording a prediction">Reveal after prediction</button></div>';}
-function moduleCard(m){const readingList=m.readings.map(r=>'<li><button class="secondary reading" data-url="'+esc(r.url)+'">'+esc(r.chapter+': '+r.title)+'</button><br><span class="muted"><strong>Read for:</strong> '+esc(r.focus)+'</span></li>').join('');const levels=[...new Set(m.questions.map(q=>q.level))].join(' · '),simulators=DATA.simulations.filter(s=>s.moduleNumber===m.number),simulationSection=simulators.length?'<h3>Official OSTEP prediction tools</h3><p class="muted">Read the named chapter and record the requested work before revealing output.</p>'+simulators.map(s=>'<article class="card"><p class="pill">'+esc(s.chapter)+'</p><h4>'+esc(s.title)+'</h4><p>'+esc(s.purpose)+'</p><p><strong>Before:</strong> '+esc(s.predict)+'</p>'+simulatorButtons(s)+'</article>').join(''):'';return '<article class="module" id="module-'+m.number+'"><button class="toggle" aria-expanded="false"><span><span class="pill">'+m.unit+'</span> Module '+m.number+': '+esc(m.title)+' · '+m.readings.length+' chapter'+(m.readings.length===1?'':'s')+' · 8 questions · guided lab'+(simulators.length?' · '+simulators.length+' simulator'+(simulators.length===1?'':'s'):'')+'</span><span aria-hidden="true">＋</span></button><div class="module-content" hidden><h3>Learning objectives</h3><ul>'+m.objectives.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul><h3>Read before class</h3><p class="muted">Open each official OSTEP chapter directly. The book authors request linking to the current chapters rather than redistributing copies.</p><ol>'+readingList+'</ol>'+m.lesson.map(x=>'<p>'+esc(x)+'</p>').join('')+simulationSection+'<div class="notice"><strong>Hands-on:</strong> '+esc(m.handsOn)+'<br><strong>Evidence artifact:</strong> '+esc(m.artifact)+'<br><button class="create-lab secondary" data-module-number="'+m.number+'">Create this guided starter</button></div><details><summary>Source basis</summary><p>'+esc(m.sourceBasis)+'</p></details><h3>Reading-aligned readiness and mastery check</h3><p class="muted">Eight formative questions span '+esc(levels)+'. Try them before class, read every explanation, then revisit missed or low-confidence items after the lab.</p>'+m.questions.map(q=>questionHtml(q,'module-')).join('')+'<fieldset><legend><strong>Private self-evaluation after reading, questions, simulator, and lab</strong></legend><div class="status-row"><label for="status-'+m.id+'">Learning stage:</label><select id="status-'+m.id+'" data-module="'+m.id+'"><option value="not-started">Not started</option><option value="preparing">Read/explain in progress</option><option value="practicing">Questions/lab in progress</option><option value="confident">Can explain and apply — self-assessed</option></select><label for="confidence-'+m.id+'">Confidence 1–5:</label><input id="confidence-'+m.id+'" data-confidence="'+m.id+'" type="number" min="1" max="5" value="'+esc(state.confidence[m.id]||'')+'"></div><p class="muted">Use “confident” only when you can explain the objectives, predict a new case, and interpret the simulator/lab evidence. This is not a grade.</p></fieldset></div></article>';}
-function renderModules(){const el=document.getElementById('modules');el.innerHTML='<p class="eyebrow">Read → explain → retrieve → predict → build → self-evaluate</p><h1>Thirteen learning modules</h1><div class="notice"><strong>29 exact official OSTEP chapter links, 104 explained questions, and 15 chapter-mapped simulators:</strong> every module maps reading to focus prompts, accessible explanations, Bloom-level practice, and a verified formative lab. The nine available instructor decks were individually audited for concurrency and persistence; virtualization modules remain textbook/syllabus/assignment-grounded because no corresponding deck was found locally.</div><div class="module-list">'+DATA.modules.map(moduleCard).join('')+'</div>';el.querySelectorAll('select[data-module]').forEach(s=>s.value=state.moduleStatus[s.dataset.module]||'not-started');el.onchange=e=>{if(e.target.dataset.module)state.moduleStatus[e.target.dataset.module]=e.target.value;if(e.target.dataset.confidence)state.confidence[e.target.dataset.confidence]=e.target.value;persist();renderProgress()};el.onclick=e=>{const toggle=e.target.closest('.toggle');if(toggle){const content=toggle.nextElementSibling,open=content.hidden;content.hidden=!open;toggle.setAttribute('aria-expanded',String(open));toggle.lastElementChild.textContent=open?'−':'＋';return}const read=e.target.closest('.reading');if(read){external(read.dataset.url);return}const sim=e.target.closest('.run-sim');if(sim){vscode.postMessage({type:'runOstepSimulator',id:sim.dataset.simId,mode:sim.dataset.simMode});return}const lab=e.target.closest('.create-lab');if(lab){vscode.postMessage({type:'createModuleLab',moduleNumber:Number(lab.dataset.moduleNumber)});return}handleQuestionClick(e,el)};}
+function moduleCard(m){const readingList=m.readings.map(r=>'<li><button class="secondary reading" data-url="'+esc(r.url)+'">'+esc(r.chapter+': '+r.title)+'</button><br><span class="muted"><strong>Read for:</strong> '+esc(r.focus)+'</span></li>').join('');const levels=[...new Set(m.questions.map(q=>q.level))].join(' · '),simulators=DATA.simulations.filter(s=>s.moduleNumber===m.number),simulationSection=simulators.length?'<h3>Official OSTEP prediction tools</h3><p class="muted">Read the named chapter and record the requested work before revealing output.</p>'+simulators.map(s=>'<article class="card"><p class="pill">'+esc(s.chapter)+'</p><h4>'+esc(s.title)+'</h4><p>'+esc(s.purpose)+'</p><p><strong>Before:</strong> '+esc(s.predict)+'</p>'+simulatorButtons(s)+'</article>').join(''):'';return '<article class="module" id="module-'+m.number+'"><button class="toggle" aria-expanded="false"><span><span class="pill">'+m.unit+'</span> Module '+m.number+': '+esc(m.title)+' · '+m.readings.length+' chapter'+(m.readings.length===1?'':'s')+' · 8 questions · guided lab'+(simulators.length?' · '+simulators.length+' simulator'+(simulators.length===1?'':'s'):'')+'</span><span aria-hidden="true">＋</span></button><div class="module-content" hidden><h3>Learning objectives</h3><ul>'+m.objectives.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul><div class="actions"><button class="ai-module" data-module-number="'+m.number+'">Ask AI about a confusing step in this module</button></div><h3>Read before class</h3><p class="muted">Open each official OSTEP chapter directly. The book authors request linking to the current chapters rather than redistributing copies.</p><ol>'+readingList+'</ol>'+m.lesson.map(x=>'<p>'+esc(x)+'</p>').join('')+simulationSection+'<div class="notice"><strong>Hands-on:</strong> '+esc(m.handsOn)+'<br><strong>Evidence artifact:</strong> '+esc(m.artifact)+'<br><button class="create-lab secondary" data-module-number="'+m.number+'">Create this guided starter</button></div><details><summary>Source basis</summary><p>'+esc(m.sourceBasis)+'</p></details><h3>Reading-aligned readiness and mastery check</h3><p class="muted">Eight formative questions span '+esc(levels)+'. Try them before class, read every explanation, then revisit missed or low-confidence items after the lab.</p>'+m.questions.map(q=>questionHtml(q,'module-')).join('')+'<fieldset><legend><strong>Private self-evaluation after reading, questions, simulator, and lab</strong></legend><div class="status-row"><label for="status-'+m.id+'">Learning stage:</label><select id="status-'+m.id+'" data-module="'+m.id+'"><option value="not-started">Not started</option><option value="preparing">Read/explain in progress</option><option value="practicing">Questions/lab in progress</option><option value="confident">Can explain and apply — self-assessed</option></select><label for="confidence-'+m.id+'">Confidence 1–5:</label><input id="confidence-'+m.id+'" data-confidence="'+m.id+'" type="number" min="1" max="5" value="'+esc(state.confidence[m.id]||'')+'"></div><p class="muted">Use “confident” only when you can explain the objectives, predict a new case, and interpret the simulator/lab evidence. This is not a grade.</p></fieldset></div></article>';}
+function renderModules(){const el=document.getElementById('modules');el.innerHTML='<p class="eyebrow">Read → explain → retrieve → predict → build → self-evaluate</p><h1>Thirteen learning modules</h1><div class="notice"><strong>29 exact official OSTEP chapter links, 104 explained questions, and 15 chapter-mapped simulators:</strong> every module maps reading to focus prompts, accessible explanations, Bloom-level practice, and a verified formative lab. The nine available instructor decks were individually audited for concurrency and persistence; virtualization modules remain textbook/syllabus/assignment-grounded because no corresponding deck was found locally.</div><div class="module-list">'+DATA.modules.map(moduleCard).join('')+'</div>';el.querySelectorAll('select[data-module]').forEach(s=>s.value=state.moduleStatus[s.dataset.module]||'not-started');el.onchange=e=>{if(e.target.dataset.module)state.moduleStatus[e.target.dataset.module]=e.target.value;if(e.target.dataset.confidence)state.confidence[e.target.dataset.confidence]=e.target.value;persist();renderProgress()};el.onclick=e=>{const toggle=e.target.closest('.toggle');if(toggle){const content=toggle.nextElementSibling,open=content.hidden;content.hidden=!open;toggle.setAttribute('aria-expanded',String(open));toggle.lastElementChild.textContent=open?'−':'＋';return}const read=e.target.closest('.reading');if(read){external(read.dataset.url);return}const sim=e.target.closest('.run-sim');if(sim){vscode.postMessage({type:'runOstepSimulator',id:sim.dataset.simId,mode:sim.dataset.simMode});return}const ai=e.target.closest('.ai-module');if(ai){vscode.postMessage({type:'openAiTutor',moduleNumber:Number(ai.dataset.moduleNumber)});return}const lab=e.target.closest('.create-lab');if(lab){vscode.postMessage({type:'createModuleLab',moduleNumber:Number(lab.dataset.moduleNumber)});return}handleQuestionClick(e,el)};}
 function handleQuestionClick(e,root){const save=e.target.closest('.save');if(save){vscode.postMessage({type:'toggleSave',questionId:save.dataset.q,learning:state.learning});return}const check=e.target.closest('.check');if(!check)return;const id=check.dataset.q,prefix=check.dataset.prefix||'',chosen=root.querySelector('input[name="'+prefix+id+'"]:checked'),out=document.getElementById(prefix+'ex-'+id);if(!chosen){out.hidden=false;out.textContent='Choose an answer before requesting feedback.';return}check.disabled=true;vscode.postMessage({type:'practiceAnswer',questionId:id,selectedIndex:Number(chosen.value),confidence:root.querySelector('[data-confidence-q="'+id+'"]')?.value||'medium',learning:state.learning});}
 function requestPractice(){const focus=document.getElementById('practice-focus')?.value||'recommended',moduleNumber=Number(document.getElementById('practice-module')?.value||0);vscode.postMessage({type:'practiceSelect',focus,moduleNumber,learning:state.learning});}
 function renderPractice(){const el=document.getElementById('practice');const moduleOptions='<option value="0">All modules</option>'+DATA.modules.map(m=>'<option value="'+m.number+'">'+m.number+'. '+esc(m.title)+'</option>').join('');el.innerHTML='<p class="eyebrow">Short retrieval · explanation · spaced review</p><h1>Five-question practice</h1><div class="notice"><strong>Local formative practice only.</strong> Attempts, confidence, saves, and review dates remain on this device; they are not grades or mastery claims.</div><div class="practice-controls"><label>Focus <select id="practice-focus"><option value="recommended">Recommended</option><option value="due">Due now</option><option value="saved">Saved</option><option value="all">All</option></select></label><label>Topic <select id="practice-module">'+moduleOptions+'</select></label><button id="practice-start">Build five-question set</button></div><div id="practice-set">'+(practiceQuestions.length?practiceQuestions.map(q=>'<article class="card">'+questionHtml(q,'practice-').replace('<div class="actions">','<label>Confidence <select data-confidence-q="'+q.id+'"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></label><div class="actions">')+'</article>').join(''):'<p class="muted">Choose a focus and start a five-question session. A due or saved filter may return fewer than five.</p>')+'</div><h2>Per-topic analytics</h2><div id="analytics">'+analyticsTable()+'</div>';el.querySelector('#practice-start').onclick=requestPractice;el.onclick=e=>handleQuestionClick(e,el);}
@@ -976,7 +1276,7 @@ function calculateGrade(){const keys=Object.keys(gradeLabels),values=keys.map(k=
 function renderProgress(){const values={"not-started":0,preparing:1,practicing:2,confident:3};let pts=0;DATA.modules.forEach(m=>pts+=values[state.moduleStatus[m.id]||'not-started']);const percent=Math.round(pts/(DATA.modules.length*3)*100),attempts=state.learning.attempts||[],correct=attempts.filter(x=>x.correct).length,labDone=Object.values(state.labSteps).reduce((n,x)=>n+(Array.isArray(x)?x.length:0),0),simPractice=DATA.simulations.filter(s=>(state.simulationRuns[s.id]?.practice||0)>0).length,simReveal=DATA.simulations.filter(s=>(state.simulationRuns[s.id]?.reveal||0)>0).length,courseReady=DATA.coursework.filter(x=>['ready-to-submit','submitted','receipt-confirmed'].includes(courseworkState(x.id).status)).length;const rows=DATA.modules.map(m=>{const a=analytics.find(x=>x.moduleNumber===m.number);return '<tr><td>'+m.number+'. '+esc(m.title)+'</td><td>'+esc((state.moduleStatus[m.id]||'not-started').replaceAll('-',' '))+'</td><td>'+(state.confidence[m.id]||'—')+'</td><td>'+(a?.attemptedQuestions||0)+'/8</td><td>'+(a?.due||0)+'</td></tr>'}).join('');const el=document.getElementById('progress');el.innerHTML='<p class="eyebrow">Private · local · self-evaluation</p><h1>My learning progress</h1><div class="grid"><div class="card"><p class="result">'+percent+'%</p><p>Self-reported module pathway</p><progress max="100" value="'+percent+'">'+percent+'%</progress></div><div class="card"><p class="result">'+attempts.length+'</p><p>Practice attempts · '+(attempts.length?Math.round(correct/attempts.length*100)+'% observed accuracy':'no accuracy yet')+'</p></div><div class="card"><p class="result">'+simPractice+'/15</p><p>Official simulator presets practiced · '+simReveal+' revealed after confirmation</p></div><div class="card"><p class="result">'+labDone+'</p><p>Guided-lab evidence steps checked</p></div><div class="card"><p class="result">'+courseReady+'/'+DATA.coursework.length+'</p><p>Coursework items locally marked ready or later</p></div></div><div class="notice"><strong>These indicators are not grades or instructor evaluations.</strong> They stay in this VS Code webview state and are not sent to Canvas. Official assessment and feedback are recorded in Canvas.</div><table><thead><tr><th>Module</th><th>Local status</th><th>Confidence</th><th>Questions tried</th><th>Due</th></tr></thead><tbody>'+rows+'</tbody></table><h2>Practice analytics</h2>'+analyticsTable()+'<div class="actions"><button id="open-grade-planner">Open grade predictor</button><button id="reset-local" class="secondary">Reset all local learning data</button></div>';el.querySelector('#open-grade-planner').onclick=()=>show('grades');el.querySelector('#reset-local').onclick=()=>{if(confirm('Reset local module status, confidence, practice history, simulator counts, saved/review questions, lab checkmarks, coursework planning, reviewed calendar events, and grade inputs? Canvas is not affected.')){const keepSection=state.section;state=Object.assign({},defaults,{section:keepSection,walkthroughOpen:false});practiceQuestions=[];analytics=[];icsPreview=[];persist();renderAll();show('progress');requestPractice()}};}
 function renderHelp(){
   const el=document.getElementById('help');
-  el.innerHTML='<p class="eyebrow">Structured FAQ · offline coach · student-controlled Canvas handoff</p><h1>Questions and help</h1><section><h2>Start here when blocked</h2><div class="grid"><article class="card"><h3>Compiler, Docker, or Make is missing</h3><p>Run the non-mutating environment check first. Then open the official cross-platform setup guide and use the one visible course container.</p><div class="actions"><button data-command="systemstudioOs.checkEnvironment">Check environment</button><button data-command="systemstudioOs.openPortableSetup" class="secondary">Open setup guide</button></div></article><article class="card"><h3>QEMU or xv6 fails—especially on Apple silicon</h3><p>Use the headless linux/amd64 Docker preflight. It avoids the graphical emulator input path and preserves the first actionable failure.</p><div class="actions"><button data-command="systemstudioOs.prepareXv6">Prepare clean reference</button><button data-command="systemstudioOs.verifyXv6" class="secondary">Run xv6 preflight</button></div></article><article class="card"><h3>I know the algorithm but not where it belongs</h3><p>Ask the helper to route an invariant, trace, or first mismatch to the right module; it will not write the assessed implementation.</p><button class="quick" data-question="I can describe the scheduler on paper, but how do I identify the xv6 state transitions, timer accounting, and lock invariant I should inspect first?">Build a debugging route</button></article><article class="card"><h3>I am unsure what evidence to submit</h3><p>Open the current Canvas rubric first. Use local preflights to generate formative evidence, then verify required files and reopen the Canvas receipt.</p><div class="actions"><button data-command="systemstudioOs.openCanvas">Open Canvas course</button><button class="quick secondary" data-question="Help me build an evidence checklist from a requirement without doing the assignment for me.">Plan evidence</button></div></article></div></section><section class="card"><h2>Optional animated learning companion</h2><label><input id="companion-enabled" type="checkbox"> Show the original SystemStudio OS companion button</label><p class="muted">It only opens local course tools. The animation follows your reduced-motion setting, uses no external artwork, and can be hidden at any time.</p></section><section class="card"><h2>Ask the offline OS learning helper</h2><p>It maps your question to course content and refuses submission-ready assessed work. It has no LLM or AI-service account and sends no question off this machine.</p><label for="question"><strong>Your question</strong></label><textarea id="question" placeholder="State the concept, prediction, evidence, and smallest mismatch."></textarea><div class="actions"><button id="ask">Ask helper</button><button class="quick" data-question="Can you give me the answer to homework 2?">Test the integrity boundary</button></div><div id="tutor-result" class="card" hidden aria-live="polite"></div></section><section><h2>Frequently asked questions</h2>'+DATA.faqs.map(f=>'<details><summary>'+esc(f.question)+'</summary><p>'+esc(f.answer)+'</p></details>').join('')+'</section><section class="card"><h2>Ask before class through Canvas</h2><p>The extension prepares and copies a draft; it does not post, impersonate you, send email, or promise anonymity. You review the course, recipient, visibility, and content in Canvas.</p><label>Topic<input id="pre-topic" maxlength="160"></label><label>Focused question<textarea id="pre-question" maxlength="2000"></textarea></label><label>What I understand so far<textarea id="pre-understanding" maxlength="2000"></textarea></label><label>What I tried or checked<textarea id="pre-attempted" maxlength="2000"></textarea></label><fieldset><legend>Canvas route</legend><label><input type="radio" name="pre-route" value="discussion" checked> Configured discussion</label><label><input type="radio" name="pre-route" value="private-message"> Configured private message/Inbox route</label></fieldset><label><input id="pre-anon" type="checkbox"> I would prefer anonymity if Canvas explicitly offers it</label><p class="muted">Checking this box does not make the post anonymous. Confirm the actual Canvas control before posting.</p><div class="actions"><button id="compose">Copy draft and open Canvas</button><button data-command="systemstudioOs.configureCanvas" class="secondary">Configure routes</button></div></section><div class="notice"><strong>Academic-integrity boundary:</strong> Ask for concept explanations, one hint, an analogous example, error interpretation, or feedback on your own reasoning. Do not request or submit generated answers, code, calculations, traces, or prose as your own. The current Canvas rules control each assessed task.</div>';
+  el.innerHTML='<p class="eyebrow">Optional AI coach · private offline helper · student-controlled Canvas handoff</p><h1>Questions and help</h1><section><h2>Start here when blocked</h2><div class="grid"><article class="card"><h3>Docker is installed but the environment is not ready</h3><p>On Windows and macOS, the portable route needs Docker Desktop running. Native GCC, Make, and QEMU are not required on Windows because the course container supplies them.</p><div class="actions"><button data-command="systemstudioOs.checkEnvironment">Check and recover environment</button><button data-command="systemstudioOs.openPortableSetup" class="secondary">Open setup guide</button></div></article><article class="card"><h3>QEMU or xv6 fails—especially on Apple silicon</h3><p>Use the headless linux/amd64 Docker preflight. It avoids the graphical emulator input path and preserves the first actionable failure.</p><div class="actions"><button data-command="systemstudioOs.prepareXv6">Prepare clean reference</button><button data-command="systemstudioOs.verifyXv6" class="secondary">Run xv6 preflight</button></div></article><article class="card"><h3>I know the algorithm but not where it belongs</h3><p>Ask the helper to route an invariant, trace, or first mismatch to the right module; it will not write the assessed implementation.</p><button class="quick" data-question="I can describe the scheduler on paper, but how do I identify the xv6 state transitions, timer accounting, and lock invariant I should inspect first?">Build a debugging route</button></article><article class="card"><h3>I am unsure what evidence to submit</h3><p>Open the current Canvas rubric first. Use local preflights to generate formative evidence, then verify required files and reopen the Canvas receipt.</p><div class="actions"><button data-command="systemstudioOs.openCanvas">Open Canvas course</button><button class="quick secondary" data-question="Help me build an evidence checklist from a requirement without doing the assignment for me.">Plan evidence</button></div></article></div></section><section class="card"><h2>Ask an actual AI learning coach</h2><p>Choose the optional GitHub Copilot coach using the student’s signed-in VS Code account, or a U-M Maizey course tutor after a student-facing App has been published and indexed. The extension sends only a prompt the student reviews; it does not attach files, grades, Canvas data, or course records.</p><button data-command="systemstudioOs.openAiTutor">Choose AI learning coach</button></section><section class="card"><h2>Optional animated Orbit companion</h2><label><input id="companion-enabled" type="checkbox"> Show Orbit, the original anime-inspired OS companion</label><p class="muted">Orbit opens local course tools and the explicit AI-coach chooser. Motion follows your reduced-motion setting, the original artwork is packaged locally, and the companion can be hidden at any time.</p></section><section class="card"><h2>Ask the offline OS learning helper</h2><p>This separate deterministic helper maps your question to course content and refuses submission-ready assessed work. It has no LLM or AI-service account and sends no question off this machine.</p><label for="question"><strong>Your question</strong></label><textarea id="question" placeholder="State the concept, prediction, evidence, and smallest mismatch."></textarea><div class="actions"><button id="ask">Ask offline helper</button><button class="quick" data-question="Can you give me the answer to homework 2?">Test the integrity boundary</button></div><div id="tutor-result" class="card" hidden aria-live="polite"></div></section><section><h2>Frequently asked questions</h2>'+DATA.faqs.map(f=>'<details><summary>'+esc(f.question)+'</summary><p>'+esc(f.answer)+'</p></details>').join('')+'</section><section class="card"><h2>Ask before class through Canvas</h2><p>The extension prepares and copies a draft; it does not post, impersonate you, send email, or promise anonymity. You review the course, recipient, visibility, and content in Canvas.</p><label>Topic<input id="pre-topic" maxlength="160"></label><label>Focused question<textarea id="pre-question" maxlength="2000"></textarea></label><label>What I understand so far<textarea id="pre-understanding" maxlength="2000"></textarea></label><label>What I tried or checked<textarea id="pre-attempted" maxlength="2000"></textarea></label><fieldset><legend>Canvas route</legend><label><input type="radio" name="pre-route" value="discussion" checked> Configured discussion</label><label><input type="radio" name="pre-route" value="private-message"> Configured private message/Inbox route</label></fieldset><label><input id="pre-anon" type="checkbox"> I would prefer anonymity if Canvas explicitly offers it</label><p class="muted">Checking this box does not make the post anonymous. Confirm the actual Canvas control before posting.</p><div class="actions"><button id="compose">Copy draft and open Canvas</button><button data-command="systemstudioOs.configureCanvas" class="secondary">Configure routes</button></div></section><div class="notice"><strong>Academic-integrity boundary:</strong> Ask for concept explanations, one hint, an analogous example, error interpretation, or feedback on your own reasoning. Do not request or submit generated answers, code, calculations, traces, or prose as your own. The current Canvas rules control each assessed task.</div>';
   const enabled=el.querySelector('#companion-enabled');enabled.checked=state.companionEnabled!==false;enabled.onchange=()=>{state.companionEnabled=enabled.checked;if(!enabled.checked)state.companionOpen=false;persist();renderCompanion()};
   el.querySelector('#ask').onclick=()=>vscode.postMessage({type:'tutor',question:el.querySelector('#question').value});
   el.querySelectorAll('.quick').forEach(button=>button.onclick=e=>{el.querySelector('#question').value=e.currentTarget.dataset.question;el.querySelector('#ask').click();el.querySelector('#question').scrollIntoView({behavior:'smooth',block:'center'})});
@@ -991,6 +1291,7 @@ function renderCompanion(){
   if(shell.hidden){panel.hidden=true;return}
   panel.hidden=!state.companionOpen;launch.setAttribute('aria-expanded',String(state.companionOpen));
   launch.onclick=()=>{companionReturnFocus=launch;state.companionOpen=!state.companionOpen;persist();renderCompanion();if(state.companionOpen)document.getElementById('companion-title').focus()};
+  document.getElementById('companion-ai').onclick=()=>{closeCompanion(false);command('systemstudioOs.openAiTutor')};
   document.getElementById('companion-help').onclick=()=>{closeCompanion(false);show('help');requestAnimationFrame(()=>document.getElementById('question')?.focus())};
   document.getElementById('companion-practice').onclick=()=>{closeCompanion(false);show('practice');requestPractice()};
   document.getElementById('companion-hide').onclick=()=>{state.companionEnabled=false;state.companionOpen=false;persist();renderCompanion();show('help');renderHelp();document.getElementById('companion-enabled')?.focus()};
@@ -999,6 +1300,7 @@ function renderWalkthrough(){const root=document.getElementById('walkthrough');r
 let walkthroughReturnFocus=null,noticeReturnFocus=null;
 function showNotice(text){noticeReturnFocus=document.activeElement;document.getElementById('global-notice-text').textContent=text;document.getElementById('global-notice').hidden=false;document.getElementById('global-notice-close').focus()}
 document.getElementById('global-notice-close').onclick=()=>{document.getElementById('global-notice').hidden=true;noticeReturnFocus?.focus?.()};
+window.addEventListener('message',e=>{const m=e.data;if(m.type==='selectSection'&&tabs.some(tab=>tab[0]===m.section))show(m.section)});
 window.addEventListener('message',e=>{const m=e.data;if(m.type==='tutorReply'){const r=m.reply,out=document.getElementById('tutor-result');out.hidden=false;out.innerHTML='<p class="pill">'+esc(r.mode)+'</p><h2>'+esc(r.title)+'</h2><p>'+esc(r.response)+'</p><ol>'+r.prompts.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ol>';if(r.moduleNumber)out.innerHTML+='<button id="open-map">Open Module '+r.moduleNumber+'</button>';out.querySelector('#open-map')?.addEventListener('click',()=>openModule(r.moduleNumber))}if(m.type==='selectModule')openModule(m.number);if(m.type==='practiceSet'){practiceQuestions=m.questions;state.learning=m.learning;analytics=m.analytics;persist();renderPractice();renderProgress()}if(m.type==='practiceResult'){state.learning=m.state;analytics=m.analytics;persist();const q=DATA.modules.flatMap(x=>x.questions).find(x=>x.id===m.questionId);['module-','practice-'].forEach(prefix=>{const out=document.getElementById(prefix+'ex-'+m.questionId);if(out&&q){out.hidden=false;out.innerHTML=(m.correct?'<strong>Correct.</strong> ':'<strong>Not yet.</strong> ')+esc(q.explanation)+'<br><strong>Next review:</strong> '+new Date(m.nextReviewAt).toLocaleString()+'<br><strong>Source:</strong> '+esc(q.source)}});document.querySelectorAll('[data-q="'+m.questionId+'"].check').forEach(b=>b.disabled=false);renderProgress()}if(m.type==='learningState'){state.learning=m.learning;analytics=m.analytics;persist();renderModules();renderPractice();renderProgress()}if(m.type==='simulationResult'){const prior=state.simulationRuns[m.id]||{practice:0,reveal:0};state.simulationRuns[m.id]={...prior,[m.mode]:(prior[m.mode]||0)+1,lastRunAt:new Date().toISOString(),route:m.route};persist();renderSimulations();renderProgress();showNotice((m.mode==='practice'?'Prediction problem completed. Record your work before revealing the computed trace.':'Computed trace revealed. Explain the first mismatch before moving on.')+' This local record is not a grade.')}if(m.type==='icsPreview'){icsPreview=m.events;show('coursework');renderCoursework()}if(m.type==='evidenceValidation'){const out=document.getElementById('validation-'+m.itemId);if(out)out.innerHTML='<div class="explanation"><strong>Local file check</strong><ul>'+m.result.lines.map(x=>'<li>'+esc(x)+'</li>').join('')+m.result.warnings.map(x=>'<li><strong>Review:</strong> '+esc(x)+'</li>').join('')+'</ul><p>This did not package, upload, submit, or grade any file.</p></div>'}if(m.type==='notice')showNotice(m.message)});
 function openModule(n){show('modules');const card=document.getElementById('module-'+n);if(card){const btn=card.querySelector('.toggle'),content=card.querySelector('.module-content');content.hidden=false;btn.setAttribute('aria-expanded','true');btn.lastElementChild.textContent='−';card.scrollIntoView({behavior:'smooth',block:'start'});btn.focus()}}
 function addCourseworkExecutionControls(){document.querySelectorAll('#coursework .module-list>article.card').forEach((card,index)=>{const item=DATA.coursework[index];if(!item||card.querySelector('.course-execution-actions'))return;const xv6=['pa1a','pa1b','pa2'].includes(item.id),portable=['hw1','hw2','hw3','pa3'].includes(item.id);if(!xv6&&!portable)return;const actions=document.createElement('div');actions.className='actions course-execution-actions';const run=document.createElement('button');run.className='secondary';run.textContent=xv6?'Run '+item.id.toUpperCase()+' xv6 preflight':'Run '+item.id.toUpperCase()+' prerequisite preflight';run.setAttribute('aria-label',(xv6?'Run local xv6 behavioral preflight for ':'Run portable compiler and prerequisite preflight for ')+item.title);run.onclick=()=>vscode.postMessage(xv6?{type:'verifyXv6',mode:item.id}:{type:'runCourseworkPreflight',itemId:item.id});const guide=document.createElement('button');guide.className='quiet';guide.textContent=xv6?'Open pinned xv6 guide':'Open cross-platform setup';guide.setAttribute('aria-label',(xv6?'Open pinned xv6 guide for ':'Open cross-platform setup guide for ')+item.title);guide.onclick=()=>command(xv6?'systemstudioOs.openXv6Guide':'systemstudioOs.openPortableSetup');actions.append(run,guide);card.querySelector('label')?.before(actions)})}
@@ -1006,7 +1308,8 @@ function applyA11y(){const title=document.getElementById('walk-title'),walk=docu
 function modalKeys(event){const walk=document.getElementById('walkthrough');if(walk.hidden)return;if(event.key==='Escape'){event.preventDefault();state.walkthroughOpen=false;persist();vscode.postMessage({type:'walkthroughStatus',status:'skipped'});renderWalkthrough();walkthroughReturnFocus?.focus?.();return}if(event.key!=='Tab')return;const controls=[...walk.querySelectorAll('button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')];if(!controls.length)return;const first=controls[0],last=controls[controls.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}}
 document.addEventListener('keydown',modalKeys);document.addEventListener('click',event=>{if(event.target.closest('#rerun-walk'))walkthroughReturnFocus=event.target.closest('button');if(event.target.closest('#walk-next,#walk-skip'))queueMicrotask(()=>{if(document.getElementById('walkthrough').hidden)walkthroughReturnFocus?.focus?.()})});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&state.companionOpen&&document.getElementById('walkthrough').hidden){event.preventDefault();closeCompanion()}});
-function renderAll(){renderHome();renderSchedule();renderModules();renderPractice();renderLabs();renderSimulations();renderCoursework();renderGrades();renderProgress();renderHelp();renderWalkthrough();renderCompanion();applyA11y()}
+function renderHomeSimple(){const el=document.getElementById('home');el.innerHTML='<p class="eyebrow">Active student course material · Fall 2026</p><h1>'+esc(DATA.course.title)+'</h1><div class="notice"><strong>Verified meeting:</strong> '+esc(DATA.course.meeting)+', '+esc(DATA.course.room)+'.<br><strong>Instructor:</strong> '+esc(DATA.course.instructor)+' · '+esc(DATA.course.instructorOffice)+'<br><strong>Course staffing:</strong> '+esc(DATA.course.gsiStatus)+'</div><section class="card"><p class="pill">First time or something stopped working</p><h2>Set up or repair the course environment</h2><p>One guided workflow checks Docker, starts Docker Desktop when possible, creates or reuses the verified course workspace, builds the pinned Linux environment, and runs prerequisite checks before reporting ready. Orbit can explain a failure after you choose to share the short diagnostic.</p><div class="actions"><button data-command="systemstudioOs.setupCourseEnvironment">Set up or repair my environment</button><button data-command="systemstudioOs.openAiTutor" class="secondary">Ask Orbit</button><button data-command="systemstudioOs.openPortableSetup" class="quiet">Setup guide</button></div></section><div class="grid"><article class="card"><h2>1. Prepare</h2><p>Read the mapped OSTEP chapter, use the accessible explanation, and answer the module questions.</p><div class="actions"><button id="simple-modules">Open modules</button><button id="simple-schedule" class="secondary">Course plan</button></div></article><article class="card"><h2>2. Practice</h2><p>Build a short adaptive set, review explanations, and revisit due or saved questions.</p><button id="simple-practice">Practice five</button></article><article class="card"><h2>3. Build</h2><p>Use the module-mapped guided labs, official prediction simulators, and verified xv6 pathway.</p><button id="simple-labs">Open hands-on learning</button></article><article class="card"><h2>4. Check and submit</h2><p>Run solution-free preflights locally, then use Canvas for requirements, submission receipts, and official grades.</p><div class="actions"><button id="simple-coursework">Coursework center</button><button data-command="systemstudioOs.openCanvas" class="secondary">Open Canvas</button></div></article></div><div class="actions"><button id="simple-progress" class="secondary">My local progress</button><button id="simple-grades" class="secondary">Private grade planner</button><button id="simple-help" class="secondary">Questions and FAQ</button><button id="rerun-walk" class="quiet">Rerun orientation</button></div>';el.querySelector('#simple-modules').onclick=()=>show('modules');el.querySelector('#simple-schedule').onclick=()=>show('schedule');el.querySelector('#simple-practice').onclick=()=>show('practice');el.querySelector('#simple-labs').onclick=()=>show('labs');el.querySelector('#simple-coursework').onclick=()=>show('coursework');el.querySelector('#simple-progress').onclick=()=>show('progress');el.querySelector('#simple-grades').onclick=()=>show('grades');el.querySelector('#simple-help').onclick=()=>show('help');el.querySelector('#rerun-walk').onclick=()=>{state.walkthroughOpen=true;state.walkthroughStep=0;persist();renderWalkthrough()};bindCommands(el)}
+function renderAll(){renderHomeSimple();renderSchedule();renderModules();renderPractice();renderLabs();renderSimulations();renderCoursework();renderGrades();renderProgress();renderHelp();renderWalkthrough();renderCompanion();applyA11y()}
 new MutationObserver(applyA11y).observe(document.getElementById('main'),{childList:true,subtree:true});renderAll();show(state.section||'home');requestPractice();
 </script></body></html>`;
 }

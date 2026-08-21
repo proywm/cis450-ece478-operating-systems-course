@@ -8,7 +8,7 @@ test('extension manifest is private and contributes every required command', asy
   assert.equal(packageJson.private, true);
   assert.equal(packageJson.name, 'systemstudio-cis450-ece478');
   const commands = new Set(packageJson.contributes?.commands?.map((item) => item.command));
-  for (const command of ['systemstudioOs.openLearningHub', 'systemstudioOs.openCanvas', 'systemstudioOs.openSyllabus', 'systemstudioOs.openAccessibleLessons', 'systemstudioOs.createLabWorkspace', 'systemstudioOs.runCourseworkPreflight', 'systemstudioOs.openPortableSetup', 'systemstudioOs.reopenInCourseContainer', 'systemstudioOs.checkEnvironment', 'systemstudioOs.runCurrentC', 'systemstudioOs.exportCalendar', 'systemstudioOs.configureCanvas', 'systemstudioOs.importCanvasCalendar', 'systemstudioOs.createModuleLab', 'systemstudioOs.validateEvidence', 'systemstudioOs.prepareXv6', 'systemstudioOs.verifyXv6', 'systemstudioOs.openXv6Guide', 'systemstudioOs.prepareOstepSimulators', 'systemstudioOs.runOstepSimulator', 'systemstudioOs.openOstepSimulatorGuide']) {
+  for (const command of ['systemstudioOs.openLearningHub', 'systemstudioOs.openCanvas', 'systemstudioOs.openSyllabus', 'systemstudioOs.openAccessibleLessons', 'systemstudioOs.setupCourseEnvironment', 'systemstudioOs.openAiTutor', 'systemstudioOs.openCopilotCoach', 'systemstudioOs.createLabWorkspace', 'systemstudioOs.runCourseworkPreflight', 'systemstudioOs.openPortableSetup', 'systemstudioOs.reopenInCourseContainer', 'systemstudioOs.checkEnvironment', 'systemstudioOs.runCurrentC', 'systemstudioOs.exportCalendar', 'systemstudioOs.configureCanvas', 'systemstudioOs.importCanvasCalendar', 'systemstudioOs.createModuleLab', 'systemstudioOs.validateEvidence', 'systemstudioOs.prepareXv6', 'systemstudioOs.verifyXv6', 'systemstudioOs.openXv6Guide', 'systemstudioOs.prepareOstepSimulators', 'systemstudioOs.runOstepSimulator', 'systemstudioOs.openOstepSimulatorGuide']) {
     assert.ok(commands.has(command), command);
   }
 });
@@ -74,5 +74,5 @@ test('every Docker readiness check probes the server rather than docker info', a
   ].join('\n');
   assert.match(sources, /docker['"], \['version', '--format', '\{\{\.Server\.Version\}\}'\]/);
   assert.doesNotMatch(sources, /docker['"], \['info'|docker info|ServerVersion/);
-  assert.equal((sources.match(/commandVersion\('Docker engine', 'docker', DOCKER_SERVER_VERSION_ARGS\)/g) ?? []).length, 5);
+  assert.equal((sources.match(/commandVersion\('Docker engine', 'docker', DOCKER_SERVER_VERSION_ARGS\)/g) ?? []).length, 6);
 });

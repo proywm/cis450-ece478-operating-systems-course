@@ -10,6 +10,9 @@ const REQUIRED_COMMANDS = [
   'systemstudioOs.openCanvas',
   'systemstudioOs.openSyllabus',
   'systemstudioOs.openAccessibleLessons',
+  'systemstudioOs.setupCourseEnvironment',
+  'systemstudioOs.openAiTutor',
+  'systemstudioOs.openCopilotCoach',
   'systemstudioOs.createLabWorkspace',
   'systemstudioOs.runCourseworkPreflight',
   'systemstudioOs.checkEnvironment',
@@ -45,6 +48,8 @@ async function run() {
   await assertPackagedResource(extension, 'dist', 'extension.js');
   await assertPackagedResource(extension, 'course-pack', 'fall2026', 'lessons', 'CIS450_ECE478_Fall2026_Accessible_Lessons.html');
   await assertPackagedResource(extension, 'course-pack', 'fall2026', 'syllabus', 'CIS450_ECE478_Fall2026_Syllabus.html');
+  await assertPackagedResource(extension, 'media', 'orbit-os-anime.svg');
+  await assertPackagedResource(extension, 'media', 'OS_ENVIRONMENT_GUIDE.md');
   await assertNotPackaged(extension, 'integration');
   await assertNotPackaged(extension, 'test');
   await assertNotPackaged(extension, 'scripts');

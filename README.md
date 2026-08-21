@@ -1,6 +1,6 @@
 # SystemStudio CIS 450 / ECE 478
 
-Private, active-course materials for **CIS 450 / ECE 478: Operating Systems,
+Active student course materials for **CIS 450 / ECE 478: Operating Systems,
 Fall 2026**. This is a separate course project—not a senior-design repository
 and not a copy of the CIS 310 content.
 
@@ -17,6 +17,8 @@ and not a copy of the CIS 310 content.
   accessibility, and academic-integrity audit
 - [`docs/CIS310_FEATURE_PARITY_AUDIT.md`](docs/CIS310_FEATURE_PARITY_AUDIT.md)
   — equivalent learning surfaces and intentional OS-specific differences
+- [`docs/PROFESSIONAL_LEARNING_PLATFORM_AUDIT.md`](docs/PROFESSIONAL_LEARNING_PLATFORM_AUDIT.md)
+  — feature-by-feature professional learning experience and release boundaries
 - [`docs/REFERENCE_EXECUTION_AUDIT.md`](docs/REFERENCE_EXECUTION_AUDIT.md) —
   completed internal reference execution, including actual xv6/QEMU results
 - [`docs/OSTEP_LECTURE_SIMULATION_AUDIT.md`](docs/OSTEP_LECTURE_SIMULATION_AUDIT.md)
@@ -50,6 +52,15 @@ workspace supplies one visible Linux container recipe and fixed HW1/HW2/HW3/PA3
 preflights on Windows, macOS, and Linux. All learning indicators are private
 self-evaluation and remain separate from Canvas grades.
 
+The beginner-facing tree now starts with one **Set up or repair my course
+environment** workflow and keeps manual commands under **Advanced Setup and
+Diagnostics**. An original animated Orbit companion opens a deterministic
+offline helper, short practice, or an optional actual AI learning coach. The
+AI chooser supports GitHub Copilot through the student's signed-in VS Code
+account and a published U-M Maizey student App when one is configured. No
+instructor LLM key is included, no file or Canvas data is attached, and direct
+requests for graded answers are blocked before model access.
+
 The release suite compiles/runs all 13 public starters and 13 completed
 internal-only references, then executes seven coursework reference suites.
 Internal references are excluded from the student VSIX and are not current
@@ -61,11 +72,13 @@ and executes all 15 mapped presets both without `-c` (prediction) and with
 `-c` (feedback). The upstream source is not bundled or modified; students
 explicitly fetch the pinned checkout after consent.
 
-The common route requires an installed, running Docker engine. The extension
-diagnoses that prerequisite and links official OS-specific setup instructions;
-it does not silently install Docker or change administrator/virtualization
-settings. Linux/macOS students with Python 3, Make, and a POSIX C compiler may
-also run the transparent native convenience route.
+The common route requires an installed, running Docker engine. After that
+system runtime is available, the guided setup creates the course workspace,
+builds the visible pinned Ubuntu container, and runs all portable prerequisite
+checks. On Windows, separate host installations of GCC, Make, Python, and QEMU
+are not required. The extension can open Docker Desktop and wait for its engine,
+but it cannot accept licenses, elevate privileges, enable WSL/virtualization,
+or silently install a system runtime on student or university-managed devices.
 
 The xv6 release suite additionally clones the official MIT x86 source at an
 exact commit, clean-builds and boots it in QEMU, executes the historical PA1B
@@ -83,8 +96,8 @@ npm run check
 npm run package
 ```
 
-The generated `.vsix` is private course software. Do not publish it to a public
-marketplace or repository.
+The generated `.vsix` is active course software distributed through the
+repository release page; it is not published to the Visual Studio Marketplace.
 
 GitHub Actions also installs the packaged artifact in real VS Code Extension
 Hosts on Windows, macOS, and Ubuntu. Compiler, OSTEP, xv6/QEMU, and generated

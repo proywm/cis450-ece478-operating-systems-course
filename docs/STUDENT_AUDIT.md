@@ -47,9 +47,11 @@
   `https://canvas.umd.umich.edu/courses/552201`; discussion and private-message
   destinations remain instructor-configurable because their exact URLs were
   not verified.
-- The environment checker is non-mutating. Workspace creation is explicit,
-  refuses to overwrite an existing destination, and exposes the Docker recipe
-  for review.
+- The beginner setup action checks the host, starts Docker Desktop where the
+  platform supports it, safely creates or reuses a manifest-verified workspace,
+  builds the visible course container, and reports ready only after prerequisite
+  checks pass. It never overwrites student work or silently changes administrator
+  or virtualization settings.
 - Official OSTEP simulator setup is also explicit and non-overwriting. It
   verifies one pinned upstream commit, leaves the checkout unmodified, and
   runs fixed shell-free Python argument arrays either natively or through a
@@ -106,9 +108,10 @@
   and the final-exam percentage needed for a selected target. It remains based
   on verified historical weights, reads no Canvas data, applies no unverified
   drop rule, and never claims an official result.
-- The helper is offline and deterministic. It refuses finished assignment
-  answers/code and redirects to invariants, analogous examples, errors, and the
-  student's own attempt.
+- The offline helper is deterministic. The optional Orbit AI coach uses only a
+  model available to the student's signed-in account, sends only reviewed text,
+  and refuses finished assignment answers/code before model access. Setup prompts
+  are bounded and do not attach files, credentials, grades, or full logs.
 - Read-only evidence validation reports file counts, size, and historical
   extension hints. It does not archive, upload, submit, or grade files.
 - The coursework pathway bar is explicitly self-reported and separate from

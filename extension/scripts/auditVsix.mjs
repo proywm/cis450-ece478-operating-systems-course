@@ -10,6 +10,8 @@ const forbidden = entries.filter((entry) => /(?:^|\/)(?:test|scripts|integration
 assert.deepEqual(forbidden, [], `Student VSIX contains forbidden internal paths:\n${forbidden.join('\n')}`);
 for (const required of [
   'extension/dist/extension.js',
+  'extension/media/orbit-os-anime.svg',
+  'extension/media/OS_ENVIRONMENT_GUIDE.md',
   'extension/course-pack/fall2026/lessons/CIS450_ECE478_Fall2026_Accessible_Lessons.html',
   'extension/course-pack/fall2026/syllabus/CIS450_ECE478_Fall2026_Syllabus.html'
 ]) assert.ok(entries.includes(required), `VSIX is missing ${required}`);

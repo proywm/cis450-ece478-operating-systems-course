@@ -1,5 +1,13 @@
 # Change log
 
+## 0.7.0 — 2026-08-21
+
+- Added one verified **Set up or repair my course environment** workflow that checks Docker, starts Docker Desktop where supported, safely creates or reuses a manifest-validated workspace, builds the pinned course container, and runs prerequisite checks before reporting ready.
+- Added contextual Orbit setup guidance through the student's own optional Copilot account or a published U-M tutor App; no files, credentials, grades, or full logs are attached automatically.
+- Replaced the generic terminal companion with original animated Orbit artwork and added actual guarded AI coaching plus the private deterministic FAQ helper.
+- Simplified beginner navigation to Start Here, Modules, Coursework, Hands-on Learning, Help/Canvas, and Advanced Diagnostics; replaced the crowded home tool card with a four-step learning workflow.
+- Corrected Windows diagnostics so missing host GCC, Make, Python, and QEMU are not presented as blockers when the course container supplies them.
+
 ## 0.6.3 — 2026-08-20
 
 - Replaced every Docker `info` readiness check with a Docker server-version probe so a stopped or unreachable engine cannot be reported as ready.
