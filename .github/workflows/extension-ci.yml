@@ -44,8 +44,13 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
-      - name: Build, test, package, and audit student VSIX
+      - name: Build, test, package, and audit student VSIX on Linux
+        if: runner.os == 'Linux'
         run: npm run package:portable
+
+      - name: Exercise the supported default package command on Windows and macOS
+        if: runner.os != 'Linux'
+        run: npm run package
 
       - name: Exercise packaged VSIX in Linux Extension Host
         if: runner.os == 'Linux'

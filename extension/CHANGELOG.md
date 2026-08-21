@@ -1,5 +1,11 @@
 # Change log
 
+## 0.6.3 — 2026-08-20
+
+- Replaced every Docker `info` readiness check with a Docker server-version probe so a stopped or unreachable engine cannot be reported as ready.
+- Made the default `npm run package` path supported on Windows, macOS, and Linux. Portable checks run everywhere; Linux additionally retains the required native compiler, OSTEP, xv6/QEMU, and container-runtime gate.
+- Added Windows/macOS GitHub Actions coverage of the ordinary package command and regression tests for both Docker detection and platform-aware packaging.
+
 ## 0.6.2 — 2026-08-20
 
 - Added a packaged-VSIX integration harness that installs the release artifact

@@ -46,12 +46,12 @@ try {
   run('python3', ['.systemstudio/coursework.py', 'check', 'all'], workspace, 'HW1/HW2/HW3/PA3 portable prerequisite runner', 120_000);
   if (available('docker')) {
     run('docker', ['compose', 'config', '--quiet'], workspace, 'portable workspace Compose configuration');
-    if (spawnSync('docker', ['info'], { stdio: 'ignore' }).status === 0) {
+    if (spawnSync('docker', ['version', '--format', '{{.Server.Version}}'], { stdio: 'ignore' }).status === 0) {
       run('docker', ['build', '--check', '--file', '.devcontainer/Dockerfile', '.'], workspace, 'portable workspace Dockerfile build check');
       run('docker', ['compose', 'run', '--rm', 'oslab', 'python3', '.systemstudio/coursework.py', 'check', 'all'], workspace, 'containerized HW1/HW2/HW3/PA3 prerequisite runner', 300_000);
       process.stdout.write('PASS generated Linux container image built and executed the fixed coursework preflight\n');
     } else if (requireDocker) {
-      throw new Error('Docker daemon is required for this CI job but docker info failed.');
+      throw new Error('Docker daemon is required for this CI job but the Docker server-version probe failed.');
     } else {
       process.stdout.write('SKIP Dockerfile daemon-backed build and container execution (Docker socket unavailable); native execution, static Dockerfile assertions, and Compose validation passed.\n');
     }

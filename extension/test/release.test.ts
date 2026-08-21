@@ -54,8 +54,23 @@ test('release does not retain an unverified CIS 450 GSI identity', async () => {
 
 test('release scripts separate portable packaging from Linux-native course execution', async () => {
   const packageJson = JSON.parse(await readFile(resolve(process.cwd(), 'package.json'), 'utf8')) as { scripts?: Record<string, string> };
+  const platformChecks = await readFile(resolve(process.cwd(), 'scripts/runPlatformChecks.mjs'), 'utf8');
   assert.match(packageJson.scripts?.['package:portable'] ?? '', /check:portable[\s\S]*audit:vsix/);
   assert.doesNotMatch(packageJson.scripts?.['check:portable'] ?? '', /test:starters|test:xv6|test:ostep|test:references/);
   for (const script of ['test:starters', 'test:references', 'test:ostep', 'test:xv6']) assert.match(packageJson.scripts?.['check:native'] ?? '', new RegExp(script.replace(':', '\\:')));
+  assert.match(packageJson.scripts?.check ?? '', /runPlatformChecks\.mjs/);
+  assert.match(platformChecks, /process\.platform === 'linux'[\s\S]*run\('check:native'\)/);
+  assert.match(platformChecks, /process\.platform === 'win32' \? 'npm\.cmd' : 'npm'/);
+  assert.match(platformChecks, /SKIP check:native/);
   assert.match(packageJson.scripts?.['test:integration'] ?? '', /runPackagedIntegration\.mjs/);
+});
+
+test('every Docker readiness check probes the server rather than docker info', async () => {
+  const sources = [
+    await readFile(resolve(process.cwd(), 'src/extension.ts'), 'utf8'),
+    await readFile(resolve(process.cwd(), 'scripts/smokeLabs.ts'), 'utf8')
+  ].join('\n');
+  assert.match(sources, /docker['"], \['version', '--format', '\{\{\.Server\.Version\}\}'\]/);
+  assert.doesNotMatch(sources, /docker['"], \['info'|docker info|ServerVersion/);
+  assert.equal((sources.match(/commandVersion\('Docker engine', 'docker', DOCKER_SERVER_VERSION_ARGS\)/g) ?? []).length, 5);
 });

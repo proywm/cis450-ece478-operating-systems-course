@@ -7,6 +7,7 @@ test('CI matrix installs and exercises the packaged VSIX on all supported hosts'
   const workflow = await readFile(resolve(process.cwd(), '../.github/workflows/extension-ci.yml'), 'utf8');
   for (const os of ['ubuntu-latest', 'windows-latest', 'macos-latest']) assert.match(workflow, new RegExp(`- ${os}`));
   assert.match(workflow, /npm run package:portable/);
+  assert.match(workflow, /if: runner\.os != 'Linux'[\s\S]*npm run package/);
   assert.match(workflow, /xvfb-run -a npm run test:integration/);
   assert.match(workflow, /if: runner\.os != 'Linux'[\s\S]*npm run test:integration/);
   for (const action of ['checkout', 'setup-node', 'upload-artifact']) assert.match(workflow, new RegExp(`actions/${action}@v7`));

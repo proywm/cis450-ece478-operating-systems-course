@@ -45,17 +45,21 @@ From `extension/`:
 
 ```text
 npm ci
-npm run package:portable
+npm run package                            # supported default on Windows, macOS, and Linux
+npm run package:portable                   # portable-only maintainer shortcut
 xvfb-run -a npm run test:integration   # Linux
 npm run test:integration               # Windows or macOS desktop session
 npm run check:native                   # Linux with the documented prerequisites
 SYSTEMSTUDIO_REQUIRE_DOCKER=1 npm run test:starters
 ```
 
-`npm run package` remains the full local release path: portable checks plus the
-native course-runtime checks, followed by packaging and the VSIX boundary
-audit. Integration harnesses, test sources, scripts, private fixtures, and
-known-good answers are rejected from the student VSIX.
+`npm run package` is the supported default on all three operating systems. It
+runs portable checks everywhere; on Linux it additionally requires the native
+compiler, OSTEP, xv6/QEMU, and container-runtime gate. On Windows and macOS it
+prints an explicit skip for that Linux-only gate, which remains mandatory in
+Ubuntu CI. Packaging then runs the same fail-closed VSIX boundary audit.
+Integration harnesses, test sources, scripts, private fixtures, and known-good
+answers are rejected from the student VSIX.
 
 ## Evidence and retention
 

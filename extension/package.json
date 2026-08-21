@@ -2,7 +2,7 @@
   "name": "systemstudio-cis450-ece478",
   "displayName": "SystemStudio CIS 450 / ECE 478",
   "description": "Accessible Fall 2026 Operating Systems learning hub with OSTEP-aligned modules, hands-on labs, local progress, and academic-integrity support.",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "private": true,
   "publisher": "probir-roy",
   "repository": {
@@ -209,7 +209,7 @@
     "test": "tsx --test test/*.test.ts",
     "check:portable": "npm run export:lessons && npm run stage:course-pack && npm run typecheck && npm test && npm run compile && npm run test:webview",
     "check:native": "npm run test:starters && npm run test:references && npm run test:ostep && npm run test:xv6",
-    "check": "npm run check:portable && npm run check:native",
+    "check": "node scripts/runPlatformChecks.mjs",
     "package:portable": "npm run check:portable && npx @vscode/vsce package --no-dependencies && npm run audit:vsix",
     "package": "npm run check && npx @vscode/vsce package --no-dependencies && npm run audit:vsix"
   },

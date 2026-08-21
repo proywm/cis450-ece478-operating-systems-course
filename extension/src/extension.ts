@@ -10,6 +10,7 @@ import { XV6_BASELINE_TAG, XV6_COMMIT, XV6_REMOTE, applyXv6Compatibility, parseX
 import { OSTEP_HOMEWORK_COMMIT, OSTEP_HOMEWORK_PAGE, OSTEP_HOMEWORK_REMOTE, OSTEP_SIMULATORS, ostepSimulator, ostepSimulatorWorkspaceFiles, parseOstepSimulatorManifest, simulatorArguments, type OstepSimulatorMode } from './ostepSimulators.js';
 
 const execFileAsync = promisify(execFile);
+const DOCKER_SERVER_VERSION_ARGS = ['version', '--format', '{{.Server.Version}}'];
 let hub: LearningHub | undefined;
 
 export interface SystemStudioExtensionApi {
@@ -368,7 +369,7 @@ async function runOstepSimulator(context: vscode.ExtensionContext, requestedId?:
   const [native, compose, engine] = await Promise.all([
     commandVersion('Python 3', 'python3', ['--version']),
     commandVersion('Docker Compose', 'docker', ['compose', 'version']),
-    commandVersion('Docker engine', 'docker', ['info', '--format', '{{.ServerVersion}}'])
+    commandVersion('Docker engine', 'docker', DOCKER_SERVER_VERSION_ARGS)
   ]);
   const routes = [
     ...(compose.ok && engine.ok ? [{ label: 'Portable Python container (recommended)', description: 'Same visible Python 3 recipe on Windows, macOS, and Linux', value: 'docker' as const }] : []),
@@ -599,7 +600,7 @@ async function verifyXv6Workspace(requestedMode?: string): Promise<void> {
   const nativeReady = nativeChecks.length === 4 && nativeChecks.every((check) => check.ok);
   const dockerChecks = await Promise.all([
     commandVersion('Docker Compose', 'docker', ['compose', 'version']),
-    commandVersion('Docker engine', 'docker', ['info', '--format', '{{.ServerVersion}}'])
+    commandVersion('Docker engine', 'docker', DOCKER_SERVER_VERSION_ARGS)
   ]);
   const dockerReady = dockerChecks.every((check) => check.ok);
   const routes = [
@@ -658,7 +659,7 @@ async function checkEnvironment(): Promise<void> {
   const checks = await Promise.all([
     commandVersion('Docker client', 'docker', ['--version']),
     commandVersion('Docker Compose', 'docker', ['compose', 'version']),
-    commandVersion('Docker engine', 'docker', ['info', '--format', '{{.ServerVersion}}']),
+    commandVersion('Docker engine', 'docker', DOCKER_SERVER_VERSION_ARGS),
     commandVersion('Git', 'git', ['--version']),
     commandVersion('C compiler', process.platform === 'win32' ? 'where' : 'sh', process.platform === 'win32' ? ['gcc'] : ['-lc', 'command -v gcc || command -v clang']),
     commandVersion('Make', process.platform === 'win32' ? 'where' : 'make', process.platform === 'win32' ? ['make'] : ['--version']),
@@ -783,7 +784,7 @@ async function runCourseworkPreflight(requestedItem?: string): Promise<void> {
 
   const dockerChecks = await Promise.all([
     commandVersion('Docker Compose', 'docker', ['compose', 'version']),
-    commandVersion('Docker engine', 'docker', ['info', '--format', '{{.ServerVersion}}'])
+    commandVersion('Docker engine', 'docker', DOCKER_SERVER_VERSION_ARGS)
   ]);
   const dockerReady = dockerChecks.every((check) => check.ok);
   const nativeChecks = process.platform === 'win32' ? [] : await Promise.all([
@@ -892,7 +893,7 @@ async function runCurrentC(): Promise<void> {
   }
   const dockerReady = (await Promise.all([
     commandVersion('Docker Compose', 'docker', ['compose', 'version']),
-    commandVersion('Docker engine', 'docker', ['info', '--format', '{{.ServerVersion}}'])
+    commandVersion('Docker engine', 'docker', DOCKER_SERVER_VERSION_ARGS)
   ])).every((check) => check.ok);
   const nativeReady = process.platform !== 'win32' && (await Promise.all([
     commandVersion('Make', 'make', ['--version']),
