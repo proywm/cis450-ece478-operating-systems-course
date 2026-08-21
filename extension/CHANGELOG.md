@@ -1,6 +1,6 @@
 # Change log
 
-## 0.6.1 CI — 2026-08-20
+## 0.6.2 — 2026-08-20
 
 - Added a packaged-VSIX integration harness that installs the release artifact
   into an isolated VS Code profile, activates it, verifies accessible resources
