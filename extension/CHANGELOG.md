@@ -1,5 +1,12 @@
 # Change log
 
+## 0.9.3 — 2026-08-21
+
+- Synchronized the extension's lesson narratives with the current Canvas worked examples in Modules 1–4 and 6–13, including exact process, scheduling, relocation, replacement, concurrency, I/O, file-link, and crash-consistency traces.
+- Added regression coverage requiring the current Canvas worked examples to remain represented in all 13 extension modules.
+- Synchronized the current OS syllabus clarification that the published 48-hour late window is the only extension offered.
+- Exercised the signed-in Codex CLI against an assessed-work request and verified an attempt-first refusal, one diagnostic question, and a bounded OSTEP conceptual hint.
+
 ## 0.9.2 — 2026-08-21
 
 - Corrected the Fall 2026 schedule model and every generated course-plan surface: October 14 is the Modules 1–6 midterm, not a regular threads class; Class 14 now begins Module 7 on October 19.

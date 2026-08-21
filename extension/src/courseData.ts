@@ -66,7 +66,9 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     lesson: [
       'An operating system turns physical resources into easier abstractions while coordinating protection and sharing. CPU virtualization creates the process abstraction; memory virtualization gives each process an address space; persistence organizes durable data behind files and directories.',
       'Mechanism answers how an operation can happen—for example, a context switch. Policy answers which choice to make—for example, which ready process runs next. Keeping the two separate makes later scheduler and memory-management designs easier to compare.',
-      'The hands-on path uses C, a shell, Docker, Make, and eventually xv6. The goal of the first lab is reproducibility: another student should be able to build and run the same small program from the same workspace.'
+      'The hands-on path uses C, a shell, Docker, Make, and eventually xv6. The goal of the first lab is reproducibility: another student should be able to build and run the same small program from the same workspace.',
+      'Worked mechanism-versus-policy cases: saving and restoring registers, trapping on a system call, and marking a page-table entry invalid are mechanisms because they enable actions without choosing among alternatives. Choosing the next ready process and selecting the least-recently-used page are policies because they choose among options the mechanisms already permit.',
+      'Reproducibility does not mean every printed value is identical. An arithmetic result is stable, while a PID is assigned on each run and a stack address may move because of address-space layout randomization. Record the environment and command, predict which fields may vary, and compare the behavior rather than demanding byte-for-byte output.'
     ],
     handsOn: 'Create the portable OS lab workspace, inspect its container recipe, compile the starter C program, and record the compiler/runtime versions.',
     artifact: 'A short environment report containing the commands used, versions, output, and one troubleshooting note.',
@@ -84,7 +86,9 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     lesson: [
       'A process is a running program plus the state needed to resume it: address space, registers, open-file information, credentials, and scheduling state. The operating system assigns a process identifier and tracks transitions such as ready, running, and blocked.',
       'fork creates a child process with a logically separate address space; its return value distinguishes parent from child. exec replaces the calling process image with another program. wait lets a parent synchronize with child termination, and exit releases the process.',
-      'The separation of fork and exec gives a shell a useful setup window: after fork and before exec, the child can redirect file descriptors or construct a pipeline.'
+      'The separation of fork and exec gives a shell a useful setup window: after fork and before exec, the child can redirect file descriptors or construct a pipeline.',
+      'Worked fork trace: starting with x = 100, the parent receives the child PID, changes its private x to 99, and prints parent x=99; the child receives 0, changes its private x to 101, and prints child x=101. Both lines appear once, but their order is unspecified unless the parent uses wait to require the child to finish first.',
+      'fork returns in two processes running the same program and gives the child a new PID. exec creates no new process: it keeps the PID and open file descriptors but replaces the program image, and it returns only if loading fails. A shell therefore forks, redirects descriptors in the child, and then execs the requested program.'
     ],
     handsOn: 'Write a small C program that forks, prints parent/child PIDs, waits, and then add an exec call. Predict the output before running it.',
     artifact: 'Annotated process tree plus predicted and observed output; explain every difference without copying assignment answers.',
@@ -102,7 +106,9 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     lesson: [
       'Limited direct execution lets user code run directly on the CPU while privileged operations trap into the kernel. A periodic timer interrupt ensures the OS can regain control even when a process does not cooperate.',
       'Schedulers balance different goals. Turnaround time measures completion latency, response time measures time until first run, and fairness concerns how service is shared. A policy that optimizes one workload can harm another.',
-      'MLFQ approximates knowledge of job behavior by observing CPU use. Interactive jobs tend to remain at higher priority; CPU-intensive jobs move downward. Priority boosts prevent indefinite starvation.'
+      'MLFQ approximates knowledge of job behavior by observing CPU use. Interactive jobs tend to remain at higher priority; CPU-intensive jobs move downward. Priority boosts prevent indefinite starvation.',
+      'Worked turnaround comparison: if A needs 100 seconds and B and C need 10 seconds each, all arriving at time 0, FIFO order A-B-C completes them at 100, 110, and 120 for average turnaround 110. SJF order B-C-A completes them at 10, 20, and 120 for average 50, avoiding the convoy effect.',
+      'Worked response comparison: for three five-second jobs arriving together, non-preemptive SJF first runs A, B, and C at times 0, 5, and 10, for average response 5. Round robin with a one-second quantum first runs them at 0, 1, and 2, for average response 1, while increasing completion time and adding context-switch overhead. State the workload, metric, and quantum before calling one policy better.'
     ],
     handsOn: 'Run OSTEP scheduling simulators with at least three seeds. Draw one Gantt chart manually, then reconcile it with simulator output.',
     artifact: 'Gantt chart, metric calculations, simulator command, and a short policy tradeoff paragraph.',
@@ -120,7 +126,9 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     lesson: [
       'An address space is the process-visible arrangement of code, static data, heap, stack, and mapped regions. Virtual addresses must be translated and checked before physical memory is accessed.',
       'Dynamic relocation adds a base to a virtual offset and checks the result against a bound. The hardware performs the fast check; the OS controls base/bounds values during context switches.',
-      'Segmentation represents logically different regions with separate bases, limits, and growth directions. It improves flexibility but introduces external fragmentation and placement questions.'
+      'Segmentation represents logically different regions with separate bases, limits, and growth directions. It improves flexibility but introduces external fragmentation and placement questions.',
+      'Worked base-and-bounds translation: with base 32768 and bound 16384, virtual addresses 0, 128, and 16383 translate to physical addresses 32768, 32896, and 49151. Virtual address 16384 faults because legal offsets are 0 through 16383; the check is strictly less than the bound.',
+      'Worked segmentation case: separate code, heap, and stack bases avoid allocating the unused virtual gap between heap and stack. Code base 32 KiB plus offset 100 gives 32868, and heap base 34 KiB plus offset 100 gives 34916; a downward-growing stack uses its own translation rule. Variable-size physical regions save the gap but create external fragmentation.'
     ],
     handsOn: 'Use the OSTEP relocation and segmentation simulators. For three addresses, compute the result by hand before revealing the simulator answer.',
     artifact: 'Translation table with validity decision, arithmetic, and physical address or protection fault.',
@@ -158,7 +166,9 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     lesson: [
       'Demand paging leaves some virtual pages outside physical memory. Accessing a nonresident valid page traps to the OS, which locates data, chooses a frame, performs I/O if needed, updates metadata, and restarts the instruction.',
       'Replacement policy decides which resident page to evict. OPT is an unattainable benchmark, LRU exploits recency, FIFO is simple, and Clock approximates recency with reference bits.',
-      'Locality makes caching effective. When a workload\'s actively used pages exceed available memory, repeated eviction and reload can cause thrashing.'
+      'Locality makes caching effective. When a workload\'s actively used pages exceed available memory, repeated eviction and reload can cause thrashing.',
+      'Worked three-frame trace for references 0,1,2,0,1,3,0,3,1,2,1: FIFO records seven misses and four hits because it evicts page 0 at reference 3 and later pays for ignoring recent use. LRU records five misses and six hits by evicting stale page 2 instead, so the following reference to 0 hits.',
+      'OPT also has five misses on this particular string, so LRU ties the unattainable lower bound here without becoming optimal in general. The first three compulsory misses cannot be avoided. Always report both the reference string and frame count with a hit rate; changing either changes the result.'
     ],
     handsOn: 'Run page-replacement traces under FIFO, LRU, and Clock; explain one point where policies diverge.',
     artifact: 'Frame-by-frame table, page-fault counts, and a locality-based explanation.',
@@ -176,7 +186,8 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     lesson: [
       'Threads in one process share the address space and open resources but retain separate register state and stacks. This makes communication cheap and also exposes shared data to harmful interleavings.',
       'An expression such as counter++ expands to load, modify, and store operations. Two threads can load the same old value and overwrite one another\'s updates. The result depends on timing rather than program intent.',
-      'A race detector can expose observed conflicts, but one clean run does not prove correctness. Reasoning about which state is shared and which ordering is required remains essential.'
+      'A race detector can expose observed conflicts, but one clean run does not prove correctness. Reasoning about which state is shared and which ordering is required remains essential.',
+      'Worked lost-update trace: with counter = 50, thread 1 loads 50 and computes 51 before it is interrupted. Thread 2 also loads 50, computes 51, and stores it. Thread 1 resumes and stores its saved 51. Two increments completed, but the shared counter advanced only once because load-add-store was not indivisible.'
     ],
     handsOn: 'Compile a pthread counter program with and without `-fsanitize=thread`, reproduce a race, then protect the critical section.',
     artifact: 'Before/after output, sanitizer excerpt, and a statement of the protected invariant.',
@@ -194,7 +205,9 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     lesson: [
       'A lock protects a critical section whose operations must appear indivisible relative to other threads. The programmer must identify the invariant and ensure every access that can violate it follows the same discipline.',
       'Hardware atomic instructions such as test-and-set make it possible to change lock state without an intervening thread observing a half-completed update. Spinning may be appropriate for very short waits but wastes CPU for long waits.',
-      'Coarse-grained locks are simpler but reduce parallelism. Fine-grained locks may increase concurrency but also raise proof, ordering, and debugging complexity.'
+      'Coarse-grained locks are simpler but reduce parallelism. Fine-grained locks may increase concurrency but also raise proof, ordering, and debugging complexity.',
+      'Worked invariant failure: if account fields a and b must sum to 100, locking a -= 10 and b += 10 as two separate critical sections still permits another thread to observe 50 + 40 = 90 between them. Protect the whole transfer, because a correct lock boundary is the span over which the invariant would otherwise be false.',
+      'Ordinary flag loads and stores cannot build a correct lock: two threads can both read flag 0 before either writes 1, and both then enter. Test-and-set closes that gap by returning the old value and setting the new value as one atomic hardware operation, so only one contender can observe 0.'
     ],
     handsOn: 'Implement a mutex-protected counter, then deliberately move one access outside the critical section and explain the broken invariant.',
     artifact: 'Code diff plus an invariant-based explanation of why the protected version is correct.',
@@ -212,7 +225,9 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     lesson: [
       'A condition variable lets a thread sleep until shared state may satisfy a predicate. The thread checks that predicate while holding the associated mutex and waits in a loop because wakeups do not guarantee the condition is now true.',
       'A semaphore combines a counter with atomic wait and post operations. A counting semaphore can represent available units of a resource; a binary semaphore can resemble a lock, though ownership conventions differ.',
-      'Correct synchronization begins with state and invariants, not with choosing a primitive. First state what must be true; then choose locks, conditions, or semaphores that enforce it.'
+      'Correct synchronization begins with state and invariants, not with choosing a primitive. First state what must be true; then choose locks, conditions, or semaphores that enforce it.',
+      'Worked condition-variable trace: two consumers wait while count is zero. A producer adds one item and signals; the first consumer wakes and consumes it. If the second consumer also wakes, an if guard lets it continue with count still zero, but a while guard rechecks the predicate under the mutex and waits again. A signal means the condition may hold, not that ownership has transferred.',
+      'Semaphore initial values express intent: 1 supports binary exclusion, 0 makes a waiter block until another thread posts for ordering, and N represents N available identical resources. Choosing 0 when lock-like behavior requires 1 produces immediate deadlock.'
     ],
     handsOn: 'Build a bounded-buffer or ordered-print exercise with pthread mutexes and condition variables; add a log that makes waiting and wakeup visible.',
     artifact: 'State diagram, predicate, code, and trace explaining each wait/signal.',
@@ -230,7 +245,8 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     lesson: [
       'Deadlock is a liveness failure in which participants wait forever for resources held within the waiting set. The classic necessary conditions are mutual exclusion, hold-and-wait, no preemption, and circular wait.',
       'A consistent global lock order prevents cycles. Other strategies remove a different necessary condition, avoid unsafe allocations, detect cycles after they form, or recover by terminating or rolling back work.',
-      'Not every hang is deadlock. Starvation denies service to one participant while the system still progresses; livelock changes state repeatedly without useful progress.'
+      'Not every hang is deadlock. Starvation denies service to one participant while the system still progresses; livelock changes state repeatedly without useful progress.',
+      'Worked two-lock trace: thread 1 acquires L1 and waits for L2, while thread 2 acquires L2 and waits for L1. Mutual exclusion, hold-and-wait, no preemption, and the L1-to-L2-to-L1 cycle are all present. Requiring every thread to acquire L1 before L2 removes circular wait; a thread holding the higher-numbered lock can never wait for the lower one.'
     ],
     handsOn: 'Create a two-lock deadlock under controlled conditions, capture thread stacks, then repair it with a documented lock order.',
     artifact: 'Wait-for graph, stack evidence, fixed code, and a deadlock/starvation/livelock comparison.',
@@ -248,7 +264,9 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     lesson: [
       'Programs access devices through OS abstractions and system calls. The kernel validates requests, coordinates drivers, and arranges data transfer while preserving isolation.',
       'Polling repeatedly checks device status; interrupts let the CPU do other work until notification; DMA moves bulk data between device and memory with limited CPU copying. Each approach has workload-dependent overheads.',
-      'A correct I/O trace distinguishes request submission, waiting/blocking, device completion, interrupt handling, and process wakeup.'
+      'A correct I/O trace distinguishes request submission, waiting/blocking, device completion, interrupt handling, and process wakeup.',
+      'Worked 4 KiB read comparison: for a device taking 10 ms on a 1 GHz CPU, polling with programmed I/O can consume roughly ten million wait cycles plus a CPU copy loop. Interrupts avoid the busy wait but still leave the copy to the CPU; interrupts with DMA reduce CPU work to transfer setup and completion handling. Interrupts address waiting, while DMA addresses copying.',
+      'A system-call trace proves a kernel crossing, not necessarily a physical device access. openat may resolve metadata, read may be satisfied by the buffer cache, read returning 0 means end of file, and close releases the descriptor. Descriptor 3 is commonly first because 0, 1, and 2 are standard input, output, and error.'
     ],
     handsOn: 'Use `strace` in the container to observe open/read/write calls from a small C program; annotate which operations cross into the kernel.',
     artifact: 'Filtered trace, annotated request path, and one performance hypothesis.',
@@ -266,7 +284,9 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     lesson: [
       'A file descriptor is a per-process handle returned by open; it refers through kernel state to an underlying file object and current offset. A pathname is resolved through directories and is not itself the file\'s content identity.',
       'Directory entries map names to underlying objects such as inodes. Hard links create another directory entry for the same inode; symbolic links store a pathname to resolve later.',
-      'Metadata operations such as stat help separate questions about names, sizes, permissions, link counts, and timestamps.'
+      'Metadata operations such as stat help separate questions about names, sizes, permissions, link counts, and timestamps.',
+      'Worked link-count trace: creating original gives its inode one name; ln original hard raises the same inode\'s link count to two; ln -s original symbolic creates a separate inode that stores the pathname. Removing original leaves hard able to read the data but makes symbolic dangle. Data is reclaimed only after the link count is zero and no process still holds it open.',
+      'Two independent open calls can reach the same inode through separate open-file entries and therefore keep separate offsets. Descriptors created by dup or inherited across fork share an open-file entry and its offset, so a read through one advances the position observed by the other.'
     ],
     handsOn: 'Create a file, hard link, and symbolic link inside the lab workspace; compare `ls -li`, `stat`, and behavior after removing the original name.',
     artifact: 'Command transcript and an inode/name diagram explaining every observation.',
@@ -284,7 +304,9 @@ const AUTHORED_MODULES: readonly AuthoredCourseModule[] = [
     lesson: [
       'A simple file system divides storage among metadata, allocation structures, inodes, directories, and data blocks. Reading a pathname can require a sequence of directory and inode lookups before reaching content blocks.',
       'FFS-style placement tries to preserve locality by grouping related metadata and data. Caching and write buffering reduce I/O but create ordering questions when memory state is lost during a crash.',
-      'Journaling records an update transaction so recovery can distinguish committed work from incomplete work. Correctness depends on what is logged and on enforced write ordering, not merely on issuing writes.'
+      'Journaling records an update transaction so recovery can distinguish committed work from incomplete work. Correctness depends on what is logged and on enforced write ordering, not merely on issuing writes.',
+      'Worked cold-cache path /foo/bar: read the root inode, root directory block, foo inode, foo directory block, bar inode, and then bar data block. Updating bar\'s access time adds an inode write, for six reads and one write to deliver one data block. This access chain explains the value of inode caching and locality-aware placement.',
+      'Worked crash trace for file creation: if only the bitmap is written, or the bitmap and data are written without linking the inode, the file system leaks an unreachable block. Publishing the inode reference before marking and initializing its block is worse because the file points to a block still considered free. Journaling writes the intended updates to a log and then a commit record before home-location updates; recovery replays committed transactions and discards incomplete ones.'
     ],
     handsOn: 'Walk a simplified VSFS image or diagram: resolve a pathname, identify inode/data bitmap changes for file creation, then mark crash points in an update sequence.',
     artifact: 'Block-access trace and crash-consistency table showing states before commit, after commit, and after checkpoint.',

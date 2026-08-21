@@ -37,6 +37,29 @@ test('all 13 modules include eight source-grounded explained questions across Bl
   }
 });
 
+test('current Canvas worked examples are carried into every extension module', () => {
+  const requiredExamples: Readonly<Record<string, readonly RegExp[]>> = {
+    m01: [/mechanism-versus-policy/i, /address-space layout randomization/i],
+    m02: [/parent x=99/i, /open file descriptors/i],
+    m03: [/average turnaround 110/i, /average response 1/i],
+    m04: [/virtual address 16384 faults/i, /external fragmentation/i],
+    m05: [/physical address is 6 × 4096 \+ 4 = 24580/i, /TLB miss with a valid resident PTE/i],
+    m06: [/FIFO records seven misses/i, /OPT also has five misses/i],
+    m07: [/counter = 50/i, /advanced only once/i],
+    m08: [/50 \+ 40 = 90/i, /Test-and-set closes that gap/i],
+    m09: [/second consumer also wakes/i, /0 makes a waiter block/i],
+    m10: [/L1-to-L2-to-L1 cycle/i, /circular wait/i],
+    m11: [/ten million wait cycles/i, /kernel crossing, not necessarily/i],
+    m12: [/ln original hard/i, /share an open-file entry/i],
+    m13: [/six reads and one write/i, /commit record before home-location updates/i]
+  };
+
+  for (const module of MODULES) {
+    const lesson = module.lesson.join('\n');
+    for (const marker of requiredExamples[module.id] ?? []) assert.match(lesson, marker, `${module.id}: ${marker}`);
+  }
+});
+
 test('coursework reflects three homework and four programming components', () => {
   assert.equal(COURSEWORK.filter((item) => item.kind === 'Homework').length, 3);
   assert.equal(COURSEWORK.filter((item) => item.kind === 'Programming').length, 4);
