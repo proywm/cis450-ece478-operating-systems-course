@@ -15,7 +15,7 @@ test('U-M Codex readiness checks installation and student-owned login status', a
     callback(null, args.includes('--version') ? `codex-cli test via ${command}\n` : 'Logged in using ChatGPT\n', '');
     return undefined;
   }) as unknown as Parameters<typeof probeCodexCli>[1];
-  const status = await probeCodexCli(['codex'], fake);
+  const status = await probeCodexCli(['codex'], fake, 'linux');
   assert.equal(status.ready, true);
   assert.equal(status.installed, true);
   assert.equal(status.authenticated, true);
@@ -24,12 +24,27 @@ test('U-M Codex readiness checks installation and student-owned login status', a
   assert.match(status.detail, /login status is confirmed/i);
 });
 
+test('U-M Codex readiness executes fixed probes through the Windows command shim', async () => {
+  const calls: string[][] = [];
+  const fake = ((command: string, args: readonly string[], _options: object, callback: Function) => {
+    calls.push([command, ...args]);
+    callback(null, args.at(-1)?.endsWith('--version') ? 'codex-cli test\n' : 'Logged in using ChatGPT\n', '');
+    return undefined;
+  }) as unknown as Parameters<typeof probeCodexCli>[1];
+  const status = await probeCodexCli(['codex.cmd'], fake, 'win32');
+  assert.equal(status.ready, true);
+  assert.deepEqual(calls.map((call) => call.slice(1)), [
+    ['/d', '/s', '/c', 'codex.cmd --version'],
+    ['/d', '/s', '/c', 'codex.cmd login status']
+  ]);
+});
+
 test('an installed but unauthenticated Codex CLI is not reported ready', async () => {
   const fake = ((_command: string, args: readonly string[], _options: object, callback: Function) => {
     callback(args.includes('--version') ? null : new Error('Not logged in'), args.includes('--version') ? 'codex-cli test' : '', '');
     return undefined;
   }) as unknown as Parameters<typeof probeCodexCli>[1];
-  const status = await probeCodexCli(['codex'], fake);
+  const status = await probeCodexCli(['codex'], fake, 'linux');
   assert.equal(status.ready, false);
   assert.equal(status.installed, true);
   assert.equal(status.authenticated, false);

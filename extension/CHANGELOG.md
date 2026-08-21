@@ -1,5 +1,10 @@
 # Change log
 
+## 0.9.4 — 2026-08-21
+
+- Made Codex readiness probes explicitly platform-injectable so the Windows command-shim path and Unix direct-executable path are tested deterministically on every host.
+- Added a full Windows-shim regression covering both `codex --version` and `codex login status`; this fixes the Windows CI failure caused by host-dependent test assumptions without weakening the authentication check.
+
 ## 0.9.3 — 2026-08-21
 
 - Synchronized the extension's lesson narratives with the current Canvas worked examples in Modules 1–4 and 6–13, including exact process, scheduling, relocation, replacement, concurrency, I/O, file-link, and crash-consistency traces.

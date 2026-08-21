@@ -29,9 +29,10 @@ export function codexProbeInvocation(
 async function runProbe(
   command: string,
   args: readonly string[],
-  run: typeof execFile
+  run: typeof execFile,
+  platform: NodeJS.Platform
 ): Promise<{ ok: boolean; output: string }> {
-  const invocation = codexProbeInvocation(command, process.platform, args);
+  const invocation = codexProbeInvocation(command, platform, args);
   return new Promise((resolve) => {
     run(invocation.executable, invocation.args, { timeout: 10_000, windowsHide: true }, (error, stdout, stderr) => {
       resolve({ ok: !error, output: `${stdout ?? ''}${stderr ?? ''}`.trim().slice(0, 240) });
@@ -41,12 +42,13 @@ async function runProbe(
 
 export async function probeCodexCli(
   candidates: readonly string[] = codexCommandCandidates(),
-  run: typeof execFile = execFile
+  run: typeof execFile = execFile,
+  platform: NodeJS.Platform = process.platform
 ): Promise<CodexCliStatus> {
   for (const command of candidates) {
-    const version = await runProbe(command, ['--version'], run);
+    const version = await runProbe(command, ['--version'], run, platform);
     if (version.ok) {
-      const login = await runProbe(command, ['login', 'status'], run);
+      const login = await runProbe(command, ['login', 'status'], run, platform);
       if (!login.ok) {
         return {
           ready: false,
