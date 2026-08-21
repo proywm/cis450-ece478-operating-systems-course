@@ -100,9 +100,12 @@
 - Saved questions, review dates, per-topic analytics, guided-lab checkmarks,
   simulator practice/reveal counts, coursework status, and reviewed calendar
   reminders also stay local.
-- The grade calculator is a planning estimate based on verified historical
-  weights. It does not read Canvas, apply an unverified drop rule, or claim an
-  official result.
+- The dedicated grade predictor accepts manually copied Canvas category
+  percentages or explicit what-if estimates and exposes each weighted
+  contribution, the projected result/letter, normalized pre-final standing,
+  and the final-exam percentage needed for a selected target. It remains based
+  on verified historical weights, reads no Canvas data, applies no unverified
+  drop rule, and never claims an official result.
 - The helper is offline and deterministic. It refuses finished assignment
   answers/code and redirects to invariants, analogous examples, errors, and the
   student's own attempt.

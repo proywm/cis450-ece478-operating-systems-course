@@ -22,7 +22,10 @@ The Fall 2026 Operating Systems learning hub for section 001.
   diagnostics
 - three-homework/four-programming progression with evidence checks
 - private local progress and confidence—not a grade and not sent to Canvas
-- manual grade planning using the verified historical Winter 2026 10/15/40/15/20 weights
+- a dedicated local grade predictor using the verified historical Winter 2026
+  10/15/40/15/20 weights, with weighted contributions, projected result,
+  normalized pre-final standing, and target-final calculation; it applies no
+  unverified drop rule and remains visibly separate from official Canvas grades
 - deterministic offline helper with assessed-work guardrails
 - optional original animated learning companion with reduced-motion and
   hide/restore controls

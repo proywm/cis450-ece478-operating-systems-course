@@ -41,8 +41,9 @@ OSTEP chapter links with reading-focus prompts, 104 source-grounded questions,
 five-question practice with spaced review and analytics, 15 mapped official
 OSTEP prediction tools, thirteen executable guided lab starters, explicit
 self-evaluation, a self-paced walkthrough,
-coursework evidence planning, a student-evidence-informed FAQ/help clinic, and
-reviewed-before-save Canvas calendar import. A generated portable
+coursework evidence planning, a dedicated local grade predictor with projected
+results and target-final calculations, a student-evidence-informed FAQ/help
+clinic, and reviewed-before-save Canvas calendar import. A generated portable
 workspace supplies one visible Linux container recipe and fixed HW1/HW2/HW3/PA3
 preflights on Windows, macOS, and Linux. All learning indicators are private
 self-evaluation and remain separate from Canvas grades.

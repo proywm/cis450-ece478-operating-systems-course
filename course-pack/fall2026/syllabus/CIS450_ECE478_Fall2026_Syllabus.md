@@ -92,9 +92,12 @@ staff and must not be confused with instructor or Canvas evaluation.
 | Final examination | 1 | 20% |
 | **Total** |  | **100%** |
 
-The local extension calculator accepts category percentages copied manually
-from Canvas. It provides a planning estimate only, applies no unverified drop
-rule, and never replaces the official Canvas grade.
+The local extension grade predictor accepts category percentages copied
+manually from Canvas or entered as explicit what-if values. It shows weighted
+contributions, a projected result, normalized standing before the final, and
+the final-exam percentage needed for a selected target. It provides a planning
+estimate only, applies no unverified drop rule, and never replaces the official
+Canvas grade.
 
 ### Letter-grade scale carried forward for instructor confirmation
 

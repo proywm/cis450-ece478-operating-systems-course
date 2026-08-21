@@ -8,7 +8,8 @@ test('learning hub exposes the pedagogically relevant parity surfaces', async ()
   for (const marker of [
     'Thirteen learning modules', '104 explained questions', 'Five-question practice',
     'Guided OS labs', 'Coursework planning and evidence', 'My learning progress',
-    'Optional historical-weight grade planning estimate', 'Frequently asked questions',
+    'Grade predictor', 'Target calculation', 'Standing before the final',
+    'The OS policy has no verified two-lowest-score drop rule', 'Frequently asked questions',
     'Ask before class through Canvas', 'Self-paced orientation',
     'Self-reported coursework planning progression', 'Open dated OSTEP course plan',
     '29 exact official OSTEP chapter links', '15 chapter-mapped simulators',

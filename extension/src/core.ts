@@ -14,13 +14,35 @@ export interface GradeEstimate {
   contributions: Readonly<Record<keyof GradeInputs, number>>;
 }
 
-const GRADE_WEIGHTS: Readonly<Record<keyof GradeInputs, number>> = {
+export const GRADE_WEIGHTS: Readonly<Record<keyof GradeInputs, number>> = {
   participation: 0.10,
   homework: 0.15,
   programming: 0.40,
   midterm: 0.15,
   finalExam: 0.20
 };
+
+export interface FinalExamTarget {
+  requiredPercent: number;
+  status: 'required' | 'already-reached' | 'not-reachable';
+  pointsBeforeFinal: number;
+}
+
+export function requiredFinalExamPercent(
+  input: Omit<GradeInputs, 'finalExam'>,
+  targetPercent: number
+): FinalExamTarget {
+  if (!Number.isFinite(targetPercent) || targetPercent < 0 || targetPercent > 100) {
+    throw new Error('targetPercent must be a percentage from 0 through 100.');
+  }
+  const estimate = estimateGrade({ ...input, finalExam: 0 });
+  const requiredPercent = (targetPercent - estimate.percent) / GRADE_WEIGHTS.finalExam;
+  return {
+    requiredPercent,
+    status: requiredPercent <= 0 ? 'already-reached' : requiredPercent > 100 ? 'not-reachable' : 'required',
+    pointsBeforeFinal: estimate.percent
+  };
+}
 
 export function estimateGrade(input: GradeInputs): GradeEstimate {
   for (const [name, value] of Object.entries(input)) {

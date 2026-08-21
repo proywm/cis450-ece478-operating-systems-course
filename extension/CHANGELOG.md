@@ -1,5 +1,18 @@
 # Change log
 
+## 0.6.1 — 2026-08-20
+
+- Promoted grade planning from a collapsed progress-page utility to a dedicated,
+  keyboard-accessible **Grade predictor** destination and course-home action.
+- Added a weighted contribution table, projected course result and letter,
+  normalized pre-final standing, and the exact final-exam percentage needed for
+  a selected target grade, including already-reached and unreachable states.
+- Kept all inputs manual and local. The predictor explicitly uses the verified
+  historical 10% / 15% / 40% / 15% / 20% policy pending Fall 2026 confirmation,
+  applies no unverified dropped-score rule, and never reads or writes Canvas.
+- Added target-calculation tests and integrated the predictor into the self-paced
+  orientation, documentation, and release parity checks.
+
 ## 0.6.0 — 2026-08-20
 
 - Individually audited all 29 assigned OSTEP chapter structures and all nine

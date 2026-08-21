@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildCalendar, estimateGrade, fall2026Meetings, fall2026Schedule, letterFor, progressPercent, tutorReply } from '../src/core.js';
+import { buildCalendar, estimateGrade, fall2026Meetings, fall2026Schedule, letterFor, progressPercent, requiredFinalExamPercent, tutorReply } from '../src/core.js';
 
 test('verified Fall 2026 calendar has 27 Monday/Wednesday meetings', () => {
   const meetings = fall2026Meetings();
@@ -41,6 +41,19 @@ test('grade estimate uses verified historical 10/15/40/15/20 weights', () => {
 
 test('grade calculator rejects out-of-range categories', () => {
   assert.throws(() => estimateGrade({ participation: 101, homework: 90, programming: 90, midterm: 90, finalExam: 90 }), /0 through 100/);
+});
+
+test('grade predictor calculates an exact target-final requirement', () => {
+  const result = requiredFinalExamPercent({ participation: 80, homework: 90, programming: 70, midterm: 100 }, 83.34);
+  assert.equal(result.pointsBeforeFinal, 64.5);
+  assert.ok(Math.abs(result.requiredPercent - 94.2) < 1e-9);
+  assert.equal(result.status, 'required');
+});
+
+test('grade predictor distinguishes secured and unreachable targets', () => {
+  assert.equal(requiredFinalExamPercent({ participation: 100, homework: 100, programming: 100, midterm: 100 }, 70).status, 'already-reached');
+  assert.equal(requiredFinalExamPercent({ participation: 0, homework: 0, programming: 0, midterm: 0 }, 60).status, 'not-reachable');
+  assert.throws(() => requiredFinalExamPercent({ participation: 100, homework: 100, programming: 100, midterm: 100 }, 101), /0 through 100/);
 });
 
 test('letter boundaries match the carried-forward syllabus', () => {
