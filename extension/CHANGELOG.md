@@ -207,3 +207,8 @@
 - Added coursework progression, portable OS lab, local progress/confidence,
   a planning-only grade estimate, an offline integrity-guarded helper,
   accessible HTML content, and a verified calendar.
+# 0.9.8
+
+- Added a privacy-bounded learning-improvement framework for a possible future approved study.
+- Kept the institutional gate compiled off with no protocol identifier or endpoint; this release records and sends no learning-improvement data.
+- Added dormant category-specific consent, preview, export, explicit batch approval, withdrawal, deletion, bounded queues, and allowlisted coarse setup/practice/lab/simulator schemas with unit tests.

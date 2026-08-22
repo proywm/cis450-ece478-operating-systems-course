@@ -66,6 +66,10 @@ student's own U-M configuration and persistent course guardrails. No instructor 
 private instructor-hosted model, file, or Canvas data is attached, and prompts
 remain student-reviewed and attempt-first.
 
+An optional [learning-improvement data framework](docs/LEARNING_IMPROVEMENT_PRIVACY.md)
+is present but compiled off pending institutional/IRB review. It has no endpoint,
+records no events, sends nothing, and cannot be enabled through student settings.
+
 The release suite compiles/runs all 13 public starters and 13 completed
 internal-only references, then executes seven coursework reference suites.
 Internal references are excluded from the student VSIX and are not current

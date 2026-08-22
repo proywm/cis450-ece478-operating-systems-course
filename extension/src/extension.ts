@@ -21,6 +21,7 @@ import {
 } from './aiCoach.js';
 import { probeCodexCli, UM_CODEX_CLASSROOM_URL } from './codexCli.js';
 import { reportOsIssue } from './issueReporter.js';
+import { LearningImprovementManager } from './learningImprovement.js';
 
 const execFileAsync = promisify(execFile);
 const DOCKER_SERVER_VERSION_ARGS = ['version', '--format', '{{.Server.Version}}'];
@@ -39,19 +40,21 @@ export interface SystemStudioExtensionApi {
 
 export function activate(context: vscode.ExtensionContext): SystemStudioExtensionApi {
   const provider = new CourseTreeProvider();
+  const learningImprovement = new LearningImprovementManager(context);
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider('systemstudioOs.course', provider),
     vscode.commands.registerCommand('systemstudioOs.openLearningHub', (target?: number | string) => {
-      hub = hub ?? new LearningHub(context);
+      hub = hub ?? new LearningHub(context, learningImprovement);
       hub.show(target);
     }),
     vscode.commands.registerCommand('systemstudioOs.openCanvas', () => vscode.env.openExternal(vscode.Uri.parse(configuredCanvasUrl('canvasCourseUrl')))),
     vscode.commands.registerCommand('systemstudioOs.openSyllabus', () => openBundledHtml(context, 'syllabus', 'CIS450_ECE478_Fall2026_Syllabus.html')),
     vscode.commands.registerCommand('systemstudioOs.openPretest', () => openBundledHtml(context, 'diagnostics', 'PRETEST.html')),
     vscode.commands.registerCommand('systemstudioOs.openAccessibleLessons', () => openBundledHtml(context, 'lessons', 'CIS450_ECE478_Fall2026_Accessible_Lessons.html')),
-    vscode.commands.registerCommand('systemstudioOs.setupCourseEnvironment', () => setupCourseEnvironment(context)),
+    vscode.commands.registerCommand('systemstudioOs.setupCourseEnvironment', () => setupCourseEnvironment(context, learningImprovement)),
     vscode.commands.registerCommand('systemstudioOs.openAiTutor', (starterPrompt?: unknown) => openAiTutor(context, typeof starterPrompt === 'string' ? starterPrompt : undefined)),
     vscode.commands.registerCommand('systemstudioOs.reportIssue', () => reportOsIssue(context)),
+    vscode.commands.registerCommand('systemstudioOs.openLearningImprovementPrivacy', () => learningImprovement.openPrivacyCenter()),
     vscode.commands.registerCommand('systemstudioOs.configureAiAssistance', () => configureAiAssistance(context, true)),
     vscode.commands.registerCommand('systemstudioOs.checkEnvironment', checkEnvironment),
     vscode.commands.registerCommand('systemstudioOs.createLabWorkspace', createLabWorkspace),
@@ -152,6 +155,7 @@ class CourseTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         action('Configure or check U-M Codex', 'systemstudioOs.configureAiAssistance', 'ai', 'student-owned U-M configuration'),
         action('Open FAQ and offline helper', 'systemstudioOs.openLearningHub', 'help', 'private deterministic support', ['help']),
         action('Report an extension problem', 'systemstudioOs.reportIssue', 'issues', 'review a privacy-limited public GitHub draft before submitting'),
+        action('Learning-improvement privacy controls', 'systemstudioOs.openLearningImprovementPrivacy', 'privacy', 'institutional gate off · no collection or upload before IRB-approved release'),
         action(`${COURSE.meeting} · ${COURSE.room}`, 'systemstudioOs.openLearningHub', 'info', 'verified Fall 2026 schedule'),
         action(`Instructor: ${COURSE.instructor}`, 'systemstudioOs.openLearningHub', 'info', COURSE.instructorOffice),
         action(COURSE.gsiStatus, 'systemstudioOs.openLearningHub', 'info', 'current course staffing status'),
@@ -181,7 +185,7 @@ function action(label: string, command: string, kind: string, description?: stri
   item.command = { command, title: label, arguments: args };
   item.description = description;
   item.tooltip = `${label}${description ? ` — ${description}` : ''}`;
-  const icons: Record<string, string> = { home: 'home', setup: 'tools', action: 'play', ai: 'sparkle', canvas: 'cloud', lab: 'beaker', simulation: 'graph', help: 'comment-discussion', issues: 'issues', info: 'info' };
+  const icons: Record<string, string> = { home: 'home', setup: 'tools', action: 'play', ai: 'sparkle', canvas: 'cloud', lab: 'beaker', simulation: 'graph', help: 'comment-discussion', issues: 'issues', privacy: 'shield', info: 'info' };
   item.iconPath = new vscode.ThemeIcon(icons[kind] ?? 'book');
   return item;
 }
@@ -189,7 +193,10 @@ function action(label: string, command: string, kind: string, description?: stri
 class LearningHub {
   private panel: vscode.WebviewPanel | undefined;
 
-  constructor(private readonly context: vscode.ExtensionContext) {}
+  constructor(
+    private readonly context: vscode.ExtensionContext,
+    private readonly learningImprovement: LearningImprovementManager
+  ) {}
 
   show(target?: number | string): void {
     if (!this.panel) {
@@ -228,6 +235,15 @@ class LearningHub {
         } else if (message.type === 'practiceAnswer') {
           try {
             const result = recordPracticeAnswer(normalizeLearningState(message.learning), String(message.questionId ?? ''), Number(message.selectedIndex), message.confidence === 'low' || message.confidence === 'high' ? message.confidence : 'medium');
+            const attempt = result.state.attempts.at(-1);
+            await this.learningImprovement.record({
+              category: 'learning', name: 'practice-attempt',
+              moduleId: attempt ? `module-${attempt.moduleNumber}` : undefined,
+              activityId: typeof message.questionId === 'string' ? message.questionId : undefined,
+              selectedOption: Number(message.selectedIndex), correct: result.correct,
+              confidence: attempt?.confidence,
+              attemptNumber: result.state.questions[String(message.questionId ?? '')]?.attempts
+            });
             void this.panel?.webview.postMessage({ type: 'practiceResult', ...result, analytics: practiceAnalytics(result.state), questionId: message.questionId });
           } catch (error) {
             void this.panel?.webview.postMessage({ type: 'notice', message: error instanceof Error ? error.message : String(error) });
@@ -240,7 +256,19 @@ class LearningHub {
             void this.panel?.webview.postMessage({ type: 'notice', message: error instanceof Error ? error.message : String(error) });
           }
         } else if (message.type === 'walkthroughStatus') {
-          if (message.status === 'completed' || message.status === 'skipped') await this.context.globalState.update('walkthroughVersion', 1);
+          if (message.status === 'started') {
+            await this.learningImprovement.record({ category: 'learning', name: 'tutorial-result', activityId: 'guided-orientation', outcome: 'started' });
+          }
+          if (message.status === 'completed' || message.status === 'skipped') {
+            await this.context.globalState.update('walkthroughVersion', 1);
+            await this.learningImprovement.record({ category: 'learning', name: 'tutorial-result', activityId: 'guided-orientation', outcome: message.status });
+            if (message.status === 'completed') await this.learningImprovement.askHelpfulness('guided-orientation');
+          }
+        } else if (message.type === 'learningImprovementLabStep') {
+          const lab = GUIDED_LABS.find((candidate) => candidate.id === message.labId);
+          if (lab?.steps.some((step) => step.id === message.stepId) && typeof message.completed === 'boolean') {
+            await this.learningImprovement.record({ category: 'learning', name: 'guided-lab-step', moduleId: `module-${lab.moduleNumber}`, activityId: lab.id, outcome: message.completed ? 'checked' : 'unchecked' });
+          }
         } else if (message.type === 'requestResetLocalData') {
           const decision = await vscode.window.showWarningMessage(
             'Reset all private learning progress stored by this extension on this device? Canvas is not affected.',
@@ -259,7 +287,11 @@ class LearningHub {
           await runCourseworkPreflight(typeof message.itemId === 'string' ? message.itemId : undefined);
         } else if (message.type === 'runOstepSimulator') {
           const result = await runOstepSimulator(this.context, typeof message.id === 'string' ? message.id : undefined, typeof message.mode === 'string' ? message.mode : undefined);
-          if (result) void this.panel?.webview.postMessage({ type: 'simulationResult', ...result });
+          if (result) {
+            const simulator = ostepSimulator(result.id);
+            await this.learningImprovement.record({ category: 'learning', name: 'simulation-result', moduleId: simulator ? `module-${simulator.moduleNumber}` : undefined, activityId: result.id, outcome: 'success' });
+            void this.panel?.webview.postMessage({ type: 'simulationResult', ...result });
+          }
         } else if (message.type === 'importIcs') {
           const events = await importCanvasCalendar();
           if (events) void this.panel?.webview.postMessage({ type: 'icsPreview', events });
@@ -422,7 +454,7 @@ async function promptForOrbitSetupOnFirstRun(context: vscode.ExtensionContext): 
   if (next === 'Set up course environment') {
     await vscode.commands.executeCommand('systemstudioOs.setupCourseEnvironment');
   } else if (next === 'Open self-paced orientation') {
-    hub = hub ?? new LearningHub(context);
+    hub = hub ?? new LearningHub(context, new LearningImprovementManager(context));
     hub.show('home');
   }
   return true;
@@ -452,7 +484,7 @@ async function openAiTutor(context: vscode.ExtensionContext, starterPrompt?: str
     return;
   }
   if (selection === 'offline') {
-    hub = hub ?? new LearningHub(context);
+    hub = hub ?? new LearningHub(context, new LearningImprovementManager(context));
     hub.showOfflineHelp(starterPrompt);
     return;
   }
@@ -959,7 +991,11 @@ async function recoverDockerEngine(): Promise<boolean> {
   return ready;
 }
 
-async function setupCourseEnvironment(context: vscode.ExtensionContext): Promise<void> {
+async function setupCourseEnvironment(
+  context: vscode.ExtensionContext,
+  learningImprovement: LearningImprovementManager
+): Promise<void> {
+  await learningImprovement.record({ category: 'technical', name: 'setup-result', activityId: 'course-environment', outcome: 'started' });
   let docker = await dockerPrerequisites();
   if (!docker[0]?.ok || !docker[1]?.ok) {
     const choice = await vscode.window.showErrorMessage(
@@ -976,18 +1012,28 @@ async function setupCourseEnvironment(context: vscode.ExtensionContext): Promise
       );
     }
     if (choice === 'Open installation guide') await openPortableSetup();
-    if (choice === 'Check again') await setupCourseEnvironment(context);
+    if (choice === 'Check again') await setupCourseEnvironment(context, learningImprovement);
+    else await learningImprovement.record({ category: 'technical', name: 'setup-result', activityId: 'docker-prerequisites', outcome: 'cancelled' });
     return;
   }
   if (!docker[2]?.ok) {
     const recovered = await recoverDockerEngine();
-    if (!recovered) return;
+    if (!recovered) {
+      await learningImprovement.record({ category: 'technical', name: 'setup-result', activityId: 'docker-not-started', outcome: 'cancelled' });
+      return;
+    }
     docker = await dockerPrerequisites();
   }
-  if (!docker.every((check) => check.ok)) return;
+  if (!docker.every((check) => check.ok)) {
+    await learningImprovement.record({ category: 'technical', name: 'setup-result', activityId: 'docker-unavailable', outcome: 'failure' });
+    return;
+  }
 
   const root = await createLabWorkspace({ promptToOpen: false });
-  if (!root) return;
+  if (!root) {
+    await learningImprovement.record({ category: 'technical', name: 'setup-result', activityId: 'workspace-not-created', outcome: 'cancelled' });
+    return;
+  }
   const output = vscode.window.createOutputChannel('CIS 450 / ECE 478 Guided Setup');
   output.clear();
   output.appendLine(`Course workspace: ${root.fsPath}`);
@@ -1005,9 +1051,11 @@ async function setupCourseEnvironment(context: vscode.ExtensionContext): Promise
       output.append(verify.stderr);
     });
     output.appendLine('\nREADY: Docker, the course container, and all portable prerequisite checks passed.');
+    await learningImprovement.record({ category: 'technical', name: 'setup-result', activityId: 'course-environment', outcome: 'success' });
     const choice = await vscode.window.showInformationMessage('The portable CIS 450 / ECE 478 environment is ready. Open the prepared course workspace to begin.', 'Open course workspace');
     if (choice === 'Open course workspace') await vscode.commands.executeCommand('vscode.openFolder', root, { forceNewWindow: true });
   } catch (error) {
+    await learningImprovement.record({ category: 'technical', name: 'setup-result', activityId: 'course-environment', outcome: 'failure' });
     const details = error as Error & { stdout?: string; stderr?: string };
     if (details.stdout) output.append(details.stdout);
     if (details.stderr) output.append(details.stderr);
@@ -1025,7 +1073,7 @@ async function setupCourseEnvironment(context: vscode.ExtensionContext): Promise
       await openAiTutor(context, setupCoachPrompt('portable OS course environment', diagnostic));
     }
     if (choice === 'Open setup guide') await openPortableSetup();
-    if (choice === 'Retry') await setupCourseEnvironment(context);
+    if (choice === 'Retry') await setupCourseEnvironment(context, learningImprovement);
   }
 }
 
@@ -1438,7 +1486,8 @@ function addCourseworkExecutionControls(){document.querySelectorAll('#coursework
 function applyA11y(){const title=document.getElementById('walk-title'),walk=document.getElementById('walkthrough'),noticeDialog=document.querySelector('#global-notice > .dialog');title.tabIndex=-1;if(!walk.hidden&&!walk.contains(document.activeElement))title.focus();noticeDialog.setAttribute('role','dialog');noticeDialog.setAttribute('aria-modal','true');noticeDialog.setAttribute('aria-labelledby','global-notice-text');document.querySelectorAll('table:not([data-reflow-ready])').forEach(table=>{table.dataset.reflowReady='true';const wrapper=document.createElement('div');wrapper.className='table-scroll';wrapper.tabIndex=0;wrapper.setAttribute('role','region');wrapper.setAttribute('aria-label','Scrollable course data table');table.before(wrapper);wrapper.append(table)});document.querySelectorAll('progress:not([aria-label])').forEach(p=>p.setAttribute('aria-label','Self-reported module learning pathway progress'));document.querySelectorAll('[data-course-status]').forEach(s=>{const item=DATA.coursework.find(x=>x.id===s.dataset.courseStatus);if(item)s.setAttribute('aria-label','Local planning status for '+item.title)});addCourseworkExecutionControls()}
 function noticeKeys(event){const notice=document.getElementById('global-notice');if(notice.hidden)return;if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();closeNotice();return}if(event.key==='Tab'){event.preventDefault();event.stopImmediatePropagation();document.getElementById('global-notice-close').focus()}}
 function modalKeys(event){const walk=document.getElementById('walkthrough');if(walk.hidden)return;if(event.key==='Escape'){event.preventDefault();state.walkthroughOpen=false;persist();vscode.postMessage({type:'walkthroughStatus',status:'skipped'});renderWalkthrough();walkthroughReturnFocus?.focus?.();return}if(event.key!=='Tab')return;const controls=[...walk.querySelectorAll('button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')];if(!controls.length)return;const first=controls[0],last=controls[controls.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}}
-document.addEventListener('keydown',noticeKeys,true);document.addEventListener('keydown',modalKeys);document.addEventListener('click',event=>{if(event.target.closest('#rerun-walk'))walkthroughReturnFocus=event.target.closest('button');if(event.target.closest('#walk-next,#walk-skip'))queueMicrotask(()=>{if(document.getElementById('walkthrough').hidden)walkthroughReturnFocus?.focus?.()})});
+document.addEventListener('keydown',noticeKeys,true);document.addEventListener('keydown',modalKeys);document.addEventListener('click',event=>{if(event.target.closest('#rerun-walk')){walkthroughReturnFocus=event.target.closest('button');vscode.postMessage({type:'walkthroughStatus',status:'started'})}if(event.target.closest('#walk-next,#walk-skip'))queueMicrotask(()=>{if(document.getElementById('walkthrough').hidden)walkthroughReturnFocus?.focus?.()})});
+document.addEventListener('change',event=>{const input=event.target.closest?.('input[type="checkbox"][data-lab][data-step]');if(input)vscode.postMessage({type:'learningImprovementLabStep',labId:input.dataset.lab,stepId:input.dataset.step,completed:input.checked})});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&state.companionOpen&&document.getElementById('walkthrough').hidden){event.preventDefault();closeCompanion()}});
 function renderHomeSimple(){const el=document.getElementById('home');el.innerHTML='<p class="eyebrow">Active student course material · Fall 2026</p><h1>'+esc(DATA.course.title)+'</h1><div class="notice"><strong>Verified meeting:</strong> '+esc(DATA.course.meeting)+', '+esc(DATA.course.room)+'.<br><strong>Instructor:</strong> '+esc(DATA.course.instructor)+' · '+esc(DATA.course.instructorOffice)+'<br><strong>Course staffing:</strong> '+esc(DATA.course.gsiStatus)+'</div><section class="card"><p class="pill">First time or something stopped working</p><h2>Set up or repair the course environment</h2><p>One guided workflow checks Docker, starts Docker Desktop when possible, creates or reuses the verified course workspace, builds the pinned Linux environment, and runs prerequisite checks before reporting ready. Orbit can explain a failure after you choose to share the short diagnostic.</p><div class="actions"><button data-command="systemstudioOs.setupCourseEnvironment">Set up or repair my environment</button><button data-command="systemstudioOs.openAiTutor" class="secondary">Ask Orbit</button><button data-command="systemstudioOs.openPortableSetup" class="quiet">Setup guide</button></div></section><section class="card"><p class="pill">First-week baseline · 0 points</p><h2>Complete the ungraded pre-test without AI help</h2><p>This diagnostic does not affect your grade. Submit your current, unaided understanding in Canvas so prerequisite review can respond to the class baseline.</p><div class="actions"><button data-command="systemstudioOs.openPretest">Open pre-test instructions</button><button data-command="systemstudioOs.openCanvas" class="secondary">Open Canvas to submit</button></div></section><div class="grid"><article class="card"><h2>1. Prepare</h2><p>Read the mapped OSTEP chapter, use the accessible explanation, and answer the module questions.</p><div class="actions"><button id="simple-modules">Open modules</button><button id="simple-schedule" class="secondary">Course plan and exams</button></div></article><article class="card"><h2>2. Practice</h2><p>Build a short adaptive set, review explanations, and revisit due or saved questions.</p><button id="simple-practice">Practice five</button></article><article class="card"><h2>3. Build</h2><p>Use the module-mapped guided labs, official prediction simulators, and verified xv6 pathway.</p><button id="simple-labs">Open hands-on learning</button></article><article class="card"><h2>4. Check and submit</h2><p>Run solution-free preflights locally, then use Canvas for requirements, submission receipts, and official grades.</p><div class="actions"><button id="simple-coursework">Coursework center</button><button data-command="systemstudioOs.openCanvas" class="secondary">Open Canvas</button></div></article></div><div class="actions"><button id="simple-progress" class="secondary">My local progress</button><button id="simple-grades" class="secondary">Private grade planner</button><button id="simple-help" class="secondary">Questions and FAQ</button><button id="rerun-walk" class="quiet">Rerun orientation</button></div>';el.querySelector('#simple-modules').onclick=()=>show('modules');el.querySelector('#simple-schedule').onclick=()=>show('schedule');el.querySelector('#simple-practice').onclick=()=>show('practice');el.querySelector('#simple-labs').onclick=()=>show('labs');el.querySelector('#simple-coursework').onclick=()=>show('coursework');el.querySelector('#simple-progress').onclick=()=>show('progress');el.querySelector('#simple-grades').onclick=()=>show('grades');el.querySelector('#simple-help').onclick=()=>show('help');el.querySelector('#rerun-walk').onclick=()=>{state.walkthroughOpen=true;state.walkthroughStep=0;persist();renderWalkthrough()};bindCommands(el)}
 const renderCourseworkBase=renderCoursework,renderHelpBase=renderHelp,showBase=show,enhanceModulesBase=enhanceModules,enhancePracticeBase=enhancePractice;
