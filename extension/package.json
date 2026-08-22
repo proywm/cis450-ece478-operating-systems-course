@@ -2,7 +2,7 @@
   "name": "systemstudio-cis450-ece478",
   "displayName": "SystemStudio CIS 450 / ECE 478",
   "description": "Accessible Fall 2026 Operating Systems learning hub with OSTEP-aligned modules, hands-on labs, local progress, and academic-integrity support.",
-  "version": "0.9.6",
+  "version": "0.9.7",
   "private": true,
   "publisher": "probir-roy",
   "repository": {
@@ -27,6 +27,7 @@
     "onCommand:systemstudioOs.setupCourseEnvironment",
     "onCommand:systemstudioOs.configureAiAssistance",
     "onCommand:systemstudioOs.openAiTutor",
+    "onCommand:systemstudioOs.reportIssue",
     "onCommand:systemstudioOs.createLabWorkspace",
     "onCommand:systemstudioOs.runCourseworkPreflight",
     "onCommand:systemstudioOs.openPortableSetup",
@@ -87,6 +88,11 @@
         "command": "systemstudioOs.openAiTutor",
         "title": "CIS 450 / ECE 478: Open U-M Codex Learning Coach",
         "icon": "$(sparkle)"
+      },
+      {
+        "command": "systemstudioOs.reportIssue",
+        "title": "CIS 450 / ECE 478: Report an Extension Problem",
+        "icon": "$(issues)"
       },
       {
         "command": "systemstudioOs.createLabWorkspace",

@@ -1,5 +1,11 @@
 # Change log
 
+## 0.9.7 — 2026-08-22
+
+- Added a student-controlled **Report an Extension Problem** workflow in the course tree, Help hub, and Command Palette. It collects only short student-entered descriptions plus version/platform metadata, discloses the exact fields, asks explicit permission, and opens a reviewable public GitHub draft without submitting it.
+- Replaced the remaining sandbox-blocked browser confirmation on **Reset all local learning data** with a VS Code-native modal and made blocked browser modal calls fail the generated-webview release check.
+- Added privacy, URL-construction, command-registration, and packaged-integration regressions for the new reporting path.
+
 ## 0.9.6 — 2026-08-22
 
 - Changed **Create Guided Module Lab** to locate or create one verified portable coursework workspace and open the selected module under its `labs/` directory instead of creating a misleading standalone duplicate.

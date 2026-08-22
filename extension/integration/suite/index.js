@@ -13,6 +13,7 @@ const REQUIRED_COMMANDS = [
   'systemstudioOs.setupCourseEnvironment',
   'systemstudioOs.configureAiAssistance',
   'systemstudioOs.openAiTutor',
+  'systemstudioOs.reportIssue',
   'systemstudioOs.createLabWorkspace',
   'systemstudioOs.runCourseworkPreflight',
   'systemstudioOs.checkEnvironment',

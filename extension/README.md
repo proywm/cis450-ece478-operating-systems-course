@@ -27,8 +27,13 @@ The Fall 2026 Operating Systems learning hub for section 001.
   normalized pre-final standing, and target-final calculation; it applies no
   unverified drop rule and remains visibly separate from official Canvas grades
 - deterministic offline helper with assessed-work guardrails
+- U-M Codex CLI as the only online AI learning/setup coach, using each
+  student's own U-M configuration; the extension does not read or store keys
 - optional original animated learning companion with reduced-motion and
   hide/restore controls
+- consent-based extension issue reporting that prepares a reviewable public
+  GitHub draft without reading files, code, grades, credentials, Canvas data,
+  or logs; GitHub creates nothing until the student submits the draft
 - accessible standalone syllabus and lesson collection
 - verified Fall 2026 meeting calendar and OSTEP preparation-plan export
 - configurable Canvas links with HTTPS/host validation, reviewed-before-save Canvas ICS import,
