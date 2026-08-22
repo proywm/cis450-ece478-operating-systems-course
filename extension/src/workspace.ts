@@ -161,12 +161,14 @@ race:
 	./$(TARGET)-tsan
 
 trace: $(TARGET)
+	@command -v strace >/dev/null 2>&1 || { echo "strace is supplied by the Linux course container; run this target through the documented Docker/Dev Container route."; exit 2; }
 	strace -f -e trace=openat,read,write,fsync,close ./$(TARGET)
 
 clean:
 	rm -rf build
 `;
   }
+  const moduleDirectory = `labs/module-${String(lab.moduleNumber).padStart(2, '0')}`;
   files['README.md'] = `# Module ${lab.moduleNumber}: ${lab.title}
 
 ${lab.purpose}
@@ -175,12 +177,20 @@ ${lab.purpose}
 
 **Boundary:** This is a formative starter. Current Canvas instructions control assessed work and submission.
 
+## Where this lab runs
+
+This folder is part of the generated portable coursework workspace; it is not a standalone toolchain. The workspace root contains \`.devcontainer/Dockerfile\` and \`compose.yaml\`, which supply the same Linux tools on Windows, macOS, and Linux.
+
+- From the workspace root: \`docker compose run --rm oslab bash -lc 'cd ${moduleDirectory} && ${lab.runCommand}'\`
+- After reopening the workspace in its Dev Container: \`cd ${moduleDirectory} && ${lab.runCommand}\`
+- A native macOS/Linux run is optional and may lack Linux-only tools such as \`strace\`; use the container command for release-consistent evidence.
+
 ## Walkthrough
 
 ${lab.steps.map((step, index) => `${index + 1}. ${step.instruction}
    - Evidence: ${step.evidence}`).join('\n')}
 
-Run from this folder: \`${lab.runCommand}\`
+Run inside the course environment using the command above. The lab command itself is \`${lab.runCommand}\`.
 
 ## Explain before leaving
 

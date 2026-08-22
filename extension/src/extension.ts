@@ -684,20 +684,19 @@ async function createModuleLab(moduleNumber?: number): Promise<void> {
     lab = selected?.entry;
   }
   if (!lab) return;
-  const selected = await vscode.window.showOpenDialog({ canSelectFolders: true, canSelectFiles: false, canSelectMany: false, openLabel: 'Choose parent folder' });
-  if (!selected?.[0]) return;
-  const folderName = `cis450-module-${String(lab.moduleNumber).padStart(2, '0')}-${lab.id}`;
-  const root = vscode.Uri.joinPath(selected[0], folderName);
+  const workspaceRoot = await findPortableWorkspace();
+  if (!workspaceRoot) return;
+  const moduleFolder = `module-${String(lab.moduleNumber).padStart(2, '0')}`;
+  const root = vscode.Uri.joinPath(workspaceRoot, 'labs', moduleFolder);
   try {
     await vscode.workspace.fs.stat(root);
-    void vscode.window.showWarningMessage(`Nothing was overwritten: ${root.fsPath} already exists.`);
-    return;
-  } catch {}
-  await vscode.workspace.fs.createDirectory(root);
-  const files = { 'AGENTS.md': courseAgentsMd(), ...labFiles(lab) };
-  for (const [relative, content] of Object.entries(files)) await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(root, relative), Buffer.from(content, 'utf8'));
-  const choice = await vscode.window.showInformationMessage(`Created Module ${lab.moduleNumber} guided lab. Predict first, then use “${lab.runCommand}”.`, 'Open folder');
-  if (choice === 'Open folder') await vscode.commands.executeCommand('vscode.openFolder', root, { forceNewWindow: true });
+  } catch {
+    await vscode.workspace.fs.createDirectory(root);
+    const files = labFiles(lab);
+    for (const [relative, content] of Object.entries(files)) await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(root, relative), Buffer.from(content, 'utf8'));
+  }
+  await vscode.window.showTextDocument(vscode.Uri.joinPath(root, 'README.md'), { preview: false });
+  void vscode.window.showInformationMessage(`Opened Module ${lab.moduleNumber} inside the verified portable coursework workspace. Its README gives the exact Docker and Dev Container commands; no duplicate standalone lab was created.`);
 }
 
 type Xv6Mode = 'pa1a' | 'pa1b' | 'pa2';
@@ -1095,7 +1094,7 @@ async function findPortableWorkspace(): Promise<vscode.Uri | undefined> {
     return vscode.window.showQuickPick(matches.map((uri) => ({ label: uri.path.split('/').pop() ?? uri.fsPath, description: uri.fsPath, uri })), { title: 'Choose the portable OS coursework workspace' }).then((picked) => picked?.uri);
   }
   const choice = await vscode.window.showWarningMessage('Open the workspace created by “Create Portable OS Coursework Workspace” before using its setup guide or preflights.', 'Create workspace');
-  if (choice === 'Create workspace') await createLabWorkspace();
+  if (choice === 'Create workspace') return createLabWorkspace({ promptToOpen: false });
   return undefined;
 }
 

@@ -45,3 +45,18 @@ test('portable workspace Dockerfile is syntactically shaped and has no patch-mar
   assert.match(files['compose.yaml'] ?? '', /dockerfile: \.devcontainer\/Dockerfile/);
   for (const lab of GUIDED_LABS) assert.ok(files[`labs/module-${String(lab.moduleNumber).padStart(2, '0')}/README.md`], lab.id);
 });
+
+test('guided labs live inside the portable workspace and explain Linux-only tools', () => {
+  const files = workspaceFiles();
+  for (const lab of GUIDED_LABS) {
+    const moduleDirectory = `labs/module-${String(lab.moduleNumber).padStart(2, '0')}`;
+    const readme = files[`${moduleDirectory}/README.md`] ?? '';
+    assert.match(readme, /not a standalone toolchain/i, lab.id);
+    assert.match(readme, /\.devcontainer\/Dockerfile/, lab.id);
+    assert.match(readme, /compose\.yaml/, lab.id);
+    assert.match(readme, new RegExp(`docker compose run --rm oslab bash -lc 'cd ${moduleDirectory.replaceAll('/', '\\/')} &&`), lab.id);
+  }
+  const makefile = labFiles(GUIDED_LABS[0]!).Makefile ?? '';
+  assert.match(makefile, /command -v strace/);
+  assert.match(makefile, /strace is supplied by the Linux course container/);
+});

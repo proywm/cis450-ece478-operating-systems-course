@@ -1,5 +1,11 @@
 # Change log
 
+## 0.9.6 — 2026-08-22
+
+- Changed **Create Guided Module Lab** to locate or create one verified portable coursework workspace and open the selected module under its `labs/` directory instead of creating a misleading standalone duplicate.
+- Added exact Docker and Dev Container commands to every generated lab README, with an explicit explanation that the workspace-root Dockerfile and Compose file provide the cross-platform toolchain.
+- Guarded the Linux-only `strace` Make target with an actionable container message and added regressions for workspace placement, documentation, and trace-tool handling.
+
 ## 0.9.5 — 2026-08-21
 
 - Replaced internal audit notes, missing-deck commentary, prior-term assignment references, and historical lab/question citations in all 13 generated student modules with concise OSTEP-to-practice alignment.

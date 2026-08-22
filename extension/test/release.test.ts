@@ -98,3 +98,15 @@ test('every Docker readiness check probes the server rather than docker info', a
   assert.doesNotMatch(sources, /docker['"], \['info'|docker info|ServerVersion/);
   assert.equal((sources.match(/commandVersion\('Docker engine', 'docker', DOCKER_SERVER_VERSION_ARGS\)/g) ?? []).length, 6);
 });
+
+test('Create Guided Module Lab routes into the verified portable workspace', async () => {
+  const source = await readFile(resolve(process.cwd(), 'src/extension.ts'), 'utf8');
+  const start = source.indexOf('async function createModuleLab');
+  const end = source.indexOf('\ntype Xv6Mode', start);
+  assert.ok(start >= 0 && end > start);
+  const implementation = source.slice(start, end);
+  assert.match(implementation, /findPortableWorkspace\(\)/);
+  assert.match(implementation, /vscode\.Uri\.joinPath\(workspaceRoot, 'labs', moduleFolder\)/);
+  assert.match(implementation, /no duplicate standalone lab was created/);
+  assert.doesNotMatch(implementation, /showOpenDialog|cis450-module-/);
+});
